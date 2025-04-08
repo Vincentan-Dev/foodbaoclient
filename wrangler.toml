@@ -3,6 +3,10 @@ name = "foodbaoclient"
 compatibility_date = "2023-10-16"
 pages_build_output_dir = "public"
 
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
 # For local development only, use placeholder values 
 # that will be overridden by Cloudflare dashboard settings in production
 [vars]
