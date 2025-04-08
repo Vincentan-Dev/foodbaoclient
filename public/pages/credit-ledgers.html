@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Ledgers | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 70px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Card styles */
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+        
+        .card-header {
+            background: white;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+        
+        /* Floating buttons */
+        .floating-btn {
+            position: fixed;
+            bottom: 16px;
+            z-index: 1000;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .floating-btn-back {
+            left: 16px;
+            background-color: rgba(52, 152, 219, 0.9);
+        }
+        
+        .floating-btn-add {
+            right: 16px;
+            background-color: rgba(46, 204, 113, 0.9);
+        }
+
+        /* Credit ledger specific styles */
+        .ledger-grid {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .ledger-table th {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-align: left;
+        }
+        
+        .ledger-table td {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+        
+        .ledger-table tr:hover {
+            background-color: rgba(0,123,255,0.03);
+        }
+        
+        .transaction-pill {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .transaction-credit {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #27ae60;
+        }
+        
+        .transaction-debit {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #c0392b;
+        }
+        
+        .transaction-adjustment {
+            background-color: rgba(52, 152, 219, 0.15);
+            color: #2980b9;
+        }
+        
+        .amount-positive {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .amount-negative {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        /* Filters */
+        .filters-card {
+            margin-bottom: 15px;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Client selector */
+        .client-selector {
+            margin-bottom: 15px;
+        }
+        
+        .client-balance-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .balance-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+        
+        .balance-body {
+            padding: 15px;
+        }
+        
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .balance-positive {
+            color: #27ae60;
+        }
+        
+        .balance-negative {
+            color: #e74c3c;
+        }
+        
+        .balance-neutral {
+            color: #7f8c8d;
+        }
+        
+        /* Summary Card */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+        
+        /* Compact layout adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 8px !important;
+                max-width: 100%;
+            }
+            
+            .dashboard-header {
+                padding: 8px !important;
+                margin-bottom: 8px !important;
+            }
+            
+            .card-header {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .balance-amount {
+                font-size: 1.5rem;
+            }
+            
+            .ledger-table th,
+            .ledger-table td {
+                padding: 6px 8px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Loading spinner */
+        .spinner-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+        
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .page-item {
+            margin: 0 3px;
+        }
+        
+        .page-link {
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        /* Modal styles */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 15px 20px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header - Fixed -->
+        <div class="dashboard-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Credit Ledgers</h2>
+                    <p class="mb-0">Manage client credits and transactions</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <small class="mb-0">Last updated: <span id="lastUpdated">Loading...</span></small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Selection -->
+        <div class="card client-selector">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Select Client</span>
+                <button class="btn btn-sm btn-outline-primary" type="button" id="refreshClientsList">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <select class="form-select" id="clientSelect">
+                    <option value="">-- Select a client --</option>
+                    <!-- Clients will be populated here -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Current Balance (visible when client is selected) -->
+        <div class="client-balance-card" id="balanceCard" style="display: none;">
+            <div class="balance-header">
+                Current Credit Balance
+            </div>
+            <div class="balance-body">
+                <div class="balance-amount" id="currentBalance">₱0.00</div>
+                <div class="text-muted small" id="clientName">Client Name</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card filters-card" id="filtersCard" style="display: none;">
+            <div class="card-header">
+                Transaction Filters
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label">Date Range</label>
+                        <div class="date-range">
+                            <input type="text" class="form-control" id="startDate" placeholder="Start Date">
+                            <input type="text" class="form-control" id="endDate" placeholder="End Date">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Transaction Type</label>
+                        <select class="form-select" id="transactionType">
+                            <option value="">All Types</option>
+                            <option value="CREDIT">Credit</option>
+                            <option value="DEBIT">Debit</option>
+                            <option value="ADJUSTMENT">Adjustment</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" id="applyFilters">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Card (visible when client is selected) -->
+        <div class="card" id="summaryCard" style="display: none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Transaction Summary</span>
+                <div>
+                    <span class="badge bg-light text-dark" id="transactionCount">0 transactions</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="summary-item">
+                    <div>Total Credits:</div>
+                    <div class="amount-positive" id="totalCredits">₱0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div>Total Debits:</div>
+                    <div class="amount-negative" id="totalDebits">₱0.00</div>
+                </div>
+                <div class="summary-item">
+                    <div>Net Change:</div>
+                    <div id="netChange">₱0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ledger Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Transaction History</span>
+                <button class="btn btn-sm btn-outline-secondary" id="exportBtn">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="ledger-grid">
+                    <table class="ledger-table" id="ledgerTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-end">Opening</th>
+                                <th class="text-end">Closing</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerTableBody">
+                            <!-- Transactions will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty state -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h6>No Transactions Found</h6>
+                    <p class="text-muted small">Select a client to view their credit ledger</p>
+                </div>
+                
+                <!-- Loading spinner -->
+                <div class="spinner-container" id="loadingSpinner" style="display: none;">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading transactions...</span>
+                </div>
+                
+                <!-- Pagination controls -->
+                <div class="pagination-container" id="paginationContainer" style="display: none;">
+                    <ul class="pagination pagination-sm">
+                        <!-- Pagination will be populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Back Button -->
+    <button class="floating-btn floating-btn-back" id="backBtn" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <!-- Floating Add Transaction Button -->
+    <button class="floating-btn floating-btn-add" id="addTransactionBtn" title="Add Transaction" style="display: none;">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- Add/Edit Transaction Modal -->
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transactionModalLabel">Add Credit Transaction</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="transactionForm">
+                        <input type="hidden" id="clientUsername">
+                        
+                        <div class="mb-3">
+                            <label for="transactionTypeInput" class="form-label">Transaction Type</label>
+                            <select class="form-select" id="transactionTypeInput" required>
+                                <option value="CREDIT">Credit (Add Funds)</option>
+                                <option value="DEBIT">Debit (Use Funds)</option>
+                                <option value="ADJUSTMENT">Adjustment</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="amountInput" class="form-label">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input type="number" class="form-control" id="amountInput" step="0.01" min="0.01" required placeholder="0.00">
+                            </div>
+                            <small class="form-text text-muted" id="balanceAfterTransaction"></small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="descriptionInput" class="form-label">Description</label>
+                            <textarea class="form-control" id="descriptionInput" rows="3" placeholder="Enter transaction details"></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-success" id="saveTransactionBtn">
+                                <i class="fas fa-save me-1"></i> Save Transaction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 5">
+        <div id="toastNotification" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Global variables
+        let currentUsername = null;
+        let currentClientData = null;
+        let transactions = [];
+        let currentPage = 1;
+        let itemsPerPage = 20;
+        
+        // DOM Elements
+        const clientSelect = document.getElementById('clientSelect');
+        const balanceCard = document.getElementById('balanceCard');
+        const filtersCard = document.getElementById('filtersCard');
+        const summaryCard = document.getElementById('summaryCard');
+        const currentBalance = document.getElementById('currentBalance');
+        const clientName = document.getElementById('clientName');
+        const ledgerTableBody = document.getElementById('ledgerTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const addTransactionBtn = document.getElementById('addTransactionBtn');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        
+        // Initialize date pickers
+        flatpickr("#startDate", {
+            dateFormat: "Y-m-d",
+            maxDate: "today"
+        });
+        
+        flatpickr("#endDate", {
+            dateFormat: "Y-m-d",
+            maxDate: "today"
+        });
+        
+        // Modal elements
+        const transactionModal = new bootstrap.Modal(document.getElementById('transactionModal'));
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadClients();
+            updateDateTime();
+        });
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            document.getElementById('refreshClientsList').addEventListener('click', loadClients);
+            
+            clientSelect.addEventListener('change', function() {
+                const username = this.value;
+                if (username) {
+                    currentUsername = username;
+                    loadClientDetails(username);
+                    loadClientLedger(username);
+                    addTransactionBtn.style.display = 'flex';
+                    filtersCard.style.display = 'block';
+                } else {
+                    currentUsername = null;
+                    resetView();
+                }
+            });
+            
+            document.getElementById('applyFilters').addEventListener('click', function() {
+                if (currentUsername) {
+                    loadClientLedger(currentUsername);
+                }
+            });
+            
+            document.getElementById('backBtn').addEventListener('click', function() {
+                window.location.href = '../index.html';
+            });
+            
+            document.getElementById('addTransactionBtn').addEventListener('click', function() {
+                openTransactionModal();
+            });
+            
+            document.getElementById('transactionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveTransaction();
+            });
+            
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                if (transactions.length > 0) {
+                    exportToCSV();
+                } else {
+                    showToast('No data to export', 'Please select a client with transactions first', 'warning');
+                }
+            });
+            
+            // Calculate balance after transaction
+            document.getElementById('amountInput').addEventListener('input', updateBalancePreview);
+            document.getElementById('transactionTypeInput').addEventListener('change', updateBalancePreview);
+        }
+        
+        // Reset view when no client is selected
+        function resetView() {
+            balanceCard.style.display = 'none';
+            filtersCard.style.display = 'none';
+            summaryCard.style.display = 'none';
+            addTransactionBtn.style.display = 'none';
+            emptyState.style.display = 'block';
+            emptyState.querySelector('p').textContent = 'Select a client to view their credit ledger';
+            ledgerTableBody.innerHTML = '';
+            paginationContainer.style.display = 'none';
+            transactions = [];
+        }
+        
+        // Load clients list
+        async function loadClients() {
+            try {
+                clientSelect.disabled = true;
+                clientSelect.innerHTML = '<option value="">Loading clients...</option>';
+                
+                // Use the new minimal clients API endpoint
+                const response = await fetch('/api/clients-minimal');
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    // Sort clients by name
+                    const clients = data.data.sort((a, b) => {
+                        return a.BUSINESSNAME.localeCompare(b.BUSINESSNAME);
+                    });
+                    
+                    // Populate dropdown
+                    clientSelect.innerHTML = '<option value="">-- Select a client --</option>';
+                    
+                    clients.forEach(client => {
+                        const option = document.createElement('option');
+                        option.value = client.USERNAME;
+                        option.textContent = `${client.BUSINESSNAME || client.USERNAME}`;
+                        option.dataset.balance = client.CREDIT_BALANCE || 0;
+                        clientSelect.appendChild(option);
+                    });
+                    
+                    // If we had a selected client, try to reselect it
+                    if (currentUsername) {
+                        clientSelect.value = currentUsername;
+                        
+                        // If we have the balance already, update it immediately
+                        const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+                        if (selectedOption && selectedOption.dataset.balance) {
+                            updateBalanceDisplay(selectedOption.dataset.balance, selectedOption.textContent);
+                        }
+                    }
+                } else {
+                    showToast('Error', data.message || 'Failed to load clients', 'error');
+                    clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+                }
+            } catch (error) {
+                console.error('Error loading clients:', error);
+                showToast('Error', 'Failed to load clients list', 'error');
+                clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+            } finally {
+                clientSelect.disabled = false;
+            }
+        }
+        
+        // Load client details - simplified to use data from the dropdown
+        async function loadClientDetails(username) {
+            try {
+                const selectedOption = Array.from(clientSelect.options).find(option => option.value === username);
+                if (!selectedOption) {
+                    showToast('Error', 'Client not found in dropdown', 'error');
+                    balanceCard.style.display = 'none';
+                    return;
+                }
+                
+                const balance = parseFloat(selectedOption.dataset.balance) || 0;
+                const businessName = selectedOption.textContent;
+                
+                // Set client data for other functions to use
+                currentClientData = {
+                    USERNAME: username,
+                    BUSINESSNAME: businessName,
+                    CREDIT_BALANCE: balance
+                };
+                
+                // Update balance display
+                updateBalanceDisplay(balance, businessName);
+            } catch (error) {
+                console.error('Error loading client details:', error);
+                showToast('Error', 'Failed to load client details', 'error');
+            }
+        }
+        
+        // Helper function to update the balance display
+        function updateBalanceDisplay(balance, businessName) {
+            // Update balance card
+            balanceCard.style.display = 'block';
+            currentBalance.textContent = formatCurrency(balance);
+            clientName.textContent = businessName;
+            
+            // Set balance color
+            if (balance > 0) {
+                currentBalance.className = 'balance-amount balance-positive';
+            } else if (balance < 0) {
+                currentBalance.className = 'balance-amount balance-negative';
+            } else {
+                currentBalance.className = 'balance-amount balance-neutral';
+            }
+        }
+        
+        // Load client ledger
+        async function loadClientLedger(username) {
+            // Show loading spinner and hide other states
+            loadingSpinner.style.display = 'block';
+            emptyState.style.display = 'none';
+            ledgerTableBody.innerHTML = '';
+            paginationContainer.style.display = 'none';
+            
+            try {
+                // Get filter values
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const transactionType = document.getElementById('transactionType').value;
+                
+                // Build query params
+                let queryParams = `username=${encodeURIComponent(username)}`;
+                if (startDate) queryParams += `&startDate=${encodeURIComponent(startDate)}`;
+                if (endDate) queryParams += `&endDate=${encodeURIComponent(endDate)}`;
+                if (transactionType) queryParams += `&transactionType=${encodeURIComponent(transactionType)}`;
+                
+                const response = await fetch(`/api/credit-ledgers?${queryParams}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    transactions = data.data || [];
+                    
+                    // Update UI
+                    if (transactions.length === 0) {
+                        showEmptyState();
+                    } else {
+                        renderTransactions();
+                        updateSummary();
+                    }
+                } else {
+                    showToast('Error', data.message || 'Failed to load transactions', 'error');
+                    showEmptyState('Failed to load transactions');
+                }
+            } catch (error) {
+                console.error('Error loading ledger:', error);
+                showToast('Error', 'Failed to load credit ledger', 'error');
+                showEmptyState('Error loading transactions');
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+        
+        // Render transactions
+        function renderTransactions() {
+            ledgerTableBody.innerHTML = '';
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(transactions.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, transactions.length);
+            const currentPageItems = transactions.slice(startIndex, endIndex);
+            
+            // Render table rows
+            currentPageItems.forEach(transaction => {
+                const row = document.createElement('tr');
+                
+                // Format date
+                const transactionDate = new Date(transaction.transaction_date);
+                const formattedDate = transactionDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Transaction type pill
+                let typeClass = '';
+                switch (transaction.transaction_type) {
+                    case 'CREDIT':
+                        typeClass = 'transaction-credit';
+                        break;
+                    case 'DEBIT':
+                        typeClass = 'transaction-debit';
+                        break;
+                    case 'ADJUSTMENT':
+                        typeClass = 'transaction-adjustment';
+                        break;
+                }
+                
+                // Amount format with +/- prefix
+                const amount = transaction.amount;
+                const amountClass = amount >= 0 ? 'amount-positive' : 'amount-negative';
+                const amountPrefix = amount >= 0 ? '+' : '';
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td><span class="transaction-pill ${typeClass}">${transaction.transaction_type}</span></td>
+                    <td>${transaction.description || '-'}</td>
+                    <td class="text-end ${amountClass}">${amountPrefix}${formatCurrency(amount)}</td>
+                    <td class="text-end">${formatCurrency(transaction.opening_balance)}</td>
+                    <td class="text-end">${formatCurrency(transaction.closing_balance)}</td>
+                `;
+                
+                ledgerTableBody.appendChild(row);
+            });
+            
+            // Update pagination
+            if (totalPages > 1) {
+                renderPagination(totalPages);
+                paginationContainer.style.display = 'flex';
+            } else {
+                paginationContainer.style.display = 'none';
+            }
+            
+            // Update transaction count badge
+            document.getElementById('transactionCount').textContent = `${transactions.length} transactions`;
+        }
+        
+        // Render pagination controls
+        function renderPagination(totalPages) {
+            const paginationList = document.querySelector('.pagination');
+            paginationList.innerHTML = '';
+            
+            // Previous button
+            const prevItem = document.createElement('li');
+            prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevItem.innerHTML = `<button class="page-link" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+            prevItem.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTransactions();
+                }
+            });
+            paginationList.appendChild(prevItem);
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                // If many pages, add ellipsis
+                if (totalPages > 7) {
+                    if (i !== 1 && i !== totalPages && 
+                        (i < currentPage - 1 || i > currentPage + 1) &&
+                        (i !== currentPage)) {
+                        if (i === 2 || i === totalPages - 1) {
+                            const ellipsis = document.createElement('li');
+                            ellipsis.className = 'page-item disabled';
+                            ellipsis.innerHTML = '<span class="page-link">...</span>';
+                            paginationList.appendChild(ellipsis);
+                        }
+                        continue;
+                    }
+                }
+                
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
+                pageItem.innerHTML = `<button class="page-link">${i}</button>`;
+                pageItem.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTransactions();
+                });
+                paginationList.appendChild(pageItem);
+            }
+            
+            // Next button
+            const nextItem = document.createElement('li');
+            nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextItem.innerHTML = `<button class="page-link" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+            nextItem.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTransactions();
+                }
+            });
+            paginationList.appendChild(nextItem);
+        }
+        
+        // Update summary card
+        function updateSummary() {
+            if (transactions.length === 0) {
+                summaryCard.style.display = 'none';
+                return;
+            }
+            
+            let totalCredits = 0;
+            let totalDebits = 0;
+            
+            transactions.forEach(transaction => {
+                const amount = parseFloat(transaction.amount);
+                if (amount > 0) {
+                    totalCredits += amount;
+                } else if (amount < 0) {
+                    totalDebits += Math.abs(amount);
+                }
+            });
+            
+            const netChange = totalCredits - totalDebits;
+            
+            document.getElementById('totalCredits').textContent = formatCurrency(totalCredits);
+            document.getElementById('totalDebits').textContent = formatCurrency(totalDebits);
+            
+            const netChangeElement = document.getElementById('netChange');
+            netChangeElement.textContent = formatCurrency(netChange);
+            
+            if (netChange > 0) {
+                netChangeElement.className = 'amount-positive';
+            } else if (netChange < 0) {
+                netChangeElement.className = 'amount-negative';
+            } else {
+                netChangeElement.className = '';
+            }
+            
+            summaryCard.style.display = 'block';
+        }
+        
+        // Show empty state
+        function showEmptyState(message = 'No transactions found for this client') {
+            emptyState.style.display = 'block';
+            emptyState.querySelector('p').textContent = message;
+            ledgerTableBody.innerHTML = '';
+            paginationContainer.style.display = 'none';
+            summaryCard.style.display = 'none';
+        }
+        
+        // Open transaction modal
+        function openTransactionModal() {
+            if (!currentClientData) return;
+            
+            // Reset form
+            document.getElementById('transactionForm').reset();
+            document.getElementById('clientUsername').value = currentClientData.USERNAME;
+            
+            // Set default values
+            document.getElementById('transactionTypeInput').value = 'CREDIT';
+            
+            // Show modal
+            transactionModal.show();
+        }
+        
+        // Update balance preview
+        function updateBalancePreview() {
+            if (!currentClientData) return;
+            
+            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            const type = document.getElementById('transactionTypeInput').value;
+            const currentCredit = parseFloat(currentClientData.CREDIT_BALANCE) || 0;
+            
+            let newBalance = currentCredit;
+            
+            if (type === 'CREDIT') {
+                newBalance = currentCredit + amount;
+            } else if (type === 'DEBIT') {
+                newBalance = currentCredit - amount;
+            } else if (type === 'ADJUSTMENT') {
+                // Adjustment will set the balance to the specified amount
+                newBalance = amount;
+            }
+            
+            const balanceText = document.getElementById('balanceAfterTransaction');
+            balanceText.textContent = `Balance after transaction: ${formatCurrency(newBalance)}`;
+            
+            if (newBalance < 0) {
+                balanceText.className = 'form-text text-danger';
+            } else {
+                balanceText.className = 'form-text text-muted';
+            }
+        }
+        
+        // Save transaction
+        async function saveTransaction() {
+            const saveBtn = document.getElementById('saveTransactionBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            
+            try {
+                const username = document.getElementById('clientUsername').value;
+                const type = document.getElementById('transactionTypeInput').value;
+                let amount = parseFloat(document.getElementById('amountInput').value);
+                const description = document.getElementById('descriptionInput').value;
+                
+                if (!username || isNaN(amount) || amount <= 0) {
+                    throw new Error('Please enter a valid amount greater than zero.');
+                }
+                
+                // For DEBIT transactions, convert amount to negative
+                if (type === 'DEBIT') {
+                    amount = -Math.abs(amount);
+                }
+                
+                console.log(`Submitting transaction: Username=${username}, Type=${type}, Amount=${amount}`);
+                
+                const transactionData = {
+                    username,
+                    transaction_type: type,
+                    amount,
+                    description: description || `${type} transaction`
+                };
+                
+                const response = await fetch('/api/credit-ledgers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(transactionData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: `Server error: ${response.status}` }));
+                    console.error('Error response:', errorData);
+                    throw new Error(errorData.message || `Failed to save transaction (${response.status})`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Success', 'Transaction recorded successfully', 'success');
+                    transactionModal.hide();
+                    
+                    // Refresh client details and ledger
+                    loadClientDetails(username);
+                    loadClientLedger(username);
+                    
+                    // Update the selected client's balance in the dropdown
+                    const selectedOption = Array.from(clientSelect.options).find(option => option.value === username);
+                    if (selectedOption && data.data && data.data.new_balance !== undefined) {
+                        selectedOption.dataset.balance = data.data.new_balance;
+                    }
+                } else {
+                    showToast('Error', data.message || 'Failed to save transaction', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving transaction:', error);
+                showToast('Error', error.message || 'An error occurred while saving the transaction', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Transaction';
+            }
+        }
+        
+        // Export to CSV
+        function exportToCSV() {
+            if (!transactions.length) return;
+            
+            const headers = ['Date', 'Type', 'Description', 'Amount', 'Opening Balance', 'Closing Balance'];
+            
+            // Format the data
+            const csvData = transactions.map(t => [
+                new Date(t.transaction_date).toLocaleString(),
+                t.transaction_type,
+                t.description || '',
+                t.amount,
+                t.opening_balance,
+                t.closing_balance
+            ]);
+            
+            // Prepare CSV content
+            let csvContent = headers.join(',') + '\n';
+            csvData.forEach(row => {
+                csvContent += row.map(cell => {
+                    // Quote cells that contain commas
+                    if (typeof cell === 'string' && cell.includes(',')) {
+                        return `"${cell}"`;
+                    }
+                    return cell;
+                }).join(',') + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `credit-ledger-${currentUsername}-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Show toast notification
+        function showToast(title, message, type = 'info') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // Remove existing classes
+            toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'text-white');
+            
+            // Add appropriate classes based on type
+            switch (type) {
+                case 'success':
+                    toast.classList.add('bg-success', 'text-white');
+                    break;
+                case 'error':
+                    toast.classList.add('bg-danger', 'text-white');
+                    break;
+                case 'warning':
+                    toast.classList.add('bg-warning');
+                    break;
+                default:
+                    toast.classList.add('bg-info', 'text-white');
+            }
+            
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+        
+        // Update date/time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            lastUpdatedElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+    </script>
+</body>
+</html>

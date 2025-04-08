@@ -21,7 +21,7 @@
         
         /* Fixed top nav positioning */
         body {
-            padding-top: 56px; /* Reduced from 64px */
+            padding-top: 56px;
             background-color: #f5f5f5;
         }
         
@@ -357,63 +357,256 @@
             font-weight: 500;
             color: #00796b;
         }
+
+        /* Better button styling for actions */
+        #delete-client-btn {
+            margin-left: 10px;
+            padding: 0 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        #delete-client-btn:hover {
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+
+        #save-btn {
+            border-radius: 4px;
+            height: 32px;
+            line-height: 32px;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #save-btn i {
+            margin-right: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.9);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .client-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .client-header-actions .btn-flat {
+            padding: 0 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .client-header-actions .btn-flat:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Add these styles to your existing CSS */
+        .image-upload-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px dashed #e0e0e0;
+            border-radius: 4px;
+            background-color: #fafafa;
+            position: relative;
+        }
+
+        .current-image-preview {
+            text-align: center;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* Prevent image overflow */
+        }
+
+        .current-image-preview img {
+            max-height: 200px;
+            width: auto;
+            object-fit: contain; /* Maintain aspect ratio */
+            transition: all 0.2s ease-in-out; /* Smooth transitions */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+            border-radius: 2px; /* Slightly rounded corners */
+        }
+
+        /* Hover effect for better viewing */
+        .current-image-preview img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .image-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .upload-progress {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .upload-progress .progress {
+            margin: 0;
+        }
+
+        /* Camera view styling */
+        #camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #camera-view {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: cover;
+        }
+
+        /* Camera flipped for selfie mode */
+        #camera-view.front-camera {
+            transform: scaleX(-1);
+        }
+
+        /* Enlarge the camera modal */
+        #camera-modal {
+            width: 90% !important; 
+            max-height: 90% !important;
+            top: 5% !important;
+        }
+
+        /* Style for disabled image controls */
+        .upload-btn.disabled, .camera-btn.disabled, .remove-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Enhanced styling for disabled buttons */
+        .upload-btn.disabled, 
+        .camera-btn.disabled, 
+        .remove-btn.disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+            background-color: #f5f5f5 !important;
+            color: #9e9e9e !important;
+        }
+
+        /* Add visual indicator for view mode */
+        .image-upload-container {
+            position: relative;
+        }
+
+        .form-container:not(.editing) .image-upload-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(245, 245, 245, 0.5);
+            pointer-events: none;
+        }
+
+        /* Ensure camera modal looks good */
+        #camera-modal {
+            width: 90% !important; 
+            max-height: 90% !important;
+            top: 5% !important;
+        }
+
+        #camera-modal .modal-content {
+            padding-bottom: 10px;
+        }
+
+        #camera-modal .modal-footer {
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        #capture-photo {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            font-weight: bold;
+            padding: 0 20px;
+            height: 36px;
+            line-height: 36px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 100; /* Ensure it's above other elements */
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 
+                        0 3px 1px -2px rgba(0,0,0,0.12), 
+                        0 1px 5px 0 rgba(0,0,0,0.2);
+        }
+
+        #capture-photo:hover {
+            background-color: #45a049;
+        }
+
+        #capture-photo:active {
+            background-color: #3e8e41;
+        }
+
+        /* Make sure camera view is visible */
+        #camera-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #camera-view {
+            width: 100%;
+            min-height: 300px;
+            max-height: 50vh;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Add to your styles */
+        .current-image-preview img.loading {
+            opacity: 0.6;
+            filter: blur(2px);
+        }
+
+        /* Add animation for loading state */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.6; }
+        }
+
+        .current-image-preview img.loading {
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 <body>
-    <script>
-        // Enhanced authentication check for Firebase deployment
-        (async function validateAuthForFirebase() {
-            const authToken = localStorage.getItem('auth_token');
-            const username = localStorage.getItem('username');
-            const isFirebaseHosting = window.location.hostname.includes('firebaseapp.com') || 
-                                     window.location.hostname.includes('web.app');
-            
-            console.log('Environment:', isFirebaseHosting ? 'Firebase Hosting' : 'Local Server');
-            
-            if (!authToken || !username) {
-                console.warn('No authentication data found, redirecting to login');
-                window.location.href = '../login.html';
-                return;
-            }
-            
-            // Check if we need to refresh the token
-            let needsRefresh = false;
-            
-            // Check token timestamp
-            const tokenTimestamp = localStorage.getItem('token_timestamp');
-            if (!tokenTimestamp) {
-                // No timestamp, store current time
-                localStorage.setItem('token_timestamp', new Date().getTime());
-            } else {
-                // Check if token is older than 50 minutes (3000000 ms)
-                const currentTime = new Date().getTime();
-                if ((currentTime - parseInt(tokenTimestamp)) > 3000000) {
-                    console.log('Token might be expired, attempting refresh');
-                    needsRefresh = true;
-                }
-            }
-            
-            // Force token refresh for Firebase environment to ensure fresh token
-            if (isFirebaseHosting || needsRefresh) {
-                try {
-                    console.log('Attempting token refresh...');
-                    const refreshResult = await authService.refreshAuthToken();
-                    if (refreshResult.success) {
-                        console.log('Token refreshed successfully');
-                    } else {
-                        console.warn('Token refresh failed, redirecting to login');
-                        window.location.href = '../login.html';
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error during token refresh:', error);
-                    window.location.href = '../login.html';
-                    return;
-                }
-            }
-        })();
-    </script>
-
     <!-- Header Component -->
     <app-header></app-header>
    
@@ -421,101 +614,380 @@
     <main class="full-width-container">
         <section id="app-content">
             <div class="card-panel">
+                <!-- Updated client header without avatar circle or ID display -->
                 <div class="client-header">
-                    <div class="back-btn" onclick="window.history.back()" style="margin-right: 15px; cursor: pointer;">
-                        <i class="material-icons">arrow_back</i>
-                    </div>
-                    <div class="client-avatar" id="client-avatar">A</div>
+                    
                     <div class="client-title">
                         <h5 id="client-name">Client Name</h5>
-                        <p id="client-id">ID: 12345</p>
                     </div>
                     
                     <!-- Credit balance indicator - clickable -->
-                    <a href="client-credits.html?id=${clientId}" class="credit-balance-indicator tooltipped" 
+                    <a href="#" class="credit-balance-indicator tooltipped" 
                        data-position="bottom" data-tooltip="Manage credit tokens">
                         <i class="material-icons">account_balance_wallet</i>
-                        <span id="credit-balance" class="credit-balance-text">150</span>
+                        <span id="credit-balance" class="credit-balance-text">0</span>
                     </a>
-                    
-                    <div class="edit-toggle" style="margin-left: auto; display: flex; align-items: center;">
-                        <!-- Save icon that only shows in edit mode -->
-                        <a href="#!" id="save-btn" class="waves-effect waves-light" 
-                           style="display: none; margin-right: 10px; color: #26a69a;">
+
+                    <!-- Header actions container -->
+                    <div class="client-header-actions" style="margin-left: auto; display: flex; align-items: center;">
+                        <!-- Save button with icon only -->
+                        <a href="#!" id="save-btn" class="teal-text btn-flat tooltipped" 
+                           data-position="bottom" data-tooltip="Save changes" style="display: none;">
                             <i class="material-icons">save</i>
                         </a>
-                        <div class="switch">
-                            <label>
-                                View
-                                <input type="checkbox" id="edit-mode">
-                                <span class="lever"></span>
-                                Edit
-                            </label>
+                        
+                        <!-- Delete client button - hidden for new records -->
+                        <a href="#!" id="delete-client-btn" class="red-text btn-flat tooltipped" 
+                           data-position="bottom" data-tooltip="Delete client" style="display: none;">
+                            <i class="material-icons">delete</i>
+                        </a>
+                        
+                        <!-- Edit toggle switch -->
+                        <div class="edit-toggle" style="margin-left: 10px; display: flex; align-items: center;">
+                            <div class="switch">
+                                <label>
+                                    View
+                                    <input type="checkbox" id="edit-mode">
+                                    <span class="lever"></span>
+                                    Edit
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Rest of your existing content -->
+                <!-- Tabs Navigation -->
                 <div class="tabs-container">
-                    <ul id="client-tabs" class="tabs">
-                        <li class="tab col s3"><a class="active" href="#info">Info</a></li>
-                        <li class="tab col s3"><a href="#orders">Orders</a></li>
-                        <li class="tab col s3"><a href="#settings">Settings</a></li>
-                        <li class="tab col s3"><a href="#credits">Credits</a></li>
-                        <li class="tab col s3"><a href="#cloudinary">Cloudinary</a></li>
+                    <ul class="tabs tabs-fixed-width">
+                        <li class="tab"><a href="#business-info" class="active">Business</a></li>
+                        <li class="tab"><a href="#contact-info">Contact</a></li>
+                        <li class="tab"><a href="#financial-info">Financial</a></li>
+                        <li class="tab"><a href="#system-info">System</a></li>
+                        <li class="tab"><a href="#images-info">Images</a></li>
                     </ul>
                 </div>
-                
-                <div id="info" class="tab-content">
+
+                <!-- Tab Content -->
+                <div id="business-info" class="tab-content">
                     <div class="form-container">
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="first_name" type="text" class="validate" value="John" readonly>
-                                    <label for="first_name">First Name</label>
+                        <!-- Business Information Section - UPDATED with username field at top -->
+                        <div class="section-divider">
+                            <h6 class="section-title">Business Information</h6>
+                            <!-- Username field moved here from contact tab -->
+                            <div class="form-row">
+                                <div class="form-col s12">
+                                    <div class="input-field">
+                                        <input id="username" type="text" class="validate" 
+                                               pattern="[A-Z0-9_\-\.@]+" 
+                                               title="Username can only contain uppercase letters, numbers, and symbols: _ - . @"
+                                               autocomplete="off" autocapitalize="characters">
+                                        <label for="username">Username (Primary ID)</label>
+                                        <small class="helper-text">Uppercase letters, numbers and symbols only. No spaces or Chinese characters.</small>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="last_name" type="text" class="validate" value="Doe" readonly>
-                                    <label for="last_name">Last Name</label>
+                            
+                            <!-- User Role field -->
+                            <div class="form-row">
+                                <div class="form-col s12">
+                                    <div class="input-field">
+                                        <select id="user_role" disabled>
+                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="AGENT">AGENT</option>
+                                            <option value="CLIENT">CLIENT</option>
+                                            <option value="CUSTOMER">CUSTOMER</option>
+                                        </select>
+                                        <label for="user_role">User Role</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Original business name fields -->
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="businessname" type="text" class="validate" readonly>
+                                        <label for="businessname">Business Name</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="businesschn" type="text" class="validate" readonly>
+                                        <label for="businesschn">Business Name (Chinese)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Rest of business fields remain unchanged -->
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <select id="client_type" disabled>
+                                            <option value="" disabled selected>Select Type</option>
+                                            <option value="RESTAURANT">Restaurant</option>
+                                            <option value="HAWKER">Hawker</option>
+                                            <option value="CATERING">Catering</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                        <label>Client Type</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="catogery" type="text" class="validate" readonly>
+                                        <label for="catogery">Category</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="hawkerid" type="text" class="validate" readonly>
+                                        <label for="hawkerid">Hawker ID</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <select id="status" disabled>
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="INACTIVE">Inactive</option>
+                                            <option value="SUSPENDED">Suspended</option>
+                                        </select>
+                                        <label>Status</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-col s12">
-                                <div class="input-field">
-                                    <input id="email" type="email" class="validate" value="john.doe@example.com" readonly>
-                                    <label for="email">Email</label>
+
+                        <!-- Address Section -->
+                        <div class="section-divider">
+                            <h6 class="section-title">Address</h6>
+                            <div class="form-row">
+                                <div class="form-col s12">
+                                    <div class="input-field">
+                                        <textarea id="address" class="materialize-textarea" readonly></textarea>
+                                        <label for="address">Address</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col s12">
-                                <div class="input-field">
-                                    <textarea id="address" class="materialize-textarea" readonly>123 Main St, Anytown, USA</textarea>
-                                    <label for="address">Address</label>
+                            <div class="form-row">
+                                <div class="form-col s4">
+                                    <div class="input-field">
+                                        <input id="city" type="text" class="validate" readonly>
+                                        <label for="city">City</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s4">
+                                    <div class="input-field">
+                                        <input id="state" type="text" class="validate" readonly>
+                                        <label for="state">State</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s4">
+                                    <div class="input-field">
+                                        <input id="country" type="text" class="validate" readonly>
+                                        <label for="country">Country</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="orders" class="tab-content">
-                    <p>Orders content goes here.</p>
-                </div>
-                <div id="settings" class="tab-content">
-                    <p>Settings content goes here.</p>
-                </div>
-                <div id="credits" class="tab-content">
-                    <p>Credits content goes here.</p>
+
+                <!-- Contact Tab - UPDATED with username field removed -->
+                <div id="contact-info" class="tab-content">
+                    <div class="form-container">
+                        <div class="section-divider">
+                            <h6 class="section-title">Contact Information</h6>
+                            <div class="form-row">
+                                <div class="form-col s12">
+                                    <div class="input-field">
+                                        <input id="contact_person" type="text" class="validate" readonly>
+                                        <label for="contact_person">Contact Person</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="email" type="email" class="validate" readonly>
+                                        <label for="email">Email</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="phone_number" type="text" class="validate" readonly>
+                                        <label for="phone_number">Phone Number</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="cloudinary" class="tab-content">
-                    <p>Cloudinary content goes here.</p>
+                <!-- Financial Tab -->
+                <div id="financial-info" class="tab-content">
+                    <div class="form-container">
+                        <div class="section-divider">
+                            <h6 class="section-title">Pricing Information</h6>
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="credit_balance" type="number" step="0.01" class="validate" readonly>
+                                        <label for="credit_balance">Credit Balance</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="daily_rate" type="number" step="0.01" class="validate" readonly>
+                                        <label for="daily_rate">Daily Rate</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Tab -->
+                <div id="system-info" class="tab-content">
+                    <div class="form-container">
+                        <div class="section-divider">
+                            <h6 class="section-title">System Information</h6>
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="created_at" type="text" class="validate" readonly>
+                                        <label for="created_at">Created At</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="created_by" type="text" class="validate" readonly>
+                                        <label for="created_by">Created By</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="updated_at" type="text" class="validate" readonly>
+                                        <label for="updated_at">Updated At</label>
+                                    </div>
+                                </div>
+                                <div class="form-col s6">
+                                    <div class="input-field">
+                                        <input id="updated_by" type="text" class="validate" readonly>
+                                        <label for="updated_by">Updated By</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col s12">
+                                    <div class="input-field">
+                                        <input id="userid" type="text" class="validate" readonly>
+                                        <label for="userid">User ID</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Tab -->
+                <div id="images-info" class="tab-content">
+                    <div class="form-container">
+                        <div class="section-divider">
+                            <h6 class="section-title">Background Image</h6>
+                            <div class="image-upload-container">
+                                <div class="current-image-preview">
+                                    <img id="background-preview" src="../img/placeholder-image.jpg" alt="Background Image" 
+                                         class="responsive-img" style="max-height: 200px; width: auto;">
+                                </div>
+                                <div class="image-actions">
+                                    <button class="btn-small waves-effect waves-light upload-btn" data-type="background">
+                                        <i class="material-icons left">file_upload</i>Upload
+                                    </button>
+                                    <button class="btn-small waves-effect waves-light camera-btn" data-type="background">
+                                        <i class="material-icons left">photo_camera</i>Camera
+                                    </button>
+                                    <button class="btn-small waves-effect waves-light red lighten-2 remove-btn" data-type="background">
+                                        <i class="material-icons left">delete</i>Remove
+                                    </button>
+                                </div>
+                                <input type="file" id="background-file-input" accept="image/*" style="display: none;">
+                                <input type="hidden" id="background_imgurl" name="background_imgurl">
+                            </div>
+                        </div>
+
+                        <div class="section-divider">
+                            <h6 class="section-title">Banner Image</h6>
+                            <div class="image-upload-container">
+                                <div class="current-image-preview">
+                                    <img id="banner-preview" src="../img/placeholder-image.jpg" alt="Banner Image" 
+                                         class="responsive-img" style="max-height: 200px; width: auto;">
+                                </div>
+                                <div class="image-actions">
+                                    <button class="btn-small waves-effect waves-light upload-btn" data-type="banner">
+                                        <i class="material-icons left">file_upload</i>Upload
+                                    </button>
+                                    <button class="btn-small waves-effect waves-light camera-btn" data-type="banner">
+                                        <i class="material-icons left">photo_camera</i>Camera
+                                    </button>
+                                    <button class="btn-small waves-effect waves-light red lighten-2 remove-btn" data-type="banner">
+                                        <i class="material-icons left">delete</i>Remove
+                                    </button>
+                                </div>
+                                <input type="file" id="banner-file-input" accept="image/*" style="display: none;">
+                                <input type="hidden" id="banner_imgurl" name="banner_imgurl">
+                            </div>
+                        </div>
+
+                        <!-- Camera Modal with Clear Button IDs -->
+                        <div id="camera-modal" class="modal">
+                            <div class="modal-content">
+                                <h5>Take a Photo</h5>
+                                <div id="camera-container">
+                                    <video id="camera-view" autoplay playsinline></video>
+                                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                                </div>
+                                <div class="camera-instructions">
+                                    <p class="center-align grey-text">Position yourself in frame and tap Capture</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <a href="#!" class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+                                <a href="#!" id="capture-photo" class="waves-effect waves-green btn">
+                                    <i class="material-icons left">camera</i>Capture
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
+
+    <!-- Floating Action Button -->
+    <div class="fixed-action-btn" style="bottom: 20px; right: auto; left: 20px;">
+        <a href="clientsrch.html" class="btn-floating blue" id="back-fab">
+            <i class="material-icons">arrow_back</i>
+        </a>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h4>Confirm Deletion</h4>
+            <p>Are you sure you want to delete this client? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            <a href="#!" id="confirm-delete-btn" class="waves-effect waves-red btn-flat red-text">Delete</a>
+        </div>
+    </div>
 
     <!-- Footer Component -->
     <app-footer></app-footer>
@@ -572,43 +1044,595 @@
     
     <!-- Load Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    
+
     <!-- Load Components -->
     <script src="../js/components/header.js"></script>
     <script src="../js/components/footer.js"></script>
-    
+
     <!-- Load Services -->
+    <script src="../js/services/clientService.js"></script>
     <script src="../js/services/authService.js"></script>
-    
+
+    <!-- All helper functions in ONE script tag -->
     <script>
+        // Add this to client-info.html - near the beginning of your script section
+        function setupUsernameValidation() {
+            const usernameField = document.getElementById('username');
+            if (!usernameField) return;
+            
+            // Function to validate username
+            function validateUsername(value) {
+                // Check for spaces
+                if (value.includes(' ')) {
+                    return 'Username cannot contain spaces';
+                }
+                
+                // Check for Chinese characters (Unicode ranges for common Chinese scripts)
+                if (/[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3000-\u303F]/.test(value)) {
+                    return 'Username cannot contain Chinese characters';
+                }
+                
+                // Check for alphanumeric and allowed symbols only
+                if (!/^[a-zA-Z0-9_\-\.@]+$/.test(value)) {
+                    return 'Username can only contain letters, numbers, and symbols: _ - . @';
+                }
+                
+                return null; // No error
+            }
+            
+            // Convert to uppercase on input
+            usernameField.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+            
+            // Validate on blur
+            usernameField.addEventListener('blur', function() {
+                const error = validateUsername(this.value);
+                const errorElement = document.getElementById('username-error');
+                
+                if (error) {
+                    if (!errorElement) {
+                        const errorMsg = document.createElement('small');
+                        errorMsg.id = 'username-error';
+                        errorMsg.className = 'text-danger';
+                        errorMsg.textContent = error;
+                        this.parentNode.appendChild(errorMsg);
+                    } else {
+                        errorElement.textContent = error;
+                        errorElement.style.display = 'block';
+                    }
+                    
+                    this.classList.add('is-invalid');
+                } else {
+                    if (errorElement) {
+                        errorElement.style.display = 'none';
+                    }
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+            
+            // Add validation to form submission
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    // Check username if this is a new client
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const isNewClient = urlParams.get('new') === 'true';
+                    
+                    if (isNewClient) {
+                        const error = validateUsername(usernameField.value);
+                        if (error) {
+                            event.preventDefault();
+                            alert(`Invalid username: ${error}`);
+                            usernameField.focus();
+                            return false;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Call this in your document ready function
+        document.addEventListener('DOMContentLoaded', function() {
+            setupUsernameValidation();
+            
+            // Your other initialization code
+        });
+
+        // Completely replace your loadClientData function with this version
+        function loadClientData() {
+            // Get parameters from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
+            const isNewClient = urlParams.get('new') === 'true';
+            
+            console.log('Loading client data with params:', { username, isNewClient });
+            
+            // Handle "new client" mode
+            if (isNewClient) {
+                console.log('Setting up form for new client creation');
+                
+                // Clear form for new client
+                clearClientFormFields();
+                
+                // Set client name to indicate new client
+                document.getElementById('client-name').textContent = 'New Client';
+                
+                // Make username field editable for new clients
+                const usernameField = document.getElementById('username');
+                if (usernameField) {
+                    usernameField.readOnly = false; // Make editable for new client
+                    usernameField.value = ''; // Clear username for new clients
+                    
+                    // Add required attribute and visual indicator
+                    usernameField.setAttribute('required', 'required');
+                    usernameField.classList.add('validate');
+                    
+                    // Add helper text to indicate username is required and cannot be changed later
+                    const helperText = document.createElement('span');
+                    helperText.className = 'helper-text';
+                    helperText.textContent = 'Required. Cannot be changed once created.';
+                    usernameField.parentNode.appendChild(helperText);
+                }
+                
+                // Enter edit mode automatically
+                const editModeCheckbox = document.getElementById('edit-mode');
+                if (editModeCheckbox) {
+                    editModeCheckbox.checked = true;
+                    toggleEditMode(true);
+                }
+                
+                // Hide delete button for new records
+                const deleteBtn = document.getElementById('delete-client-btn');
+                if (deleteBtn) deleteBtn.style.display = 'none';
+                
+                // Show save button
+                const saveBtn = document.getElementById('save-btn');
+                if (saveBtn) saveBtn.style.display = 'inline-flex';
+                
+                // Hide loading overlay if it exists
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                
+                return;
+            }
+            
+            // Handle existing client mode - username is required
+            if (!username) {
+                console.error('Username parameter is required for existing clients');
+                showError('Username parameter is required');
+                
+                // Hide loading overlay if it exists
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                
+                return;
+            }
+            
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) loadingOverlay.classList.add('active');
+            
+            // Call the API endpoint with timeout to prevent hanging
+            console.log('Calling client-info API with username:', username);
+            
+            // Add a timeout to prevent hanging
+            const fetchTimeout = setTimeout(() => {
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                showError('Request timed out. Please try again.');
+            }, 15000); // 15 second timeout
+            
+            fetch('/api/client-info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({ username: username })
+            })
+            .then(response => {
+                clearTimeout(fetchTimeout);
+                console.log('API response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Client data received:', data);
+                
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                
+                if (data.success) {
+                    if (data.data.user) {
+                        // Display user info first
+                        displayUserInfo(data.data.user);
+                        
+                        // Set the username field (this is critical)
+                        const usernameField = document.getElementById('username');
+                        if (usernameField) {
+                            usernameField.value = data.data.user.username;
+                            usernameField.readOnly = true; // Username should be readonly for existing clients
+                        }
+                        
+                        const deleteBtn = document.getElementById('delete-client-btn');
+                        
+                        if (data.data.client) {
+                            // Display client info
+                            displayClientInfo(data.data.client);
+                            
+                            // Store client ID in a data attribute for later use
+                            document.querySelector('#app-content').dataset.clientId = data.data.client.CLIENT_ID;
+                            
+                            // Show delete button
+                            if (deleteBtn) deleteBtn.style.display = 'inline-flex';
+                        } else {
+                            console.log('No client record found - entering new record mode');
+                            
+                            // Clear client form fields but keep username
+                            clearClientFormFields(false);
+                            
+                            // Enter edit mode
+                            const editModeCheckbox = document.getElementById('edit-mode');
+                            if (editModeCheckbox) {
+                                editModeCheckbox.checked = true;
+                                toggleEditMode(true);
+                            }
+                            
+                            // Hide delete button
+                            if (deleteBtn) deleteBtn.style.display = 'none';
+                        }
+                    } else {
+                        showError('User data not found in response');
+                    }
+                } else {
+                    showError(data.message || 'Failed to load client information');
+                }
+            })
+            .catch(error => {
+                clearTimeout(fetchTimeout);
+                console.error('Error loading client info:', error);
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                showError(`Error: ${error.message}`);
+            });
+        }
+
+        // Enhanced displayUserInfo function
+        function displayUserInfo(user) {
+            console.log('Displaying user info:', user);
+            
+            // Set client name
+            document.getElementById('client-name').textContent = user.username || 'Unknown User';
+            
+            // Set the username field
+            const usernameField = document.getElementById('username');
+            if (usernameField) {
+                usernameField.value = user.username || '';
+                usernameField.readOnly = true; // Username is readonly for existing users
+            }
+            
+            // Set email
+            const emailInput = document.getElementById('email');
+            if (emailInput) emailInput.value = user.email || '';
+            
+            // Set user role - with improved handling
+            const userRoleSelect = document.getElementById('user_role');
+            if (userRoleSelect) {
+                // First initialize Materialize select
+                if (!userRoleSelect.M_FormSelect) {
+                    M.FormSelect.init(userRoleSelect);
+                }
+                
+                // Set value - make sure it's uppercase to match our options
+                const userRole = (user.role || 'CLIENT').toUpperCase();
+                userRoleSelect.value = userRole;
+                
+                console.log('Setting user role to:', userRole);
+                
+                // Force update Materialize select
+                setTimeout(() => {
+                    M.FormSelect.init(userRoleSelect);
+                }, 100);
+            }
+            
+            // Update Materialize form fields
+            M.updateTextFields();
+        }
+
+        // Enhanced displayClientInfo function
+        function displayClientInfo(client) {
+            console.log('Displaying client info:', client);
+            
+            try {
+                // Business info
+                setFieldValue('businessname', client.BUSINESSNAME);
+                setFieldValue('businesschn', client.BUSINESSCHN);
+                setFieldValue('client_type', client.CLIENT_TYPE);
+                setFieldValue('catogery', client.CATOGERY);
+                setFieldValue('hawkerid', client.HAWKERID);
+                setFieldValue('status', client.STATUS);
+                
+                // Address
+                setFieldValue('address', client.ADDRESS);
+                setFieldValue('city', client.CITY);
+                setFieldValue('state', client.STATE);
+                setFieldValue('country', client.COUNTRY);
+                
+                // Contact
+                setFieldValue('contact_person', client.CONTACT_PERSON);
+                setFieldValue('phone_number', client.PHONE_NUMBER);
+                
+                // Financial
+                setFieldValue('credit_balance', client.CREDIT_BALANCE);
+                setFieldValue('daily_rate', client.DAILY_RATE);
+                
+                // Images
+                setFieldValue('background_imgurl', client.BACKGROUND_IMGURL);
+                setFieldValue('banner_imgurl', client.BANNER_IMGURL);
+                
+                // Set image previews
+                document.getElementById('background-preview').src = client.BACKGROUND_IMGURL || '../img/placeholder-image.jpg';
+                document.getElementById('banner-preview').src = client.BANNER_IMGURL || '../img/placeholder-image.jpg';
+                
+                // Dates
+                setFieldValue('created_at', formatDate(client.CREATED_AT));
+                setFieldValue('created_by', client.CREATED_BY);
+                setFieldValue('updated_at', formatDate(client.UPDATED_AT));
+                setFieldValue('updated_by', client.UPDATED_BY);
+                
+                // Re-initialize select elements
+                M.FormSelect.init(document.querySelectorAll('select'));
+                
+                // Update Materialize form fields
+                M.updateTextFields();
+            } catch (error) {
+                console.error('Error displaying client info:', error);
+                showError('Failed to display client information');
+            }
+        }
+
+        // Helper function for setting field values with error handling
+        function setFieldValue(id, value) {
+            const field = document.getElementById(id);
+            if (field) {
+                field.value = value || '';
+            }
+        }
+
+        // Update clearClientFormFields to accept a parameter for keeping username
+        function clearClientFormFields(clearUsername = true) {
+            // Business Info fields
+            const fields = [
+                'businessname', 'businesschn', 'client_type', 'catogery', 'hawkerid', 'status',
+                'address', 'city', 'state', 'country',
+                'contact_person', 'phone_number',
+                'credit_balance', 'daily_rate',
+                'created_at', 'created_by', 'updated_at', 'updated_by'
+            ];
+            
+            // Add username and email to the list if clearUsername is true
+            if (clearUsername) {
+                fields.unshift('username', 'email', 'user_role');
+            }
+            
+            fields.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    if (element.tagName === 'SELECT') {
+                        element.value = '';
+                        M.FormSelect.init(element);
+                    } else {
+                        element.value = '';
+                    }
+                }
+            });
+            
+            // Reset image previews
+            document.getElementById('background-preview').src = '../img/placeholder-image.jpg';
+            document.getElementById('banner-preview').src = '../img/placeholder-image.jpg';
+            document.getElementById('background_imgurl').value = '';
+            document.getElementById('banner_imgurl').value = '';
+            
+            // Update Materialize form fields
+            M.updateTextFields();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString();
+            } catch (e) {
+                return dateString;
+            }
+        }
+        
+        function showError(message) {
+            // Create error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'card-panel red lighten-4';
+            errorDiv.innerHTML = `
+                <i class="material-icons left">error</i>
+                <span>${message}</span>
+            `;
+            
+            // Insert it at the top of the content
+            const content = document.getElementById('app-content');
+            if (content.firstChild) {
+                content.insertBefore(errorDiv, content.firstChild);
+            } else {
+                content.appendChild(errorDiv);
+            }
+        }
+        
+        // Update the toggleEditMode function to handle username field properly
+        function toggleEditMode(isEdit) {
+            console.log('Toggle edit mode:', isEdit);
+            
+            // For text inputs and textareas (except username)
+            const inputs = document.querySelectorAll('input:not([type="hidden"]):not(#username), textarea');
+            inputs.forEach(function(input) {
+                input.readOnly = !isEdit;
+            });
+            
+            // Handle username field - only allow editing in new client mode
+            const usernameField = document.getElementById('username');
+            if (usernameField) {
+                // Check if we're in new client mode
+                const urlParams = new URLSearchParams(window.location.search);
+                const isNewClient = urlParams.get('new') === 'true';
+                
+                // Username can only be edited during new client creation
+                if (isNewClient && isEdit) {
+                    usernameField.readOnly = false;
+                } else {
+                    usernameField.readOnly = true;
+                }
+            }
+            
+            // For select elements
+            const selects = document.querySelectorAll('select');
+            selects.forEach(function(select) {
+                select.disabled = !isEdit;
+                // Reinitialize select when toggling
+                if (isEdit) {
+                    M.FormSelect.init(select);
+                }
+            });
+            
+            // For image upload controls - IMPROVED VERSION
+            const imageButtons = document.querySelectorAll('.upload-btn, .camera-btn, .remove-btn');
+            imageButtons.forEach(function(button) {
+                if (isEdit) {
+                    button.classList.remove('disabled');
+                    button.disabled = false;
+                    button.style.pointerEvents = 'auto';
+                    button.style.opacity = '1';
+                } else {
+                    button.classList.add('disabled');
+                    button.disabled = true;
+                    button.style.pointerEvents = 'none';
+                    button.style.opacity = '0.6';
+                }
+            });
+            
+            // Show/hide save button based on edit mode
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) {
+                saveBtn.style.display = isEdit ? 'inline-flex' : 'none';
+            }
+            
+            // Add a visual indicator that the form is in edit mode
+            const formContainer = document.querySelector('.form-container');
+            if (formContainer) {
+                if (isEdit) {
+                    formContainer.classList.add('editing');
+                } else {
+                    formContainer.classList.remove('editing');
+                }
+            }
+            
+            // Reinitialize tooltips
+            M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+        }
+
+        // Process file uploads
+        function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(`${type}-preview`).src = e.target.result;
+                document.getElementById(`${type}_imgurl`).value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Handle camera functionality
+        function openCamera(type) {
+            const modal = document.getElementById('camera-modal');
+            const instance = M.Modal.getInstance(modal) || M.Modal.init(modal);
+            
+            // Store which image type we're capturing for
+            modal.dataset.captureType = type;
+            
+            // Open the modal
+            instance.open();
+            
+            // Start the camera
+            startCamera();
+        }
+
+        // Remove image function
+        function removeImage(type) {
+            document.getElementById(`${type}-preview`).src = '../img/placeholder-image.jpg';
+            document.getElementById(`${type}_imgurl`).value = '';
+        }
+
+        // Start camera function
+        function startCamera() {
+            const video = document.getElementById('camera-view');
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        video.play();
+                        
+                        // Set up capture button handler
+                        document.getElementById('capture-photo').onclick = takePhoto;
+                    })
+                    .catch(function(error) {
+                        console.error("Camera error:", error);
+                        M.toast({html: 'Cannot access camera: ' + error.message});
+                    });
+            } else {
+                M.toast({html: 'Camera not supported on this device'});
+            }
+        }
+
+        // Take photo function
+        function takePhoto() {
+            const video = document.getElementById('camera-view');
+            const canvas = document.getElementById('camera-canvas');
+            const modal = document.getElementById('camera-modal');
+            const type = modal.dataset.captureType;
+            
+            // Draw video frame to canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Get image data
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Set preview and hidden input
+            document.getElementById(`${type}-preview`).src = imageData;
+            document.getElementById(`${type}_imgurl`).value = imageData;
+            
+            // Stop the video stream
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            // Close the modal
+            M.Modal.getInstance(modal).close();
+        }
+
+        // Make sure to call loadClientData when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Client info page loaded');
+            // Initialize materialize components
+            M.AutoInit();
             
-            // Initialize Materialize components
-            if (typeof M !== 'undefined') {
-                // Initialize tabs
-                var tabs = document.querySelectorAll('.tabs');
-                if (tabs.length) M.Tabs.init(tabs);
-                
-                // Initialize other Materialize components as needed
-                var elems = document.querySelectorAll('.sidenav');
-                if (elems.length) M.Sidenav.init(elems);
-            } else {
-                console.error('Materialize JS not loaded properly');
-            }
+            // Set up tabs
+            var tabs = document.querySelectorAll('.tabs');
+            M.Tabs.init(tabs);
             
-            // Get client ID from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const clientId = urlParams.get('id');
-            
-            if (clientId) {
-                loadClientData(clientId);
-            } else {
-                console.error('No client ID provided');
-                // Handle error - maybe show message or redirect
-            }
-            
-            // Initialize edit mode toggle
+            // Initialize edit mode checkbox
             const editModeCheckbox = document.getElementById('edit-mode');
             if (editModeCheckbox) {
                 editModeCheckbox.addEventListener('change', function() {
@@ -616,263 +1640,259 @@
                 });
             }
             
-            // Back button functionality
-            document.querySelector('.back-btn').addEventListener('click', function() {
-                window.location.href = 'clientsrch.html';
+            // Initialize image upload handlers
+            const uploadBtns = document.querySelectorAll('.upload-btn');
+            uploadBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    document.getElementById(`${type}-file-input`).click();
+                });
             });
 
-            // Initialize edit mode toggle
-            const saveBtn = document.getElementById('save-btn');
-            
-            if (editModeCheckbox) {
-                editModeCheckbox.addEventListener('change', function() {
-                    toggleEditMode(this.checked);
-                    
-                    // Show/hide save button based on edit mode
-                    if (this.checked) {
-                        saveBtn.style.display = 'block';
-                    } else {
-                        saveBtn.style.display = 'none';
-                    }
-                });
-            }
-            
-            // Add save button functionality
-            if (saveBtn) {
-                saveBtn.addEventListener('click', function() {
-                    // Show loading overlay during save
-                    document.getElementById('loading-overlay').classList.add('active');
-                    
-                    // Simulate saving data
-                    setTimeout(function() {
-                        // Hide loading overlay
-                        document.getElementById('loading-overlay').classList.remove('active');
-                        
-                        // Show save confirmation
-                        M.toast({html: 'Client information saved successfully!', classes: 'green'});
-                        
-                        // Turn off edit mode after saving
-                        if (editModeCheckbox && editModeCheckbox.checked) {
-                            editModeCheckbox.checked = false;
-                            toggleEditMode(false);
-                            saveBtn.style.display = 'none';
-                        }
-                    }, 1000);
-                    
-                    // In a real implementation, save data to your API
-                    /*
-                    const clientId = new URLSearchParams(window.location.search).get('id');
-                    
-                    // Gather form data
-                    const formData = {
-                        firstName: document.getElementById('first_name').value,
-                        lastName: document.getElementById('last_name').value,
-                        email: document.getElementById('email').value,
-                        address: document.getElementById('address').value,
-                        // Add other fields as needed
-                    };
-                    
-                    fetch('/api/clients/' + clientId, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(formData)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Hide loading overlay
-                        document.getElementById('loading-overlay').classList.remove('active');
-                        
-                        // Show success message
-                        M.toast({html: 'Client information saved successfully!', classes: 'green'});
-                        
-                        // Turn off edit mode
-                        if (editModeCheckbox && editModeCheckbox.checked) {
-                            editModeCheckbox.checked = false;
-                            toggleEditMode(false);
-                            saveBtn.style.display = 'none';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error saving client data:', error);
-                        document.getElementById('loading-overlay').classList.remove('active');
-                        M.toast({html: 'Error saving client information', classes: 'red'});
-                    });
-                    */
-                });
-            }
-        });
-        
-        function toggleEditMode(isEdit) {
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(function(input) {
-                input.readOnly = !isEdit;
+            // Set up file input change handlers
+            document.getElementById('background-file-input').addEventListener('change', function(e) {
+                handleImageUpload(e, 'background');
             });
+            document.getElementById('banner-file-input').addEventListener('change', function(e) {
+                handleImageUpload(e, 'banner');
+            });
+
+            // Camera button handlers
+            const cameraBtns = document.querySelectorAll('.camera-btn');
+            cameraBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    openCamera(type);
+                });
+            });
+
+            // Remove button handlers
+            const removeBtns = document.querySelectorAll('.remove-btn');
+            removeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    removeImage(type);
+                });
+            });
+
+            // Load client data
+            loadClientData();
+        });
+
+        // Save client information
+        document.getElementById('save-btn').addEventListener('click', function() {
+            saveClientData();
+        });
+
+        // Update the saveClientData function at line ~1640 to include proper validation
+        async function saveClientData() {
+            try {
+                // Check username validation first
+                const usernameField = document.getElementById('username');
+                const username = usernameField.value;
+                
+                // Validate username
+                function validateUsername(value) {
+                    // Check for empty value
+                    if (!value || value.trim() === '') {
+                        return 'Username is required';
+                    }
+                    
+                    // Check for spaces
+                    if (value.includes(' ')) {
+                        return 'Username cannot contain spaces';
+                    }
+                    
+                    // Check for Chinese characters
+                    if (/[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3000-\u303F]/.test(value)) {
+                        return 'Username cannot contain Chinese characters';
+                    }
+                    
+                    // Check for alphanumeric and allowed symbols only
+                    if (!/^[a-zA-Z0-9_\-\.@]+$/.test(value)) {
+                        return 'Username can only contain letters, numbers, and symbols: _ - . @';
+                    }
+                    
+                    return null; // No error
+                }
+                
+                // Check if username is valid before proceeding
+                const usernameError = validateUsername(username);
+                if (usernameError) {
+                    // Show error message and focus username field
+                    M.toast({html: `Error: ${usernameError}`, classes: 'red'});
+                    usernameField.focus();
+                    return; // Stop the save process
+                }
+                
+                // Rest of the saveClientData function remains unchanged
+                // Show loading overlay
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.classList.add('active');
+                
+                // Get URL parameters to check if this is a new client
+                const urlParams = new URLSearchParams(window.location.search);
+                const isNewClient = urlParams.get('new') === 'true';
+                
+                // Prepare client data object
+                const clientData = {
+                    username: document.getElementById('username').value,
+                    email: document.getElementById('email').value,
+                    user_role: document.getElementById('user_role').value, // Add user_role field
+                    businessname: document.getElementById('businessname').value,
+                    businesschn: document.getElementById('businesschn').value,
+                    client_type: document.getElementById('client_type').value,
+                    catogery: document.getElementById('catogery').value,
+                    hawkerid: document.getElementById('hawkerid').value,
+                    status: document.getElementById('status').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    country: document.getElementById('country').value,
+                    contact_person: document.getElementById('contact_person').value,
+                    phone_number: document.getElementById('phone_number').value,
+                    credit_balance: document.getElementById('credit_balance').value,
+                    daily_rate: document.getElementById('daily_rate').value,
+                    background_imgurl: document.getElementById('background_imgurl').value,
+                    banner_imgurl: document.getElementById('banner_imgurl').value,
+                    updated_by: localStorage.getItem('username') || sessionStorage.getItem('username') || 'system'
+                };
+                
+                // For existing clients, include the CLIENT_ID
+                if (!isNewClient) {
+                    // Get client ID from data attribute we set when loading the client
+                    const appContent = document.querySelector('#app-content');
+                    if (appContent && appContent.dataset.clientId) {
+                        clientData.client_id = appContent.dataset.clientId;
+                    } else {
+                        throw new Error('Client ID not found for update operation');
+                    }
+                }
+                
+                console.log(`Saving ${isNewClient ? 'new' : 'existing'} client:`, clientData);
+                
+                // Determine which API endpoint to use
+                const apiEndpoint = isNewClient ? '/api/client-create' : '/api/client-update/';  // Added trailing slash for client-update endpoint
+                
+                // Make the API call
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify(clientData)
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading overlay
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                
+                if (response.ok && result.success) {
+                    // Show success message
+                    M.toast({html: 'Client saved successfully', classes: 'green'});
+                    
+                    // If this was a new client, redirect to the edit page
+                    if (isNewClient && result.data && result.data.CLIENT_ID) {
+                        window.location.href = `client-info.html?username=${clientData.username}`;
+                    } else {
+                        // For existing clients, reload the page to refresh with updated data
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(result.message || 'Failed to save client data');
+                }
+            } catch (error) {
+                console.error('Error saving client data:', error);
+                
+                // Hide loading overlay
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                
+                // Show error message
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            }
         }
-        
-        function loadClientData(clientId) {
+
+        // Set up delete button handler
+        document.getElementById('delete-client-btn').addEventListener('click', function() {
+            // Initialize and open modal
+            const modal = document.getElementById('delete-confirmation-modal');
+            const instance = M.Modal.getInstance(modal) || M.Modal.init(modal);
+            instance.open();
+        });
+
+        // Set up confirm delete button handler
+        document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+            deleteClientData();
+        });
+
+        function deleteClientData() {
+            // Get username - this is critical
+            const username = document.getElementById('username').value;
+            
+            console.log('Deleting client with username:', username);
+            
+            if (!username) {
+                M.toast({html: 'Username is missing, cannot delete client', classes: 'red'});
+                return;
+            }
+            
             // Show loading overlay
-            document.getElementById('loading-overlay').classList.add('active');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) loadingOverlay.classList.add('active');
             
-            // Get authentication token
-            const token = localStorage.getItem('auth_token');
-            
-            // Check if we're in development or production
-            const isDevelopment = window.location.hostname === '127.0.0.1' || 
-                                  window.location.hostname === 'localhost';
-            
-            if (isDevelopment) {
-                // In development: Make direct API call with CORS warning
-                const apiUrl = `https://g4466c5562a773d-maindb.adb.ap-singapore-1.oraclecloudapps.com/ords/admin/api/clients/${clientId}`;
+            // Send delete request with just the username
+            fetch('/api/client-delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    username: username
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
                 
-                fetch(apiUrl, {
-                    method: 'GET',
-                    mode: 'no-cors', // Add this line
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Auth-Token': token
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Client data loaded successfully:', data);
-                    populateClientData(data);
-                    document.getElementById('loading-overlay').classList.remove('active');
-                })
-                .catch(error => {
-                    console.error('Error loading client data:', error);
-                    document.getElementById('loading-overlay').classList.remove('active');
+                if (data.success) {
+                    // Show success message
+                    M.toast({html: 'Client deleted successfully!', classes: 'green'});
                     
-                    // Show specialized error for CORS issues in development
-                    if (error.message && error.message.includes('CORS')) {
-                        M.toast({html: 'CORS error: Please use a CORS browser extension in development', classes: 'orange'});
-                    } else {
-                        M.toast({html: 'Error loading client information', classes: 'red'});
-                    }
-                });
+                    // Redirect back to client search
+                    setTimeout(() => {
+                        window.location.href = 'clientsrch.html';
+                    }, 1500);
+                } else {
+                    // Show error message
+                    M.toast({html: data.message || 'Failed to delete client', classes: 'red'});
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting client data:', error);
+                if (loadingOverlay) loadingOverlay.classList.remove('active');
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            });
+        }
+
+        // Add this event listener for the back button
+        document.getElementById('back-fab').addEventListener('click', function(e) {
+            // Prevent default navigation
+            e.preventDefault();
+            
+            // If there are unsaved changes and in edit mode, show confirmation
+            const editModeCheckbox = document.getElementById('edit-mode');
+            if (editModeCheckbox && editModeCheckbox.checked) {
+                if (confirm('You have unsaved changes. Discard changes and go back?')) {
+                    window.location.href = 'clientsrch.html';
+                }
             } else {
-                // In production: Use the Vercel proxy
-                // Fix the URL formatting issue with proper encoding
-                const apiPath = `api/clients/${clientId}`;
-                const url = `/api/proxy?path=${encodeURIComponent(apiPath)}&search_type=exact`;
-                
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Auth-Token': token
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Client data loaded successfully:', data);
-                    populateClientData(data);
-                    document.getElementById('loading-overlay').classList.remove('active');
-                })
-                .catch(error => {
-                    console.error('Error loading client data:', error);
-                    document.getElementById('loading-overlay').classList.remove('active');
-                    M.toast({html: 'Error loading client information', classes: 'red'});
-                });
+                // No unsaved changes, go back directly
+                window.location.href = 'clientsrch.html';
             }
-        }
-        
-        // Helper function to populate client data
-        function populateClientData(client) {
-            // Set client name in header
-            document.querySelector('.client-name').textContent = client.username || 'Unknown Client';
-            
-            // Populate form fields
-            document.getElementById('client-id').value = client.client_id || '';
-            document.getElementById('username').value = client.username || '';
-            document.getElementById('business-name').value = client.businessname || '';
-            document.getElementById('business-name-chn').value = client.businesschn || '';
-            document.getElementById('email').value = client.email || '';
-            document.getElementById('phone').value = client.phone || '';
-            document.getElementById('address').value = client.address || '';
-            document.getElementById('country').value = client.country || '';
-            
-            // Update Materialize form fields
-            M.updateTextFields();
-            
-            // Show success message
-            M.toast({html: 'Client data loaded', classes: 'green'});
-        }
-        
-        // Add to client-info.html
-        window.addEventListener('error', function(e) {
-            console.error('Resource loading error:', e.target.src || e.target.href);
-            alert('Failed to load a required resource. Please check console for details.');
-        });
-
-        // Add this to your existing script section in client-info.html
-        const editModeCheckbox = document.getElementById('edit-mode');
-        const saveBtn = document.getElementById('save-btn');
-
-        if (editModeCheckbox) {
-            editModeCheckbox.addEventListener('change', function() {
-                toggleEditMode(this.checked);
-                
-                // Show/hide save icon based on edit mode
-                saveBtn.style.display = this.checked ? 'block' : 'none';
-            });
-        }
-
-        // Add save functionality to icon
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
-                // Show loading overlay during save
-                document.getElementById('loading-overlay').classList.add('active');
-                
-                // Same save functionality as before
-                setTimeout(function() {
-                    document.getElementById('loading-overlay').classList.remove('active');
-                    M.toast({html: 'Client information saved successfully!', classes: 'green'});
-                    
-                    // Turn off edit mode after saving
-                    if (editModeCheckbox && editModeCheckbox.checked) {
-                        editModeCheckbox.checked = false;
-                        toggleEditMode(false);
-                        saveBtn.style.display = 'none';
-                    }
-                }, 1000);
-            });
-        }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Materialize components
-            if (typeof M !== 'undefined') {
-                // Initialize sidenav
-                const sidenavElems = document.querySelectorAll('.sidenav');
-                if (sidenavElems.length) M.Sidenav.init(sidenavElems);
-                
-                // Initialize tooltips
-                const tooltipElems = document.querySelectorAll('.tooltipped');
-                if (tooltipElems.length) M.Tooltip.init(tooltipElems);
-            }
-            
-            // Ensure header displays logo correctly
-            setTimeout(function() {
-                const logoImgs = document.querySelectorAll('.brand-logo img');
-                logoImgs.forEach(img => {
-                    // Force image to be visible
-                    img.style.display = 'block';
-                    img.style.visibility = 'visible';
-                    img.style.opacity = '1';
-                });
-            }, 100);
         });
     </script>
 </body>

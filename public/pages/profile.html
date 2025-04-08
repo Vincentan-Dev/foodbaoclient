@@ -3,598 +3,1136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - FoodBao Admin</title>
-    <!-- Materialize CSS -->
-    <link rel="stylesheet" href="../src/css/materialize.min.css">
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../css/styles.css">
+    <title>User Profile | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Form styling */
-        .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 0;
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
         }
-        
-        .form-col {
-            padding: 0 10px;
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        .form-col.s12 {
-            width: 100%;
-        }
-        
-        .form-col.s6 {
-            width: 50%;
-        }
-        
-        @media only screen and (max-width: 600px) {
-            .form-col.s6 {
-                width: 100%;
-            }
-        }
-        
-        /* Card and header styling */
-        .client-header {
-            display: flex;
-            align-items: center;
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
+        .profile-image {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            background-color: rgba(0, 150, 136, 0.2);
-            color: #009688;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-right: 15px;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
         }
-        
-        .client-title {
-            flex-grow: 1;
+        .profile-tabs .nav-link {
+            color: var(--dark-color);
+            border-radius: 10px;
+            margin: 5px;
+            transition: all 0.3s;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
         }
-        
-        .client-title h5 {
-            margin: 0;
-            font-size: 1.5rem;
+        .profile-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
         }
-        
-        .client-title p {
-            margin: 0;
-            color: #757575;
+        .profile-tabs .nav-link:hover:not(.active) {
+            background-color: rgba(52, 152, 219, 0.1);
         }
-        
-        /* Loading overlay */
-        .loading-overlay {
-            display: none;
+        .nav-pills.mb-4 {
+            margin-bottom: 1rem !important;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 12px 15px;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .card-body {
+            padding: 15px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border: 1px solid #e0e0e0;
+        }
+        .input-group-text {
+            border-radius: 10px 0 0 10px;
+            background-color: var(--light-color);
+            padding: 8px 12px;
+        }
+        .edit-mode-toggle {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
+            bottom: 25px;
+            right: 25px;
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
         }
-        
-        .loading-overlay.active {
+        .btn-edit {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
         }
-        
-        /* Add these styles to make the header stick */
-        body {
-            padding-top: 64px !important; /* Match navbar height */
+        .btn-edit i {
+            font-size: 1rem;
         }
-        
-        @media only screen and (max-width: 600px) {
-            body {
-                padding-top: 56px !important; /* Mobile navbar height */
+        .btn-edit:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-color);
+        }
+        .btn-save {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .btn-cancel {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .image-preview {
+            border-radius: 10px;
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 1px dashed #ccc;
+        }
+        .camera-capture {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            object-fit: cover;
+            display: none;
+        }
+        .readonly-field {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        .field-label {
+            color: #666;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        .field-value {
+            font-size: 1.1rem;
+            color: #333;
+        }
+        .tab-content {
+            padding: 10px 0;
+        }
+        .badge-status {
+            font-size: 0.8rem;
+            padding: 6px 10px;
+            border-radius: 20px;
+        }
+        .badge-active {
+            background-color: var(--secondary-color);
+        }
+        .badge-inactive {
+            background-color: #e74c3c;
+        }
+        .last-updated {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .row.g-4 {
+            --bs-gutter-y: 0.75rem;
+        }
+        #system .col-md-6 {
+            margin-bottom: 0.5rem;
+        }
+        .input-group.mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        @media (max-width: 768px) {
+            .profile-header {
+                padding: 15px;
+            }
+            .profile-image {
+                width: 80px;
+                height: 80px;
+            }
+            #businessName {
+                font-size: 1.5rem;
             }
         }
-        
-        /* Ensure app-header renders properly */
-        app-header {
+        /* Floating back button (similar to edit button) */
+        .back-button-toggle {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 999;
+            bottom: 25px;
+            left: 25px;
+            z-index: 1000;
         }
         
-        /* Make sure navbar is fixed */
-        .navbar-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 999;
-        }
-        
-        /* Make app-content start below the header */
-        main.full-width-container {
-            padding-top: 10px;
-        }
-        
-        /* Footer styling */
-        app-footer {
-            margin-top: 40px;
-            display: block;
-        }
-        
-        /* Make sure the footer stays at the bottom even with little content */
-        body {
+        .btn-back {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
             display: flex;
-            min-height: 100vh;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
         }
         
-        main {
-            flex: 1 0 auto;
+        .btn-back i {
+            font-size: 1rem;
+        }
+        
+        .btn-back:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-color);
         }
     </style>
 </head>
 <body>
-    <script>
-        // Check authentication
-        (function checkAuthentication() {
-            const authToken = localStorage.getItem('auth_token');
-            const username = localStorage.getItem('username');
-            
-            if (!authToken || !username) {
-                console.log('Not authenticated, redirecting to login page');
-                window.location.href = '../login.html';
-            } else {
-                console.log('Authentication verified, loading page for user:', username);
-            }
-        })();
-    </script>
+    <div class="container py-5">
+        <div class="profile-header">
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center">
+                    <img src="https://via.placeholder.com/150" alt="Profile" class="profile-image" id="profileImage">
+                </div>
+                <div class="col-md-8">
+                    <h1 id="businessName">Business Name</h1>
+                    <p id="businessChn" class="mb-1">商业名称</p>
+                    <div class="d-flex align-items-center">
+                        <span class="badge badge-status badge-active me-2" id="statusBadge">ACTIVE</span>
+                        <span id="userId" class="text-light">ID: USR12345</span>
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <p class="last-updated mb-0">Last updated:</p>
+                    <p id="lastUpdated" class="text-light">Apr 3, 2025</p>
+                </div>
+            </div>
+        </div>
 
-    <!-- Header Component -->
-    <app-header></app-header>
-   
-    <!-- Main Content -->
-    <main class="full-width-container">
-        <section id="app-content">
-            <div class="card-panel">
-                <div class="client-header">
-                    <div class="profile-avatar" id="profile-avatar">
-                        <i class="material-icons">account_circle</i>
-                    </div>
-                    <div class="client-title">
-                        <h5>My Profile</h5>
-                        <p>Manage your account information</p>
-                    </div>
-                    <div class="edit-toggle" style="margin-left: auto; display: flex; align-items: center;">
-                        <a href="#!" id="save-btn" class="waves-effect waves-light" 
-                           style="display: none; margin-right: 10px; color: #26a69a;">
-                            <i class="material-icons">save</i>
-                        </a>
-                        <div class="switch">
-                            <label>
-                                View
-                                <input type="checkbox" id="edit-mode">
-                                <span class="lever"></span>
-                                Edit
-                            </label>
+        <ul class="nav nav-pills mb-4 profile-tabs" id="profileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                    <i class="fas fa-user me-2"></i>Basic Info
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="business-tab" data-bs-toggle="tab" data-bs-target="#business" type="button" role="tab" aria-controls="business" aria-selected="false">
+                    <i class="fas fa-briefcase me-2"></i>Business Details
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tab" aria-controls="address" aria-selected="false">
+                    <i class="fas fa-map-marker-alt me-2"></i>Address
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="media-tab" data-bs-toggle="tab" data-bs-target="#media" type="button" role="tab" aria-controls="media" aria-selected="false">
+                    <i class="fas fa-images me-2"></i>Media
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab" aria-controls="system" aria-selected="false">
+                    <i class="fas fa-cog me-2"></i>System Info
+                </button>
+            </li>
+        </ul>
+
+        <form id="profileForm">
+            <div class="tab-content" id="profileTabsContent">
+                <!-- Basic Info Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Account Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Username (Primary Key)</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control view-mode readonly-field" id="username" disabled>
+                                        <span class="input-group-text bg-warning text-dark"><i class="fas fa-lock"></i></span>
+                                    </div>
+                                    <small class="text-muted">Username cannot be changed as it's the primary identifier</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Email Address</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" class="form-control view-mode" id="email" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Contact Person</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                        <input type="text" class="form-control view-mode" id="contactPerson" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Phone Number</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="tel" class="form-control view-mode" id="phoneNumber" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">User ID</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-fingerprint"></i></span>
+                                        <input type="text" class="form-control view-mode readonly-field" id="userIdInput" disabled>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="form-container">
-                    <form id="profile-form">
-                        <!-- Hidden fields for tracking -->
-                        <input type="hidden" id="client-id" name="client_id">
-                        
-                        <div class="form-row">
-                            <div class="form-col s12">
-                                <div class="input-field">
-                                    <input id="username" type="text" class="validate" required readonly>
-                                    <label for="username">Username</label>
+
+                <!-- Business Details Tab -->
+                <div class="tab-pane fade" id="business" role="tabpanel" aria-labelledby="business-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Business Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Business Name (English)</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-store"></i></span>
+                                        <input type="text" class="form-control view-mode" id="businessNameInput" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Business Name (Chinese)</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-store"></i></span>
+                                        <input type="text" class="form-control view-mode" id="businessChnInput" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Client Type</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                        <select class="form-select view-mode" id="clientType" disabled>
+                                            <option value="VENDOR">Vendor</option>
+                                            <option value="CUSTOMER">Customer</option>
+                                            <option value="SUPPLIER">Supplier</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Category</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-list"></i></span>
+                                        <select class="form-select view-mode" id="category" disabled>
+                                            <option value="FOOD">Food</option>
+                                            <option value="BEVERAGE">Beverage</option>
+                                            <option value="DESSERT">Dessert</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Hawker ID</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                        <input type="text" class="form-control view-mode" id="hawkerId" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Status</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-toggle-on"></i></span>
+                                        <select class="form-select view-mode" id="status" disabled>
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="INACTIVE">Inactive</option>
+                                            <option value="SUSPENDED">Suspended</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Daily Rate</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                        <input type="number" step="0.01" class="form-control view-mode" id="dailyRate" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Credit Balance</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                                        <input type="number" step="0.01" class="form-control view-mode readonly-field" id="creditBalance" disabled>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="email" type="email" class="validate" required readonly>
-                                    <label for="email">Email</label>
-                                </div>
-                            </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="contact-person" type="text" class="validate" readonly>
-                                    <label for="contact-person">Contact Person</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="phone-number" type="text" class="validate" readonly>
-                                    <label for="phone-number">Phone Number</label>
-                                </div>
-                            </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <select id="client-type" disabled>
-                                        <option value="" disabled>Choose client type</option>
-                                        <option value="HAWKER_CENTER">Hawker Center</option>
-                                        <option value="STALL">Stall</option>
-                                    </select>
-                                    <label>Client Type</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s12">
-                                <div class="input-field">
-                                    <textarea id="address" class="materialize-textarea" readonly></textarea>
-                                    <label for="address">Address</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="city" type="text" class="validate" readonly>
-                                    <label for="city">City</label>
-                                </div>
-                            </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="state" type="text" class="validate" readonly>
-                                    <label for="state">State/Province</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="country" type="text" class="validate" readonly>
-                                    <label for="country">Country</label>
-                                </div>
-                            </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <select id="status" disabled>
-                                        <option value="" disabled>Choose status</option>
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="INACTIVE">Inactive</option>
-                                        <option value="SUSPENDED">Suspended</option>
-                                    </select>
-                                    <label>Status</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="business-name" type="text" class="validate" readonly>
-                                    <label for="business-name">Business Name</label>
-                                </div>
-                            </div>
-                            <div class="form-col s6">
-                                <div class="input-field">
-                                    <input id="business-chn" type="text" class="validate" readonly>
-                                    <label for="business-chn">Business Name (Chinese)</label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-                
-                <div class="card-panel grey lighten-4" style="margin-top: 20px;">
-                    <p><i class="material-icons tiny">info</i> This information is used across the FoodBao platform to identify your account and manage your services.</p>
+
+                <!-- Address Tab -->
+                <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Address Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-12">
+                                    <label class="form-label field-label">Address</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                        <input type="text" class="form-control view-mode" id="address" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">City</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                        <input type="text" class="form-control view-mode" id="city" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">State/Province</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-map"></i></span>
+                                        <input type="text" class="form-control view-mode" id="state" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Country</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                        <select class="form-select view-mode" id="country" disabled>
+                                            <option value="Singapore">Singapore</option>
+                                            <option value="Malaysia">Malaysia</option>
+                                            <option value="Indonesia">Indonesia</option>
+                                            <option value="Thailand">Thailand</option>
+                                            <option value="Vietnam">Vietnam</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 mt-4">
+                                    <div id="addressMap" style="height: 300px; border-radius: 10px; background-color: #eee;">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <p class="text-muted">Map view will be displayed here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Tab -->
+                <div class="tab-pane fade" id="media" role="tabpanel" aria-labelledby="media-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Media & Images</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Logo Image</label>
+                                    <img src="https://via.placeholder.com/300" class="image-preview" id="logoPreview" alt="Logo">
+                                    <div class="edit-only d-none">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                            <input type="file" class="form-control" id="logoUpload" accept="image/*">
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="activateCamera('logo')">
+                                                <i class="fas fa-camera me-1"></i> Capture
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage('logo')">
+                                                <i class="fas fa-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        <video id="logoCamera" class="camera-capture"></video>
+                                    </div>
+                                    <input type="hidden" id="imgLogo">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Company Image</label>
+                                    <img src="https://via.placeholder.com/300" class="image-preview" id="companyPreview" alt="Company">
+                                    <div class="edit-only d-none">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                            <input type="file" class="form-control" id="companyUpload" accept="image/*">
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="activateCamera('company')">
+                                                <i class="fas fa-camera me-1"></i> Capture
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage('company')">
+                                                <i class="fas fa-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        <video id="companyCamera" class="camera-capture"></video>
+                                    </div>
+                                    <input type="hidden" id="imgCompany">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label field-label">Banner Image</label>
+                                    <img src="https://via.placeholder.com/300" class="image-preview" id="bannerPreview" alt="Banner">
+                                    <div class="edit-only d-none">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                            <input type="file" class="form-control" id="bannerUpload" accept="image/*">
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="activateCamera('banner')">
+                                                <i class="fas fa-camera me-1"></i> Capture
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage('banner')">
+                                                <i class="fas fa-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        <video id="bannerCamera" class="camera-capture"></video>
+                                    </div>
+                                    <input type="hidden" id="banner">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Background Image</label>
+                                    <img src="https://via.placeholder.com/300" class="image-preview" id="backgroundPreview" alt="Background">
+                                    <div class="edit-only d-none">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                            <input type="file" class="form-control" id="backgroundUpload" accept="image/*">
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="activateCamera('background')">
+                                                <i class="fas fa-camera me-1"></i> Capture
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage('background')">
+                                                <i class="fas fa-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        <video id="backgroundCamera" class="camera-capture"></video>
+                                    </div>
+                                    <input type="hidden" id="backgroundImgUrl">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Banner URL Image</label>
+                                    <img src="https://via.placeholder.com/300" class="image-preview" id="bannerUrlPreview" alt="Banner URL">
+                                    <div class="edit-only d-none">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                            <input type="file" class="form-control" id="bannerUrlUpload" accept="image/*">
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="activateCamera('bannerUrl')">
+                                                <i class="fas fa-camera me-1"></i> Capture
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage('bannerUrl')">
+                                                <i class="fas fa-trash me-1"></i> Remove
+                                            </button>
+                                        </div>
+                                        <video id="bannerUrlCamera" class="camera-capture"></video>
+                                    </div>
+                                    <input type="hidden" id="bannerImgUrl">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Info Tab -->
+                <div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">System Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Client ID</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="text" class="form-control readonly-field" id="clientId" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Created Date</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                                        <input type="text" class="form-control readonly-field" id="createdAt" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Updated Date</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
+                                        <input type="text" class="form-control readonly-field" id="updatedAt" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Created By</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-user-plus"></i></span>
+                                        <input type="text" class="form-control readonly-field" id="createdBy" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label field-label">Updated By</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-user-edit"></i></span>
+                                        <input type="text" class="form-control readonly-field" id="updatedBy" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
-    </main>
-    
-    <!-- Footer Component -->
-    <app-footer></app-footer>
-    
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="preloader-wrapper big active">
-            <div class="spinner-layer spinner-blue">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
+
+            <!-- Save/Cancel Buttons (only shown in edit mode) -->
+            <div class="d-flex justify-content-end mt-4 edit-only d-none">
+                <button type="button" class="btn btn-cancel me-2" onclick="toggleEditMode(false)">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="submit" class="btn btn-save">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
             </div>
-            <div class="spinner-layer spinner-red">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
-            <div class="spinner-layer spinner-yellow">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
-            <div class="spinner-layer spinner-green">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
+        </form>
+
+        <!-- Edit Mode Toggle Button -->
+        <div class="edit-mode-toggle">
+            <button class="btn btn-edit" onclick="toggleEditMode(true)">
+                <i class="fas fa-edit fa-lg"></i>
+            </button>
+        </div>
+
+        <!-- Floating Back Button -->
+        <div class="back-button-toggle">
+            <button class="btn btn-back" onclick="goBack()">
+                <i class="fas fa-arrow-left fa-lg"></i>
+            </button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="profileLoadingSpinner" class="d-none text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     </div>
 
-    <!-- Load Materialize JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    
-    <!-- Load Components -->
-    <script src="../js/components/header.js"></script>
-    <script src="../js/components/footer.js"></script>
-    
-    <!-- Load Services -->
-    <script src="../js/services/authService.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Profile page loaded');
+        // Store profile data in variable and check login status
+        let profileData = null;
+        let stream = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check if user is logged in
+            const token = localStorage.getItem('auth_token');
+            const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+            const clientId = sessionStorage.getItem('clientId');
             
-            // Initialize Materialize components
-            if (typeof M !== 'undefined') {
-                M.updateTextFields();
-                var selectElems = document.querySelectorAll('select');
-                M.FormSelect.init(selectElems);
-            } else {
-                console.error('Materialize JS not loaded properly');
+            // Log what we found for debugging
+            console.log('Auth check on profile page:', { 
+                username: username, 
+                token: token ? 'Found' : 'Not found',
+                clientId: clientId || 'Not found'
+            });
+            
+            if (!token && !username) {
+                // No login detected - check if we're in development mode with URL param
+                const urlParams = new URLSearchParams(window.location.search);
+                const devMode = urlParams.get('dev');
+                
+                if (!devMode) {
+                    // Redirect to login page if not in dev mode
+                    alert('Please log in to view your profile');
+                    window.location.href = '../index.html';
+                    return;
+                }
             }
             
-            // Initialize edit mode toggle
-            const editModeCheckbox = document.getElementById('edit-mode');
-            const saveBtn = document.getElementById('save-btn');
+            // Show loading indicator
+            document.getElementById('profileLoadingSpinner').classList.remove('d-none');
             
-            if (editModeCheckbox) {
-                editModeCheckbox.addEventListener('change', function() {
-                    toggleEditMode(this.checked);
+            // Fetch profile data
+            profileData = await fetchProfileData();
+            
+            // Hide loading indicator
+            document.getElementById('profileLoadingSpinner').classList.add('d-none');
+            
+            if (profileData) {
+                console.log('Profile data loaded successfully');
+                loadProfileData(profileData);
+            } else {
+                console.log('No profile data found');
+                document.getElementById('businessName').textContent = "Profile Not Found";
+                document.getElementById('businessChn').textContent = "No Record";
+                document.getElementById('statusBadge').textContent = "N/A";
+                document.getElementById('userId').textContent = "ID: Not Available";
+                
+                // Disable edit button
+                const editBtn = document.querySelector('.btn-edit');
+                if (editBtn) {
+                    editBtn.disabled = true;
+                    editBtn.classList.add('opacity-50');
+                }
+            }
+        });
+
+        // Update fetchProfileData with better logging
+        async function fetchProfileData() {
+            try {
+                // Get username from session/local storage or URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const usernameParam = urlParams.get('username');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username') || usernameParam;
+                
+                console.log('fetchProfileData - Looking for username:', username);
+                
+                if (!username) {
+                    console.error('Username not provided. Please log in again.');
+                    return null;
+                }
+                
+                try {
+                    console.log('Calling API for profile data...');
                     
-                    // Show/hide save button based on edit mode
-                    if (this.checked) {
-                        saveBtn.style.display = 'block';
+                    // Call the Pages Function API endpoint
+                    const response = await fetch('/api/profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username: username })
+                    });
+
+                    console.log('API Response status:', response.status);
+                    
+                    if (response.ok) {
+                        const responseData = await response.json();
+                        console.log('API Response data:', responseData);
+                        
+                        if (responseData.success && responseData.data) {
+                            console.log('Profile data retrieved successfully');
+                            return responseData.data;
+                        } else {
+                            console.error('API returned success:false or no data');
+                            throw new Error(responseData.message || 'Failed to fetch profile data');
+                        }
                     } else {
-                        saveBtn.style.display = 'none';
+                        const errorText = await response.text();
+                        console.error(`API error status: ${response.status}`, errorText);
+                        throw new Error(`API error: ${response.status} - ${errorText}`);
                     }
-                });
+                } catch (apiError) {
+                    console.error('API error details:', apiError);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Unexpected error in fetchProfileData:', error);
+                return null;
+            }
+        }
+
+        function loadProfileData(profileData) {
+            // Basic Info
+            document.getElementById('username').value = profileData.USERNAME;
+            document.getElementById('email').value = profileData.EMAIL;
+            document.getElementById('contactPerson').value = profileData.CONTACT_PERSON;
+            document.getElementById('phoneNumber').value = profileData.PHONE_NUMBER;
+            document.getElementById('userIdInput').value = profileData.USERID;
+            
+            // Business Details
+            document.getElementById('businessNameInput').value = profileData.BUSINESSNAME;
+            document.getElementById('businessChnInput').value = profileData.BUSINESSCHN;
+            document.getElementById('clientType').value = profileData.CLIENT_TYPE;
+            document.getElementById('category').value = profileData.CATOGERY;
+            document.getElementById('hawkerId').value = profileData.HAWKERID;
+            document.getElementById('status').value = profileData.STATUS;
+            document.getElementById('dailyRate').value = profileData.DAILY_RATE;
+            document.getElementById('creditBalance').value = profileData.CREDIT_BALANCE;
+            
+            // Address
+            document.getElementById('address').value = profileData.ADDRESS;
+            document.getElementById('city').value = profileData.CITY;
+            document.getElementById('state').value = profileData.STATE;
+            document.getElementById('country').value = profileData.COUNTRY;
+            
+            // System Info
+            document.getElementById('clientId').value = profileData.CLIENT_ID;
+            document.getElementById('createdAt').value = formatDateTime(profileData.CREATED_AT);
+            document.getElementById('updatedAt').value = formatDateTime(profileData.UPDATED_AT);
+            document.getElementById('createdBy').value = profileData.CREATED_BY;
+            document.getElementById('updatedBy').value = profileData.UPDATED_BY;
+            
+            // Header
+            document.getElementById('businessName').textContent = profileData.BUSINESSNAME;
+            document.getElementById('businessChn').textContent = profileData.BUSINESSCHN;
+            document.getElementById('userId').textContent = `ID: ${profileData.USERID}`;
+            document.getElementById('statusBadge').textContent = profileData.STATUS;
+            document.getElementById('lastUpdated').textContent = formatDate(profileData.UPDATED_AT);
+            
+            // Media/Images
+            if (profileData.IMGLOGO) {
+                document.getElementById('logoPreview').src = profileData.IMGLOGO;
+                document.getElementById('imgLogo').value = profileData.IMGLOGO;
+                document.getElementById('profileImage').src = profileData.IMGLOGO;
             }
             
-            // Add save button functionality
-            if (saveBtn) {
-                saveBtn.addEventListener('click', function() {
-                    saveProfile();
-                });
+            if (profileData.IMGCOMPANY) {
+                document.getElementById('companyPreview').src = profileData.IMGCOMPANY;
+                document.getElementById('imgCompany').value = profileData.IMGCOMPANY;
             }
             
-            // Get user info from localStorage
-            const username = localStorage.getItem('username');
+            if (profileData.BANNER) {
+                document.getElementById('bannerPreview').src = profileData.BANNER;
+                document.getElementById('banner').value = profileData.BANNER;
+            }
             
-            // Load profile data
-            loadProfile(username);
-        });
-        
-        function toggleEditMode(isEdit) {
-            // Toggle standard input fields
-            const inputs = document.querySelectorAll('input:not([type="hidden"]), textarea');
-            inputs.forEach(function(input) {
-                input.readOnly = !isEdit;
-            });
+            if (profileData.BACKGROUND_IMGURL) {
+                document.getElementById('backgroundPreview').src = profileData.BACKGROUND_IMGURL;
+                document.getElementById('backgroundImgUrl').value = profileData.BACKGROUND_IMGURL;
+            }
             
-            // Toggle select fields
-            const selects = document.querySelectorAll('select');
-            if (isEdit) {
-                selects.forEach(function(select) {
-                    select.disabled = false;
-                    // Reinitialize to enable
-                    M.FormSelect.init(select);
-                });
+            if (profileData.BANNER_IMGURL) {
+                document.getElementById('bannerUrlPreview').src = profileData.BANNER_IMGURL;
+                document.getElementById('bannerImgUrl').value = profileData.BANNER_IMGURL;
+            }
+            
+            // Set status badge color
+            if (profileData.STATUS === 'ACTIVE') {
+                document.getElementById('statusBadge').classList.add('badge-active');
+                document.getElementById('statusBadge').classList.remove('badge-inactive');
             } else {
-                selects.forEach(function(select) {
-                    select.disabled = true;
-                    // Reinitialize to disable
-                    M.FormSelect.init(select);
-                });
+                document.getElementById('statusBadge').classList.add('badge-inactive');
+                document.getElementById('statusBadge').classList.remove('badge-active');
             }
         }
-        
-        function loadProfile(username) {
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.add('active');
+
+        // Update toggleEditMode to use the stored profileData
+        function toggleEditMode(editMode) {
+            const viewElements = document.querySelectorAll('.view-mode');
+            const editElements = document.querySelectorAll('.edit-only');
+            const editButton = document.querySelector('.btn-edit');
             
-            // In a real implementation, fetch data from your API
-            fetch(`../api/clients/profile?username=${encodeURIComponent(username)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load profile data');
+            if (editMode) {
+                // Switch to edit mode - but don't enable readonly fields
+                viewElements.forEach(el => {
+                    if (!el.classList.contains('readonly-field')) {
+                        el.disabled = false;
+                    } else {
+                        // Ensure readonly fields remain disabled, even in edit mode
+                        el.disabled = true;
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    // Populate form fields with data
-                    document.getElementById('client-id').value = data.client_id || '';
-                    document.getElementById('username').value = data.username || '';
-                    document.getElementById('email').value = data.email || '';
-                    document.getElementById('contact-person').value = data.contact_person || '';
-                    document.getElementById('phone-number').value = data.phone_number || '';
-                    document.getElementById('address').value = data.address || '';
-                    document.getElementById('city').value = data.city || '';
-                    document.getElementById('state').value = data.state || '';
-                    document.getElementById('country').value = data.country || '';
-                    document.getElementById('business-name').value = data.businessname || '';
-                    document.getElementById('business-chn').value = data.businesschn || '';
-                    
-                    // Set select values if data exists
-                    if (data.client_type) {
-                        const clientTypeSelect = document.getElementById('client-type');
-                        clientTypeSelect.value = data.client_type;
-                        M.FormSelect.init(clientTypeSelect);
-                    }
-                    
-                    if (data.status) {
-                        const statusSelect = document.getElementById('status');
-                        statusSelect.value = data.status;
-                        M.FormSelect.init(statusSelect);
-                    }
-                    
-                    // Update profile avatar with first letter of username
-                    if (data.username) {
-                        const profileAvatar = document.getElementById('profile-avatar');
-                        profileAvatar.textContent = data.username.charAt(0).toUpperCase();
-                    }
-                    
-                    // Update Materialize labels
-                    M.updateTextFields();
-                    
-                    // Hide loading overlay
-                    document.getElementById('loading-overlay').classList.remove('active');
-                })
-                .catch(error => {
-                    console.error('Error loading profile data:', error);
-                    
-                    // Hide loading overlay
-                    document.getElementById('loading-overlay').classList.remove('active');
-                    
-                    // Show error toast
-                    M.toast({html: 'Error loading profile information', classes: 'red'});
                 });
-        }
-        
-        function saveProfile() {
-            // Validate form
-            const form = document.getElementById('profile-form');
-            const requiredFields = form.querySelectorAll('[required]');
-            
-            let isValid = true;
-            requiredFields.forEach(field => {
-                if (!field.value) {
-                    isValid = false;
-                    field.classList.add('invalid');
-                } else {
-                    field.classList.remove('invalid');
+                
+                editElements.forEach(el => {
+                    el.classList.remove('d-none');
+                });
+                
+                editButton.style.display = 'none';
+            } else {
+                // Switch back to view mode
+                viewElements.forEach(el => {
+                    el.disabled = true;
+                });
+                
+                editElements.forEach(el => {
+                    el.classList.add('d-none');
+                });
+                
+                editButton.style.display = 'flex';
+                
+                // Reset form to original values using the stored profileData
+                if (profileData) {
+                    loadProfileData(profileData);
                 }
+            }
+        }
+
+        function goBack() {
+            // Check if there's history to go back to
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                // Default fallback to dashboard
+                window.location.href = '../index.html';
+            }
+        }
+
+        function activateCamera(type) {
+            const cameraElement = document.getElementById(`${type}Camera`);
+            const previewElement = document.getElementById(`${type}Preview`);
+            
+            // First hide all camera elements
+            document.querySelectorAll('.camera-capture').forEach(el => {
+                el.style.display = 'none';
             });
             
-            if (!isValid) {
-                M.toast({html: 'Please fill in all required fields', classes: 'red'});
-                return;
+            // Then show the selected one
+            cameraElement.style.display = 'block';
+            
+            // Create capture button if it doesn't exist
+            let captureBtn = document.getElementById(`${type}CaptureBtn`);
+            if (!captureBtn) {
+                captureBtn = document.createElement('button');
+                captureBtn.id = `${type}CaptureBtn`;
+                captureBtn.className = 'btn btn-primary mt-2 mb-3';
+                captureBtn.innerHTML = '<i class="fas fa-camera me-2"></i>Take Photo';
+                captureBtn.onclick = function() { captureImage(type); };
+                cameraElement.insertAdjacentElement('afterend', captureBtn);
+            } else {
+                captureBtn.style.display = 'block';
             }
             
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.add('active');
+            // Stop any existing stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
             
-            // Gather form data
-            const formData = {
-                client_id: document.getElementById('client-id').value,
-                username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
-                contact_person: document.getElementById('contact-person').value,
-                phone_number: document.getElementById('phone-number').value,
-                address: document.getElementById('address').value,
-                city: document.getElementById('city').value,
-                state: document.getElementById('state').value,
-                country: document.getElementById('country').value,
-                client_type: document.getElementById('client-type').value,
-                status: document.getElementById('status').value,
-                businessname: document.getElementById('business-name').value,
-                businesschn: document.getElementById('business-chn').value
-            };
-            
-            // In a real implementation, save data to your API
-            fetch('../api/clients/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                body: JSON.stringify(formData)
+            // Access the device camera
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'environment' // Prefer rear camera on mobile devices
+                }, 
+                audio: false 
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save profile data');
-                }
-                return response.json();
+            .then(function(mediaStream) {
+                stream = mediaStream;
+                cameraElement.srcObject = mediaStream;
+                cameraElement.play();
             })
-            .then(data => {
-                // Hide loading overlay
-                document.getElementById('loading-overlay').classList.remove('active');
+            .catch(function(err) {
+                console.error('Error accessing camera:', err);
+                alert('Unable to access camera: ' + err.message);
                 
-                // Show success message
-                M.toast({html: 'Profile saved successfully', classes: 'green'});
-                
-                // Turn off edit mode
-                document.getElementById('edit-mode').checked = false;
-                toggleEditMode(false);
-                document.getElementById('save-btn').style.display = 'none';
-            })
-            .catch(error => {
-                console.error('Error saving profile data:', error);
-                document.getElementById('loading-overlay').classList.remove('active');
-                M.toast({html: 'Error saving profile information', classes: 'red'});
+                // Hide the camera element and capture button
+                cameraElement.style.display = 'none';
+                if (captureBtn) captureBtn.style.display = 'none';
             });
         }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Materialize components
-            if (typeof M !== 'undefined') {
-                // Initialize sidenav
-                const sidenavElems = document.querySelectorAll('.sidenav');
-                if (sidenavElems.length) M.Sidenav.init(sidenavElems);
-                
-                // Initialize tooltips
-                const tooltipElems = document.querySelectorAll('.tooltipped');
-                if (tooltipElems.length) M.Tooltip.init(tooltipElems);
+
+        function captureImage(type) {
+            const cameraElement = document.getElementById(`${type}Camera`);
+            const previewElement = document.getElementById(`${type}Preview`);
+            const inputElement = document.getElementById(
+                type === 'logo' ? 'imgLogo' : 
+                type === 'company' ? 'imgCompany' : 
+                type === 'banner' ? 'banner' :
+                type === 'background' ? 'backgroundImgUrl' : 'bannerImgUrl'
+            );
+            
+            // Create a canvas element to capture the current video frame
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraElement.videoWidth;
+            canvas.height = cameraElement.videoHeight;
+            
+            // Draw the current video frame to the canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraElement, 0, 0, canvas.width, canvas.height);
+            
+            // Convert the canvas to a data URL (base64 encoded image)
+            const imageDataUrl = canvas.toDataURL('image/jpeg');
+            
+            // Update the preview image
+            previewElement.src = imageDataUrl;
+            
+            // Update the hidden input field
+            inputElement.value = imageDataUrl;
+            
+            // If this is the logo, also update the profile image
+            if (type === 'logo') {
+                document.getElementById('profileImage').src = imageDataUrl;
             }
             
-            // Ensure header displays logo correctly
-            setTimeout(function() {
-                const logoImgs = document.querySelectorAll('.brand-logo img');
-                logoImgs.forEach(img => {
-                    // Force image to be visible
-                    img.style.display = 'block';
-                    img.style.visibility = 'visible';
-                    img.style.opacity = '1';
-                });
-            }, 100);
+            // Hide the camera and capture button
+            cameraElement.style.display = 'none';
+            const captureBtn = document.getElementById(`${type}CaptureBtn`);
+            if (captureBtn) captureBtn.style.display = 'none';
+            
+            // Stop the camera stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            // Show a success message
+            alert('Image captured successfully!');
+        }
+
+        // Make sure to stop any active camera when navigating away
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden' && stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
         });
+
+        // Clean up camera when switching tabs
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(button => {
+            button.addEventListener('shown.bs.tab', function() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                // Hide all camera elements when switching tabs
+                document.querySelectorAll('.camera-capture').forEach(el => {
+                    el.style.display = 'none';
+                });
+                // Hide all capture buttons
+                document.querySelectorAll('[id$="CaptureBtn"]').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            });
+        });
+
+        // Helper function to format dates
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function removeImage(type) {
+            const previewElement = document.getElementById(`${type}Preview`);
+            const inputElement = document.getElementById(type === 'logo' ? 'imgLogo' : 
+                                                          type === 'company' ? 'imgCompany' : 
+                                                          type === 'banner' ? 'banner' :
+                                                          type === 'background' ? 'backgroundImgUrl' : 'bannerImgUrl');
+            
+            previewElement.src = 'https://via.placeholder.com/300';
+            inputElement.value = '';
+            
+            if (type === 'logo') {
+                document.getElementById('profileImage').src = 'https://via.placeholder.com/150';
+            }
+        }
+
+        // Form submission handling
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Collect all form data
+            const formData = {
+                CLIENT_ID: document.getElementById('clientId').value, // Important: Include the CLIENT_ID
+                USERNAME: profileData.USERNAME, // Use the original username from profileData
+                EMAIL: document.getElementById('email').value,
+                CONTACT_PERSON: document.getElementById('contactPerson').value,
+                PHONE_NUMBER: document.getElementById('phoneNumber').value,
+                BUSINESSNAME: document.getElementById('businessNameInput').value,
+                BUSINESSCHN: document.getElementById('businessChnInput').value,
+                CLIENT_TYPE: document.getElementById('clientType').value,
+                CATOGERY: document.getElementById('category').value,
+                HAWKERID: document.getElementById('hawkerId').value,
+                STATUS: document.getElementById('status').value,
+                DAILY_RATE: document.getElementById('dailyRate').value,
+                ADDRESS: document.getElementById('address').value,
+                CITY: document.getElementById('city').value,
+                STATE: document.getElementById('state').value,
+                COUNTRY: document.getElementById('country').value,
+                IMGLOGO: document.getElementById('imgLogo').value,
+                IMGCOMPANY: document.getElementById('imgCompany').value,
+                BANNER: document.getElementById('banner').value,
+                BACKGROUND_IMGURL: document.getElementById('backgroundImgUrl').value,
+                BANNER_IMGURL: document.getElementById('bannerImgUrl').value,
+                UPDATED_BY: sessionStorage.getItem('username') || 'system' // Track who made the update
+            };
+
+            try {
+                // Show loading indicator or disable submit button
+                document.querySelector('.btn-save').disabled = true;
+                document.querySelector('.btn-save').innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+                
+                // Call update API via the Pages Function
+                const response = await fetch('/api/profile-update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const responseData = await response.json();
+                
+                if (!response.ok || !responseData.success) {
+                    throw new Error(responseData.message || 'Failed to update profile');
+                }
+
+                // Show success message
+                alert('Profile updated successfully!');
+                
+                // Refresh profile data
+                profileData = await fetchProfileData();
+                loadProfileData(profileData);
+                
+                // Return to view mode
+                toggleEditMode(false);
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile: ' + error.message);
+            } finally {
+                // Re-enable submit button
+                document.querySelector('.btn-save').disabled = false;
+                document.querySelector('.btn-save').innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+            }
+        });
+
+        // Add CSS to improve camera display
+        document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .camera-capture {
+                width: 100%;
+                height: 300px;
+                background: #000;
+                margin-bottom: 10px;
+                border-radius: 10px;
+                display: none;
+            }
+        </style>
+        `);
     </script>
 </body>
 </html>

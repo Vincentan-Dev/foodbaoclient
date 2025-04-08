@@ -63,7 +63,7 @@
             margin-top: 20px;
         }
         
-        /* Enhanced background image styling - Updated with Cloudinary URL */
+        /* Enhanced background image styling */
         body::before {
             content: "";
             position: fixed;
@@ -72,10 +72,10 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: url('https://res.cloudinary.com/foodbaoimg/image/upload/v1741439240/ote6ufv7qeywl2t3tzgh.jpg') no-repeat center center;
+            background: url('img/hawkerbg.jpg') no-repeat center center;
             background-size: cover;
-            opacity: 0.45; /* Keeping your existing opacity */
-            filter: brightness(1.05) saturate(1.2) contrast(1.05); /* Keeping your existing filters */
+            opacity: 0.45; /* Increased transparency to show more background */
+            filter: brightness(1.05) saturate(1.2) contrast(1.05); /* Enhanced image qualities */
         }
         
         /* More transparent card styling with glass effect */
@@ -142,11 +142,20 @@
                 background-color: rgba(255, 255, 255, 0.85); /* Less transparent on mobile */
             }
         }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .fadeOut {
+            animation: fadeOut 0.5s forwards;
+        }
     </style>
 </head>
 <body>
     <script>
-        // Check Oracle ORDS authentication
+        // Simple authentication check without authService
         (function checkAuthentication() {
             const authToken = localStorage.getItem('auth_token');
             const username = localStorage.getItem('username');
@@ -160,71 +169,39 @@
         })();
     </script>
     <script>
-  // Enhanced auth debugging for Firebase deployment
-  (function debugAuthStatus() {
-    const authToken = localStorage.getItem('auth_token');
-    const username = localStorage.getItem('username');
-    
-    console.log('Current environment:', window.location.hostname);
-    console.log('Auth token exists:', !!authToken);
-    console.log('Username exists:', !!username);
-    
-    // Check if we're on Firebase hosting
-    const isFirebaseHosting = window.location.hostname.includes('firebaseapp.com') || 
-                             window.location.hostname.includes('web.app');
-    
-    if (isFirebaseHosting) {
-      console.log('Running on Firebase hosting - checking auth status');
-      
-      // Force re-login if token is suspicious
-      if (authToken && (authToken.length < 20 || authToken.includes('undefined'))) {
-        console.warn('Invalid token detected, clearing auth data');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
-        window.location.href = 'login.html';
-        return;
-      }
-
-      // Add timestamp to track token age
-      const tokenTimestamp = localStorage.getItem('token_timestamp');
-      const currentTime = new Date().getTime();
-      
-      if (!tokenTimestamp) {
-        // Store current timestamp for token age tracking
-        localStorage.setItem('token_timestamp', currentTime);
-      } else if ((currentTime - parseInt(tokenTimestamp)) > 3600000) {
-        // Token older than 1 hour, refresh
-        console.warn('Token expired, redirecting to login');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
-        window.location.href = 'login.html';
-        return;
-      }
-    }
-  })();
-</script>
+        // Override the fetch API temporarily to catch and log specific unwanted requests
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            // Check if this is the problematic URL
+            if (typeof url === 'string' && url.includes('/api/clients/by-username/')) {
+                console.log('Prevented fetch to:', url);
+                // Return a resolved promise with empty data to prevent errors
+                return Promise.resolve(new Response(JSON.stringify({
+                    success: true,
+                    message: "Request intercepted - API endpoint not implemented yet", 
+                    data: {}
+                })));
+            }
+            // Otherwise, proceed with the original fetch
+            return originalFetch.apply(this, arguments);
+        };
+    </script>
     <!-- Header Component -->
     <app-header></app-header>
 
     <!-- Main Content -->
     <main class="container">
         <!-- App Content (no longer hidden) -->
-        <section id="app-content">
-            <h5 class="center-align teal-text">FoodBao Dashboard</h5>
-            
+        <section id="app-content">           
             <!-- Welcome message with username -->
             <div class="card-panel">
                 <h6>Welcome, <span id="user-name">User</span>!</h6>
                 <p>You are now logged into the FoodBao admin dashboard.</p>
-                <p>Explore the features and manage your tasks efficiently.</p> <!-- Added additional welcome message -->
-                <p>For further assistance, please contact support.</p> <!-- Added support message -->
             </div>
-            <!-- Add this right after the welcome card-panel -->
-            <div class="row">
-                <div class="col s12">
-                    <h6 class="teal-text">Popular Food Items</h6>
-                </div>
-                <div id="food-items-container" class="row"></div>
+           
+            <!-- Food items grid -->
+            <div id="food-items-container" class="row">
+                <!-- Food items will be loaded here -->
             </div>
         </section>
     </main>
@@ -235,18 +212,83 @@
     <!-- Load Materialize JS from CDN for reliability -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     
+    <!-- Add this script before the app.js include -->
+    <script>
+        // Function to check if username exists in clients table
+        async function checkClientExists() {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                console.log('No username found in localStorage');
+                return;
+            }
+            
+            try {
+                console.log('Checking if client exists for username:', username);
+                
+                // Use the proper API endpoint format for your Pages Function
+                const response = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    console.log('Client record found:', data.data.CLIENT_ID);
+                    
+                    // Store minimal client data for quick access
+                    sessionStorage.setItem('clientId', data.data.CLIENT_ID);
+                    sessionStorage.setItem('businessName', data.data.BUSINESSNAME || '');
+                    sessionStorage.setItem('clientType', data.data.CLIENT_TYPE || '');
+                    
+                    // Enable profile link (if it exists)
+                    const profileLinks = document.querySelectorAll('.profile-link');
+                    profileLinks.forEach(link => {
+                        link.classList.remove('disabled');
+                        link.setAttribute('href', 'pages/profile.html');
+                    });
+                    
+                    // Update all username elements with business name if available
+                    const usernameElements = document.querySelectorAll('.user-display-name');
+                    usernameElements.forEach(el => {
+                        if (el) el.textContent = data.data.BUSINESSNAME || username;
+                    });
+                    
+                    return data.data;
+                } else {
+                    console.log('No client record found for username:', username);
+                    
+                    // Disable profile link
+                    const profileLinks = document.querySelectorAll('.profile-link');
+                    profileLinks.forEach(link => {
+                        link.classList.add('disabled');
+                        link.setAttribute('title', 'No profile data available');
+                    });
+                    
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error checking client existence:', error);
+                return null;
+            }
+        }
+        
+        // Call this function when the page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            const clientData = await checkClientExists();
+            console.log('Client check completed:', clientData ? 'Found' : 'Not found');
+        });
+    </script>
+    
     <!-- Load Components -->
     <script src="js/components/header.js"></script>
     <script src="js/components/footer.js"></script>
     
-    <!-- Load Services - MOVED AFTER FIREBASE -->
-    <script src="js/services/authService.js"></script>
-    
     <!-- Load App Logic -->
     <script src="js/app.js"></script>
-    
-    <!-- Load CORS Helper -->
-    <script src="js/services/corsHelper.js"></script>
     
     <!-- Initialize Materialize components with proper check -->
     <script>
@@ -309,19 +351,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sidenavElems.length) {
         const sidenavInstances = M.Sidenav.init(sidenavElems);
         console.log('Sidenav initialized');
-        
-        // If using sidenav-trigger class, no need for manual click handler
-        // But let's add one for any logo that might not have the class
-        const logoElements = document.querySelectorAll('.brand-logo:not(.sidenav-trigger)');
-        logoElements.forEach(logo => {
-            logo.addEventListener('click', function(e) {
-                e.preventDefault();
-                const sidenavInstance = M.Sidenav.getInstance(document.querySelector('.sidenav'));
-                if (sidenavInstance) {
-                    sidenavInstance.open();
-                }
-            });
-        });
     } else {
         console.warn('No sidenav elements found');
     }
@@ -336,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Dropdowns initialized');
     }
     
-    // Update username display
+    // Simple username display from localStorage
     const username = localStorage.getItem('username');
     if (username) {
         const usernameElements = [
@@ -349,77 +378,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (element) element.textContent = username;
         });
     }
-
-    // Add this code to your existing DOMContentLoaded event handler
-
-    // After user is authenticated, fetch their details if not already available
-    if (authService.isAuthenticated() && !localStorage.getItem('user_role')) {
-        authService.getUserDetails().then(userDetails => {
-            console.log('User details fetched after authentication');
-            
-            // Update header component if it exists
-            const headerComp = document.querySelector('app-header');
-            if (headerComp && typeof headerComp.updateUserInfo === 'function') {
-                headerComp.updateUserInfo();
-            }
-            
-            // Update welcome message with user details
-            const userNameElement = document.getElementById('user-name');
-            if (userNameElement && userDetails) {
-                userNameElement.textContent = userDetails.username;
-            }
-        });
-    }
+    // Login success notification removed
 });
 </script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Check if components loaded correctly
-  setTimeout(function() {
-    const header = document.querySelector('app-header');
-    const footer = document.querySelector('app-footer');
-    
-    if (!header || header.childElementCount === 0) {
-      console.error('Header component failed to load properly');
-    }
-    
-    if (!footer || footer.childElementCount === 0) {
-      console.error('Footer component failed to load properly');
-      // Try to re-create the footer
-      const newFooter = document.createElement('app-footer');
-      if (footer) {
-        footer.parentNode.replaceChild(newFooter, footer);
-      } else {
-        document.body.appendChild(newFooter);
-      }
-    }
-  }, 500);
-});
-</script>
-<script>
-  // Set token timestamp on login success
-  document.addEventListener('DOMContentLoaded', function() {
-    const authToken = localStorage.getItem('auth_token');
-    if (authToken && !localStorage.getItem('token_timestamp')) {
-      localStorage.setItem('token_timestamp', new Date().getTime());
-      console.log('Set initial token timestamp');
-    }
-  });
-</script>
-<!-- CORS Help Modal -->
-<div id="cors-help-modal" class="modal">
-  <div class="modal-content">
-    <h4>CORS Protection Active</h4>
-    <p>Your browser is blocking direct access to our API due to security protection.</p>
-    <p>To use all features, please install a CORS-unblocking browser extension:</p>
-    <ul>
-      <li><strong>Chrome:</strong> <a href="https://chrome.google.com/webstore/detail/cors-unblock/lfhmikememgdcahcdlaciloancbhjino" target="_blank">CORS Unblock</a></li>
-      <li><strong>Firefox:</strong> <a href="https://addons.mozilla.org/en-US/firefox/addon/cors-everywhere/" target="_blank">CORS Everywhere</a></li>
-    </ul>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" class="modal-close waves-effect waves-green btn-flat">I understand</a>
-  </div>
-</div>
 </body>
 </html>

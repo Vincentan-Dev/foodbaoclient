@@ -1,67 +1,44 @@
-/**
- * Cloudinary Service
- * Handles Cloudinary account management with Supabase
- */
-const cloudinaryService = {
-  async getAccounts() {
+// Add this at the top of your file
+console.log('Loaded cloudinaryService.js version 1.0.1');
+
+window.cloudinaryService = {
+  getAccountByUsername: async function(username) {
     try {
-      const response = await authService.authenticatedFetch('/api/cloudinary/accounts');
+      console.log('Looking up Cloudinary account for:', username);
+      
+      // Use our Cloudflare API
+      const response = await fetch(`../api/cloudinary?action=get&username=${encodeURIComponent(username)}`);
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch Cloudinary accounts');
+        throw new Error(`Error fetching account: ${response.status}`);
       }
-      return await response.json();
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Unknown error');
+      }
+      
+      return {
+        success: true,
+        items: result.data ? [result.data] : []
+      };
     } catch (error) {
-      console.error('Error getting Cloudinary accounts:', error);
-      throw error;
+      console.error('Error getting Cloudinary account:', error);
+      return {
+        success: false,
+        error: error.message,
+        items: []
+      };
     }
   },
   
-  async getAccountByUsername(username) {
+  upsertAccount: async function(accountData) {
     try {
-      console.log(`Getting cloudinary account for username: ${username}`);
+      console.log('Upserting Cloudinary account for user:', accountData.username);
       
-      // Fix username typo if present
-      const correctedUsername = username === 'vincen423' ? 'vincent423' : username;
-      
-      const response = await authService.authenticatedFetch(`/api/cloudinary/accounts?username=${correctedUsername}`);
-      
-      // If response is not ok, it will be handled by authenticatedFetch already
-      // Just parse the response - it should be { items: [] } for no results
-      
-      try {
-        const data = await response.json();
-        console.log('Cloudinary data received:', data);
-        return data;
-      } catch (e) {
-        console.error('Failed to parse response:', e);
-        // Return a consistent format even if parse fails
-        return { items: [] };
-      }
-    } catch (error) {
-      // This is for real errors like network issues or auth problems
-      console.error('Error getting cloudinary account:', error);
-      throw error;
-    }
-  },
-  
-  async createAccount(accountData) {
-    try {
-      const currentUser = authService.getCurrentUser();
-      
-      // Verify they can only create for their own username
-      if (accountData.username !== currentUser.username) {
-        throw new Error('You can only create an account for yourself');
-      }
-      
-      // Fix username typo if present
-      if (accountData.username === 'vincen423') {
-        accountData.username = 'vincent423';
-      }
-      
-      console.log('Sending create account request to API');
-      
-      const response = await authService.authenticatedFetch('/api/cloudinary/accounts', {
+      // Use our Cloudflare API
+      const response = await fetch('../api/cloudinary?action=upsert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -69,146 +46,358 @@ const cloudinaryService = {
         body: JSON.stringify(accountData)
       });
       
-      console.log('API response status:', response.status);
-      
-      // Get response text first
-      const responseText = await response.text();
-      console.log('API response text:', responseText ? responseText.substring(0, 100) + '...' : 'empty');
-      
       if (!response.ok) {
-        try {
-          if (responseText) {
-            const errorData = JSON.parse(responseText);
-            throw new Error(errorData.message || errorData.error || 'Failed to create account');
-          } else {
-            throw new Error('Server returned empty error response');
-          }
-        } catch (parseError) {
-          console.error('Error parsing API error response:', parseError);
-          throw new Error(responseText || 'Failed to create account (invalid response format)');
-        }
+        throw new Error(`Error upserting account: ${response.status}`);
       }
       
-      // If response is empty or not JSON, handle it gracefully
-      if (!responseText || responseText.trim() === '') {
-        console.log('Empty response from API, returning empty object');
-        return {};
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Unknown error');
       }
       
-      try {
-        return JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse API success response:', parseError);
-        throw new Error('Invalid response format from server');
-      }
+      console.log('Upsert result:', result);
+      return result.data;
     } catch (error) {
-      console.error('Error creating cloudinary account:', error);
+      console.error('Error upserting Cloudinary account:', error);
       throw error;
     }
   },
   
-  async updateAccount(id, accountData) {
+  validateCredentials: async function(credentials) {
     try {
-      const currentUser = authService.getCurrentUser();
+      console.log('Testing Cloudinary credentials with upload/delete test');
       
-      // Verify user can only update their own account (unless they're admin)
-      if (accountData.username !== currentUser.username && localStorage.getItem('user_role') !== 'ADMIN') {
-        throw new Error('You can only update your own account');
-      }
-      
-      // Fix username typo if present
-      if (accountData.username === 'vincen423') {
-        accountData.username = 'vincent423';
-      }
-      
-      console.log('Sending update account request for ID:', id);
-      
-      const response = await authService.authenticatedFetch(`/api/cloudinary/accounts?id=${id}`, {
-        method: 'PUT',
+      // First, try the comprehensive test with upload/delete
+      const response = await fetch('../api/cloudinary-test', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(accountData)
+        body: JSON.stringify(credentials)
       });
       
-      console.log('API response status:', response.status);
-      
-      // Get response text first
-      const responseText = await response.text();
-      console.log('API response text:', responseText ? responseText.substring(0, 100) + '...' : 'empty');
-      
       if (!response.ok) {
-        try {
-          if (responseText) {
-            const errorData = JSON.parse(responseText);
-            throw new Error(errorData.message || errorData.error || 'Failed to update account');
-          } else {
-            throw new Error('Server returned empty error response');
-          }
-        } catch (parseError) {
-          console.error('Error parsing API error response:', parseError);
-          throw new Error(responseText || 'Failed to update account (invalid response format)');
-        }
+        throw new Error(`Error validating credentials: ${response.status}`);
       }
       
-      // If response is empty or not JSON, handle it gracefully
-      if (!responseText || responseText.trim() === '') {
-        console.log('Empty response from API, returning empty object');
-        return {};
-      }
+      const result = await response.json();
+      console.log('Validation result:', result);
       
-      try {
-        return JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse API success response:', parseError);
-        throw new Error('Invalid response format from server');
-      }
+      return {
+        valid: result.valid === true,
+        message: result.message,
+        details: result.details
+      };
     } catch (error) {
-      console.error('Error updating cloudinary account:', error);
+      console.error('Error in upload/delete test:', error);
+      
+      // Fall back to simple ping test if the comprehensive test fails
+      try {
+        console.log('Falling back to ping test');
+        
+        const pingResponse = await fetch('../api/cloudinary?action=validate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(credentials)
+        });
+        
+        if (!pingResponse.ok) {
+          throw new Error(`Error validating credentials: ${pingResponse.status}`);
+        }
+        
+        const pingResult = await pingResponse.json();
+        console.log('Ping validation result:', pingResult);
+        
+        return {
+          valid: pingResult.valid === true,
+          message: pingResult.message,
+          details: pingResult.details
+        };
+      } catch (pingError) {
+        console.error('Error in ping test:', pingError);
+        return {
+          valid: false,
+          message: `Failed to validate credentials: ${error.message}, ping also failed: ${pingError.message}`,
+          details: null
+        };
+      }
+    }
+  },
+  
+  // Keep these for backwards compatibility 
+  createAccount: async function(accountData) {
+    console.log('Using upsert instead of create');
+    return this.upsertAccount(accountData);
+  },
+  
+  updateAccount: async function(id, accountData) {
+    console.log('Using upsert instead of update');
+    return this.upsertAccount({...accountData, id});
+  },
+
+  // This function should call your cloudinary-credentials API
+  getCredentials: async function() {
+    try {
+      const response = await fetch('../api/cloudinary-credentials');
+      if (!response.ok) {
+        throw new Error('Failed to load Cloudinary credentials');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching Cloudinary credentials:', error);
       throw error;
     }
   },
   
-  async deleteAccount(id) {
+  uploadImage: async function(file, folder = 'general') {
     try {
-      // Keep admin check for deletion - only admins should delete accounts
-      const userRole = localStorage.getItem('user_role');
-      if (userRole !== 'ADMIN') {
-        throw new Error('Only administrators can delete accounts');
-      }
+      // Get credentials via API
+      const credentials = await this.getCredentials();
       
-      const response = await authService.authenticatedFetch(`/api/cloudinary/accounts/${id}`, {
-        method: 'DELETE'
-      });
+      // Create form data for upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', credentials.upload_preset);
+      formData.append('folder', folder);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete Cloudinary account');
-      }
+      // Upload directly to Cloudinary (safe because we're only using public credentials)
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${credentials.cloud_name}/image/upload`, 
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
       
       return await response.json();
     } catch (error) {
-      console.error('Error deleting Cloudinary account:', error);
+      console.error('Error uploading to Cloudinary:', error);
       throw error;
     }
   },
   
-  // Helper function to hide UI elements based on role
-  setupUI() {
-    const userRole = localStorage.getItem('user_role');
-    console.log('Setting up UI for role:', userRole);
-    
-    // Hide delete buttons for non-admin users
-    if (userRole !== 'ADMIN') {
-      const deleteButtons = document.querySelectorAll('.delete-cloudinary-btn');
-      deleteButtons.forEach(btn => {
-        if (btn) btn.style.display = 'none';
+  deleteImage: async function(publicId) {
+    try {
+      // Call our secure API endpoint that uses environment variables
+      const response = await fetch('../api/cloudinary-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ public_id: publicId })
       });
       
-      // Only hide the "add" button for the cloudinary account list page
-      // but allow users to create their own account on the cloudinary page
-      const createButton = document.getElementById('add-cloudinary-btn');
-      if (createButton) createButton.style.display = 'none';
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting Cloudinary image:', error);
+      throw error;
     }
   }
 };
+
+// Add this global error handler if you don't already have one
+window.handleError = function(error, message) {
+  console.error(message || 'An error occurred', error);
+  
+  // Parse the error message to be more user-friendly
+  let displayMessage = message || 'An error occurred';
+  
+  if (error) {
+    if (error.message && error.message.includes('NetworkError')) {
+      displayMessage = 'Network error - Check your internet connection';
+    } else if (error.message && error.message.includes('CORS')) {
+      displayMessage = 'CORS error - Using proxy...';
+    } else if (error.message) {
+      displayMessage = error.message;
+    }
+  }
+  
+  // Show toast if Materialize is available
+  if (typeof M !== 'undefined' && M.toast) {
+    M.toast({
+      html: `<i class="material-icons left">error</i> ${displayMessage}`,
+      classes: 'red rounded',
+      displayLength: 5000
+    });
+  } else {
+    alert(displayMessage);
+  }
+};
+
+const cloudinaryService = (function() {
+    // Upload an image to Cloudinary
+    async function uploadImage(file, folder = 'uploads') {
+        // Show toast notification if Materialize is available
+        if (window.M) {
+            M.toast({html: 'Uploading image...', classes: 'blue'});
+        }
+        
+        try {
+            // Step 1: Get secure upload parameters from our backend
+            const paramsResponse = await fetch('../api/cloudinary-operations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'get_upload_params',
+                    folder: folder
+                })
+            });
+            
+            if (!paramsResponse.ok) {
+                throw new Error(`Failed to get upload parameters: ${paramsResponse.status}`);
+            }
+            
+            const paramsData = await paramsResponse.json();
+            
+            if (!paramsData.success) {
+                throw new Error(paramsData.message || 'Failed to get upload parameters');
+            }
+            
+            const uploadParams = paramsData.uploadParams;
+            
+            // Step 2: Use these parameters to upload directly to Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('api_key', uploadParams.api_key);
+            formData.append('timestamp', uploadParams.timestamp);
+            formData.append('signature', uploadParams.signature);
+            formData.append('folder', uploadParams.folder);
+            
+            // Include upload_preset if it exists
+            if (uploadParams.upload_preset) {
+                formData.append('upload_preset', uploadParams.upload_preset);
+            }
+            
+            // Generate a unique filename instead of a path - IMPORTANT FIX
+            const timestamp = new Date().getTime();
+            const uniqueFileName = `file_${timestamp}`;
+            formData.append('public_id', uniqueFileName);
+            
+            console.log('Uploading to Cloudinary with params:', {
+                cloudName: uploadParams.cloud_name,
+                folder: uploadParams.folder,
+                timestamp: uploadParams.timestamp,
+                publicId: uniqueFileName
+            });
+            
+            // Upload to Cloudinary
+            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${uploadParams.cloud_name}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!uploadResponse.ok) {
+                const errorText = await uploadResponse.text();
+                throw new Error(`Upload failed: ${errorText}`);
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            
+            // Add this check in cloudinaryService.js uploadImage function
+            // After successful upload:
+            if (uploadResult.secure_url) {
+                console.log('Cloudinary upload successful, URL:', uploadResult.secure_url);
+                return uploadResult.secure_url;
+            } else {
+                throw new Error('Upload succeeded but no URL was returned');
+            }
+            
+        } catch (error) {
+            console.error('Cloudinary upload error:', error);
+            
+            // Show error message
+            if (window.M) {
+                M.toast({html: `Upload failed: ${error.message}`, classes: 'red'});
+            }
+            
+            throw error;
+        }
+    }
+    
+    // Delete an image from Cloudinary
+    async function deleteImage(imageUrl) {
+        if (!imageUrl) return Promise.resolve();
+        
+        try {
+            // Extract public_id from URL
+            const urlParts = imageUrl.split('/');
+            const filenameWithExtension = urlParts[urlParts.length - 1];
+            const filename = filenameWithExtension.split('.')[0];
+            
+            // Find folder part
+            const folderIndex = urlParts.findIndex(part => part === 'upload');
+            let folder = '';
+            
+            if (folderIndex !== -1 && folderIndex + 2 < urlParts.length - 1) {
+                folder = urlParts[folderIndex + 2];
+            }
+            
+            const publicId = folder ? `${folder}/${filename}` : filename;
+            
+            // Call our API to delete the image
+            const response = await fetch('../api/cloudinary-operations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    operation: 'delete',
+                    public_id: publicId
+                })
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Delete failed: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (window.M && result.success) {
+                M.toast({html: 'Image deleted successfully', classes: 'green'});
+            }
+            
+            return result;
+        } catch (error) {
+            console.error('Cloudinary delete error:', error);
+            
+            if (window.M) {
+                M.toast({html: `Delete failed: ${error.message}`, classes: 'red'});
+            }
+            
+            throw error;
+        }
+    }
+    
+    // Replace an image (delete old one if exists, then upload new one)
+    async function replaceImage(file, oldImageUrl, folder = 'uploads') {
+        try {
+            // Delete the old image if it exists
+            if (oldImageUrl) {
+                try {
+                    await deleteImage(oldImageUrl);
+                } catch (error) {
+                    console.warn('Failed to delete old image:', error);
+                    // Continue with upload even if delete fails
+                }
+            }
+            
+            // Upload the new image
+            return await uploadImage(file, folder);
+        } catch (error) {
+            console.error('Image replacement error:', error);
+            throw error;
+        }
+    }
+    
+    return {
+        uploadImage,
+        deleteImage,
+        replaceImage
+    };
+})();

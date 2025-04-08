@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../styles/common-buttons.css">
     <style>
         body, html {
             margin: 0;
@@ -146,7 +147,7 @@
         
         .client-card-details {
             overflow: hidden;
-            padding-right: 20px; /* Space for delete icon */
+            padding-right: 8px; /* Reduced padding since no delete button */
         }
         
         .client-card-title {
@@ -178,29 +179,6 @@
             padding: 2px 8px;
             font-size: 10px;
             font-weight: 500;
-        }
-        
-        /* Delete button positioned at bottom right */
-        .delete-btn {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            width: 30px;
-            height: 30px;
-            min-width: 30px;
-            padding: 0;
-            background-color: transparent;
-            color: #f44336;
-            box-shadow: none;
-        }
-        
-        .delete-btn:hover, .delete-btn:focus {
-            background-color: rgba(244, 67, 54, 0.1);
-        }
-        
-        .delete-btn i {
-            font-size: 20px;
-            line-height: 30px;
         }
         
         /* Loading indicator - smaller */
@@ -380,19 +358,184 @@
             border-radius: 3px;
         }
     </style>
+    <style>
+        /* Standardized button styles */
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-outline {
+            color: #6c757d;
+            background-color: transparent;
+            border: 1px solid #6c757d;
+        }
+        
+        .action-btn-outline:hover {
+            color: #fff;
+            background-color: #6c757d;
+        }
+        
+        .action-btn i {
+            margin-right: 0.375rem;
+        }
+    </style>
+    <style>
+        /* Floating back button - positioned opposite to the Add button */
+        .back-button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 998;
+        }
+        
+        /* Match the styling of your existing FAB */
+        .back-button-container .btn-floating {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .back-button-container .btn-floating i {
+            line-height: 56px;
+            font-size: 24px;
+        }
+    </style>
+    <!-- Add this style to reduce button sizes -->
+    <style>
+        /* Smaller floating buttons */
+        .btn-floating.btn-medium {
+            width: 45px;
+            height: 45px;
+        }
+        
+        .btn-floating.btn-medium i {
+            line-height: 45px;
+            font-size: 18px;
+        }
+        
+        /* Adjust container positioning */
+        .fab-container, .back-button-container {
+            bottom: 20px;
+        }
+    </style>
+    <!-- Load Client Service -->
+    <script src="../js/services/clientService.js"></script>
 </head>
 <body>
     <script>
-        // Check authentication
-        (function checkAuthentication() {
+        // More tolerant authentication check for both pages
+        function validateAuthentication() {
             const authToken = localStorage.getItem('auth_token');
             const username = localStorage.getItem('username');
             
+            console.log('Auth check - Token exists:', !!authToken);
+            console.log('Auth check - Username exists:', !!username);
+            
             if (!authToken || !username) {
-                console.log('Not authenticated, redirecting to login page');
-                window.location.href = '../login.html';
+                console.warn('Auth validation failed - missing token or username');
+                // Don't redirect immediately - show a message instead
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'card-panel red lighten-4';
+                errorDiv.innerHTML = `
+                    <i class="material-icons left">error</i>
+                    <span>Authentication required. <a href="../login.html">Click here to login</a>.</span>
+                `;
+                
+                // Insert the error at the top of the page
+                document.body.insertBefore(errorDiv, document.body.firstChild);
+                
+                // Wait 3 seconds before redirecting
+                setTimeout(() => {
+                    window.location.href = '../login.html';
+                }, 3000);
+                return false;
             }
-        })();
+            
+            console.log('Auth validation passed');
+            return true;
+        }
+
+        // Replace the current auth validation at the top of both pages with this call
+        if (!validateAuthentication()) {
+            // Stop further execution if validation fails
+            throw new Error('Authentication validation failed');
+        }
+    </script>
+
+    <script>
+        function viewClient(username) {
+            if (!username) {
+                M.toast({html: 'Invalid username', classes: 'red'});
+                return;
+            }
+            
+            // Use username parameter instead of id
+            window.location.href = `client-info.html?username=${encodeURIComponent(username)}`;
+        }
+
+        function editClient(clientId) {
+            console.log('Edit client:', clientId);
+            window.location.href = `editclient.html?id=${clientId}`;
+        }
+
+        let currentSearchTerm = '';
+    </script>
+
+    <script>
+        // Add to both clientsrch.html and client-info.html
+        function debugApiCall(apiUrl, options = {}) {
+            console.log('🔍 DEBUG: Making API call to:', apiUrl);
+            console.log('🔍 DEBUG: API options:', options);
+            
+            // Make the actual API call with debugging
+            return fetch(apiUrl, options)
+                .then(response => {
+                    console.log(`🔍 DEBUG: API response status: ${response.status}`);
+                    if (!response.ok) {
+                        console.error(`🔍 DEBUG: API error response:`, response);
+                        // Try to get response text for better debugging
+                        return response.text().then(text => {
+                            try {
+                                // Try to parse as JSON
+                                const json = JSON.parse(text);
+                                console.error('🔍 DEBUG: API error detail:', json);
+                                throw new Error(`API error: ${response.status} ${JSON.stringify(json)}`);
+                            } catch (e) {
+                                // If not JSON, use text
+                                console.error('🔍 DEBUG: API error text:', text);
+                                throw new Error(`API error: ${response.status} ${text}`);
+                            }
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('🔍 DEBUG: API response data:', data);
+                    return data;
+                })
+                .catch(error => {
+                    console.error('🔍 DEBUG: API call failed:', error);
+                    throw error;
+                });
+        }
+    </script>
+
+    <script>
+        function createClientCard(client) {
+            // Make sure we're extracting a string username value
+            const username = client.username || client.USERNAME || '';
+            
+            return `
+                <div class="client-card" onclick="viewClient('${username}')">
+                    <!-- Card content -->
+                </div>
+            `;
+        }
     </script>
 
     <!-- Header Component -->
@@ -401,13 +544,6 @@
     <!-- Main Content -->
     <main class="full-width-container" style="margin-top: -20px !important;">
         <section id="app-content">
-            <div style="display: flex; align-items: center; justify-content: center; padding-top: 10px;">
-                <a href="../index.html" class="btn-flat waves-effect waves-light" style="padding: 0; margin-right: 10px;">
-                    <i class="material-icons">arrow_back</i>
-                </a>
-                <h5 class="center-align teal-text" style="margin: 0;">Client Management</h5>
-            </div>
-            
             <!-- Simplified Search section - just the input field -->
             <div class="card-panel">
                 <div class="search-field input-field">
@@ -428,9 +564,17 @@
 
     <!-- Floating Action Button (FAB) for adding new client -->
     <div class="fab-container">
-        <a href="newclient.html" class="btn-floating btn-large waves-effect waves-light teal tooltipped" 
+        <a href="client-info.html?new=true" class="btn-floating btn-medium waves-effect waves-light teal tooltipped" 
            data-position="left" data-tooltip="Add New Client">
             <i class="material-icons">add</i>
+        </a>
+    </div>
+
+    <!-- Update back button to point to correct index.html path -->
+    <div class="back-button-container">
+        <a href="../index.html" class="btn-floating btn-medium waves-effect waves-light blue lighten-1 tooltipped" 
+           data-position="right" data-tooltip="Back to Home">
+            <i class="material-icons">arrow_back</i>
         </a>
     </div>
 
@@ -463,11 +607,12 @@
             // DOM Elements
             const searchInput = document.getElementById('search-input');
             const clientCardsContainer = document.getElementById('client-cards-container');
+            const clientCountDisplay = document.querySelector('.count-display');
             
             // Current search state
             let currentSearchTerm = '';
             
-            // Function to fetch client data using authService
+            // Function to fetch client data using clientService
             async function fetchClients(searchTerm = '') {
                 try {
                     // Show loading state
@@ -477,154 +622,76 @@
                         </div>
                     `;
                     
-                    // Get auth token from authService or localStorage
-                    let token;
-                    if (typeof authService !== 'undefined' && authService.getToken) {
-                        token = await authService.getToken();
-                    } else {
-                        token = localStorage.getItem('auth_token');
-                    }
+                    console.log('Fetching clients with search term:', searchTerm);
                     
-                    if (!token) {
-                        throw new Error('Authentication token not found');
-                    }
-                    
-                    // Build the API URL with search parameter if provided
-                    let apiUrl = 'https://g4466c5562a773d-maindb.adb.ap-singapore-1.oraclecloudapps.com/ords/admin/api/clients/';
-                    if (searchTerm) {
-                        // Add search term to URL
-                        apiUrl += `?q=${encodeURIComponent(searchTerm)}`;
-                    }
-                    
-                    // Fetch client data from API
-                    const response = await fetch(apiUrl, {
+                    // Use the new API endpoint directly
+                    const response = await fetch(`../api/clients${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`, {
                         method: 'GET',
                         headers: {
-                            'X-Auth-Token': token,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                         }
                     });
                     
                     if (!response.ok) {
-                        // If token expired, try to refresh it with authService
-                        if (response.status === 401 && typeof authService !== 'undefined' && authService.refreshToken) {
-                            console.log('Token expired, attempting to refresh...');
-                            const refreshed = await authService.refreshToken();
-                            if (refreshed) {
-                                // Retry with new token
-                                return fetchClients(searchTerm);
-                            }
-                        }
-                        throw new Error(`API error: ${response.status}`);
+                        const errorText = await response.text();
+                        throw new Error(`Error fetching clients: ${response.status} ${errorText}`);
                     }
                     
-                    const data = await response.json();
-                    displayClientCards(data);
+                    const result = await response.json();
                     
+                    if (result.success) {
+                        displayClientCards(result);
+                    } else {
+                        throw new Error(result.message || 'Failed to fetch clients');
+                    }
                 } catch (error) {
                     console.error('Error fetching client data:', error);
                     displayError(error.message);
                 }
             }
             
-            // Function to display client data as cards
+            // Modified displayClientCards function without delete button
             function displayClientCards(data) {
-                if (!data || !data.items || data.items.length === 0) {
-                    displayEmptyState();
-                    return;
-                }
+                const container = document.getElementById('client-cards-container');
+                container.innerHTML = '';
                 
-                // Build HTML for all client cards
-                const cardsHTML = data.items.map(client => {
-                    // Get initials for avatar
-                    const initials = (client.username || 'User').charAt(0).toUpperCase();
-                    
-                    return `
-                        <a href="client-info.html?id=${client.client_id}" class="card-link">
-                            <div class="client-card" data-id="${client.client_id}">
-                                <div class="client-card-content">
-                                    <div class="client-card-avatar">${initials}</div>
-                                    <div class="client-card-details">
-                                        <h3 class="client-card-title">${client.username || 'Unknown Client'}</h3>
-                                        <p class="client-card-subtitle">${client.businessname || 'No Business Name'}</p>
-                                        <p class="client-card-subtitle">${client.businesschn ? client.businesschn + ' • ' : ''}${client.country || 'No Country'}</p>
-                                    </div>
-                                </div>
-                                <span class="client-id-badge">ID: ${client.client_id}</span>
-                                
-                                <!-- Credit balance indicator -->
-                                <a href="client-credits.html?id=${client.client_id}" class="credit-balance-indicator tooltipped" 
-                                   data-position="top" data-tooltip="Credit Balance" onclick="event.stopPropagation();">
-                                    <i class="material-icons">account_balance_wallet</i>
-                                    <span class="credit-balance-text">${client.credit_balance || '0'}</span>
-                                </a>
-                                
-                                <!-- Delete button at bottom right -->
-                                <button class="btn-flat waves-effect waves-light delete-btn tooltipped" 
-                                    data-position="left" data-tooltip="Delete">
-                                    <i class="material-icons">delete</i>
-                                </button>
-                            </div>
-                        </a>
-                    `;
-                }).join('');
-                
-                // Show cards and count
-                clientCardsContainer.innerHTML = `
-                    ${cardsHTML}
-                    <p class="count-display">
-                        Total clients: ${data.count}
-                    </p>
-                `;
-                
-                // Re-initialize tooltips for new elements
-                if (typeof M !== 'undefined') {
-                    const tooltipElems = document.querySelectorAll('.tooltipped');
-                    if (tooltipElems.length) M.Tooltip.init(tooltipElems);
-                }
-                
-                // Add event listeners to cards
-                initCardEvents();
-            }
-            
-            // Initialize card events
-            function initCardEvents() {
-                const cards = document.querySelectorAll('.client-card');
-                
-                cards.forEach(card => {
-                    // Basic card click event for viewing client
-                    card.addEventListener('click', function(e) {
-                        // Don't trigger if clicking delete button
-                        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                            return;
-                        }
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach(client => {
+                        // Get initials for avatar
+                        const initials = client.username ? client.username.charAt(0).toUpperCase() : '?';
                         
-                        const clientId = this.dataset.id;
-                        viewClient(clientId);
+                        // Create client card HTML
+                        const card = document.createElement('div');
+                        card.className = 'client-card';
+                        card.innerHTML = `
+                            <div class="client-card-content">
+                                <div class="client-card-avatar">${initials}</div>
+                                <div class="client-card-details">
+                                    <h5 class="client-card-title">${client.username || 'Unknown'}</h5>
+                                    <p class="client-card-subtitle">${client.email || 'No email'}</p>
+                                    <p class="client-card-subtitle">${client.user_role || 'user'}</p>
+                                </div>
+                            </div>
+                            <div class="client-id-badge">${client.status || 'UNKNOWN'}</div>
+                        `;
+                        
+                        // Add click handler that uses username instead of client_id
+                        card.addEventListener('click', () => {
+                            window.location.href = `client-info.html?username=${encodeURIComponent(client.username)}`;
+                        });
+                        
+                        container.appendChild(card);
                     });
                     
-                    // Delete button click
-                    const deleteBtn = card.querySelector('.delete-btn');
-                    if (deleteBtn) {
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const clientId = card.dataset.id;
-                            deleteClient(clientId);
-                        });
+                    // Update count display if it exists
+                    const countDisplay = document.querySelector('.count-display');
+                    if (countDisplay) {
+                        countDisplay.textContent = `Showing ${data.items.length} of ${data.count} clients`;
                     }
-                });
-
-                // Credit balance click handling
-                const creditIndicators = document.querySelectorAll('.credit-balance-indicator');
-                creditIndicators.forEach(indicator => {
-                    indicator.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const clientId = this.closest('.client-card').dataset.id;
-                        window.location.href = `client-credits.html?id=${clientId}`;
-                    });
-                });
+                } else {
+                    container.innerHTML = '<div class="empty-state">No clients found</div>';
+                }
             }
             
             // Function to display empty state
@@ -661,48 +728,6 @@
             function viewClient(clientId) {
                 console.log('View client:', clientId);
                 window.location.href = `client-info.html?id=${clientId}`;
-            }
-            
-            // Function to handle client deletion
-            function deleteClient(clientId) {
-                console.log('Delete client:', clientId);
-                
-                // Show confirmation dialog
-                if (confirm(`Are you sure you want to delete client #${clientId}?`)) {
-                    M.toast({html: `Deleting client #${clientId}...`, classes: 'rounded'});
-                    
-                    // Get auth token
-                    let token = localStorage.getItem('auth_token');
-                    if (!token) {
-                        M.toast({html: 'Authentication token not found', classes: 'rounded red'});
-                        return;
-                    }
-                    
-                    // Create the API URL for deletion
-                    let apiUrl = `https://g4466c5562a773d-maindb.adb.ap-singapore-1.oraclecloudapps.com/ords/admin/api/clients/${clientId}`;
-                    
-                    // Make the DELETE request to the API
-                    fetch(apiUrl, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-Auth-Token': token,
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            M.toast({html: `Client #${clientId} deleted successfully`, classes: 'rounded green'});
-                            // Refresh the client list
-                            fetchClients(currentSearchTerm);
-                        } else {
-                            throw new Error(`Failed to delete client: ${response.status}`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error deleting client:', error);
-                        M.toast({html: `Error: ${error.message}`, classes: 'rounded red'});
-                    });
-                }
             }
             
             // Event listener for search input
@@ -788,28 +813,155 @@
         }
     </script>
     <script>
-        function loadClientData(clientId) {
-            // Show loading overlay
-            document.getElementById('loading-overlay').classList.add('active');
-            
-            // API endpoint with client ID
-            const apiUrl = `https://g4466c5562a773d-maindb.adb.ap-singapore-1.oraclecloudapps.com/ords/admin/api/clients/${clientId}`;
-            
-            // Use the shared authenticatedFetch method
-            authService.authenticatedFetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Client data loaded successfully:', data);
-                    // Process your client data here
-                    
-                    // Hide loading overlay
-                    document.getElementById('loading-overlay').classList.remove('active');
-                })
-                .catch(error => {
-                    console.error('Error loading client data:', error);
-                    document.getElementById('loading-overlay').classList.remove('active');
-                    M.toast({html: 'Error loading client information', classes: 'red'});
+        export async function onRequest(context) {
+            // Server-side code...
+        }
+    </script>
+    <script>
+        export async function onRequest(context) {
+            try {
+                const { request, env } = context;
+                
+                // Get Supabase credentials
+                const supabaseUrl = env.SUPABASE_URL || "https://icqbjfixyidhhrpnekdl.supabase.co";
+                const supabaseKey = env.SUPABASE_KEY;
+                
+                if (!supabaseKey) {
+                    return new Response(JSON.stringify({
+                        success: false,
+                        message: "Missing Supabase API key"
+                    }), {
+                        status: 500,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+                
+                // List tables
+                const tablesResponse = await fetch(
+                    `${supabaseUrl}/rest/v1/information_schema/tables?table_schema=eq.public`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": supabaseKey,
+                            "Authorization": `Bearer ${supabaseKey}`
+                        }
+                    }
+                );
+                
+                const tables = await tablesResponse.json();
+                
+                // Get app_users data count
+                const countResponse = await fetch(
+                    `${supabaseUrl}/rest/v1/app_users?select=count`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": supabaseKey,
+                            "Authorization": `Bearer ${supabaseKey}`,
+                            "Prefer": "count=exact"
+                        }
+                    }
+                );
+                
+                const countHeader = countResponse.headers.get('content-range');
+                const totalCount = countHeader ? parseInt(countHeader.split('/')[1]) : 'unknown';
+                
+                // Get a sample of app_users
+                const usersResponse = await fetch(
+                    `${supabaseUrl}/rest/v1/app_users?limit=3`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "apikey": supabaseKey,
+                            "Authorization": `Bearer ${supabaseKey}`
+                        }
+                    }
+                );
+                
+                const users = await usersResponse.json();
+                
+                return new Response(JSON.stringify({
+                    success: true,
+                    tables: tables.map(t => t.table_name),
+                    app_users_count: totalCount,
+                    sample_users: users.map(u => ({
+                        id: u.id,
+                        username: u.username,
+                        email: u.email,
+                        user_role: u.user_role,
+                        status: u.status
+                    }))
+                }), {
+                    status: 200,
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*" // For debugging only
+                    }
                 });
+            } catch (error) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    message: error.message
+                }), {
+                    status: 500,
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+        }
+    </script>
+    <script>
+        // Debug script - temporary 
+        document.addEventListener('DOMContentLoaded', function() {
+          // Debug your schemas and data counts
+          console.log('Loading debug information...');
+          
+          // Get token
+          const token = localStorage.getItem('auth_token');
+          
+          // Call the debug endpoint to check your tables
+          fetch('../api/debug-schema', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Database debug information:', data);
+            // Check if app_users table exists
+            if (data.tables && data.tables.includes('app_users')) {
+              console.log('✅ app_users table exists');
+            } else {
+              console.error('❌ app_users table not found');
+            }
+            
+            // Check if there are any users
+            if (data.app_users_count > 0) {
+              console.log(`✅ app_users table has ${data.app_users_count} records`);
+            } else {
+              console.warn('⚠️ app_users table appears to be empty');
+            }
+            
+            // Display sample users
+            if (data.sample_users && data.sample_users.length > 0) {
+              console.log('Sample users from app_users table:', data.sample_users);
+            }
+          })
+          .catch(error => {
+            console.error('Error checking database tables:', error);
+          });
+        });
+    </script>
+    <script>
+        // Update the "Add New Client" button
+        const addButton = document.getElementById('add-client-btn');
+        if (addButton) {
+            addButton.addEventListener('click', function() {
+                window.location.href = 'client-info.html?new=true';
+            });
         }
     </script>
 </body>

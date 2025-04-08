@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Categories | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .stats-primary {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .stats-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--secondary-color);
+        }
+        
+        .stats-warning {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .stats-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        
+        .stats-label {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .search-bar {
+            background: white;
+            border-radius: 50px;
+            padding: 5px 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .search-bar input {
+            border: none;
+            box-shadow: none;
+            padding: 12px 0;
+        }
+        
+        .search-bar input:focus {
+            box-shadow: none;
+        }
+        
+        .search-bar .btn {
+            border-radius: 50px;
+            padding: 8px 20px;
+        }
+        
+        .category-card {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            height: 200px;
+            cursor: pointer;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-position: center;
+            background-size: cover;
+            filter: brightness(0.7);
+            transition: all 0.3s;
+        }
+        
+        .category-card:hover .category-card-bg {
+            filter: brightness(0.9);
+            transform: scale(1.05);
+        }
+        
+        .category-card-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .category-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+            z-index: 1;
+        }
+        
+        .category-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .category-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 3;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .badge-active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-inactive {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .category-order {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 3;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .category-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .category-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .action-edit {
+            background-color: rgba(52, 152, 219, 0.6);
+        }
+        
+        .action-delete {
+            background-color: rgba(231, 76, 60, 0.6);
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 20px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            border: 1px dashed #ccc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-preview-placeholder {
+            color: #aaa;
+            text-align: center;
+        }
+        
+        .camera-capture {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .add-button-toggle, .back-button-toggle {
+            position: fixed;
+            bottom: 25px;
+            z-index: 1000;
+        }
+        
+        .add-button-toggle {
+            right: 25px;
+        }
+        
+        .back-button-toggle {
+            left: 25px;
+        }
+        
+        .btn-add, .btn-back {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-add {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-back {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-add:hover, .btn-back:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-add i, .btn-back i {
+            font-size: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .search-bar {
+                margin-bottom: 20px;
+            }
+            
+            .category-card {
+                height: 180px;
+            }
+            
+            .stats-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Standardized button styles */
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-primary {
+            color: #fff;
+            background-color: #0d6efd;
+            border: 1px solid #0d6efd;
+        }
+        
+        .action-btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        
+        .action-btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border: 1px solid #6c757d;
+        }
+        
+        .action-btn-secondary:hover {
+            background-color: #5c636a;
+            border-color: #565e64;
+        }
+        
+        .action-btn-outline {
+            color: #6c757d;
+            background-color: transparent;
+            border: 1px solid #6c757d;
+        }
+        
+        .action-btn-outline:hover {
+            color: #fff;
+            background-color: #6c757d;
+        }
+        
+        .action-btn i {
+            margin-right: 0.375rem;
+        }
+
+        .category-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .category-item {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+            padding: 4px 0;
+        }
+        
+        .category-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .category-item:last-child {
+            border-bottom: none;
+        }
+        
+        .category-image {
+            width: 60px;
+            height: 50px;
+            flex-shrink: 0;
+            margin: 4px;
+            border-radius: 4px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .category-details {
+            flex: 1;
+            display: flex;
+            padding: 4px;
+            align-items: center;
+        }
+        
+        .category-main-info {
+            flex: 1;
+        }
+        
+        .category-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0 0 1px 0;
+        }
+        
+        .category-desc {
+            font-size: 0.7rem;
+            color: #666;
+            margin: 0;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .category-meta {
+            display: flex;
+            font-size: 0.65rem;
+            color: #999;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        
+        .category-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 4px;
+            margin-right: 4px;
+        }
+        
+        .category-status.active {
+            background-color: #2ecc71;
+        }
+        
+        .category-status.inactive {
+            background-color: #e74c3c;
+        }
+        
+        .category-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .category-action-compact {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background-color: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+        
+        .action-edit-compact {
+            color: #0d6efd;
+        }
+        
+        .action-delete-compact {
+            color: #dc3545;
+        }
+        
+        .action-edit-compact:hover {
+            background-color: #e7f1ff;
+        }
+        
+        .action-delete-compact:hover {
+            background-color: #f8d7da;
+        }
+        
+        .category-order-compact {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            background-color: #e9ecef;
+            margin-right: 4px;
+        }
+        
+        .card-header {
+            padding: 0.5rem 1rem;
+        }
+        
+        .container {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.4rem;
+            margin-bottom: 0;
+        }
+        
+        .dashboard-header p {
+            font-size: 0.8rem;
+        }
+
+        /* Small floating back button */
+        .small-back-button {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 1000;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            background-color: rgba(52, 152, 219, 0.9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .small-back-button:hover {
+            background-color: rgba(41, 128, 185, 1);
+        }
+        
+        /* More compact layout */
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            padding: 8px !important;
+            max-width: 100%;
+        }
+        
+        .dashboard-header {
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .card {
+            margin-bottom: 8px !important;
+        }
+        
+        .card-header {
+            padding: 6px 8px !important;
+        }
+        
+        .card-body {
+            padding: 6px !important;
+        }
+        
+        /* Make category items more compact */
+        .category-item {
+            padding: 2px 0 !important;
+            min-height: 54px;
+        }
+        
+        .category-image {
+            width: 50px !important;
+            height: 42px !important;
+            margin: 2px !important;
+        }
+        
+        .category-details {
+            padding: 2px !important;
+        }
+        
+        .category-desc {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Reduce modal padding */
+        .modal-body {
+            padding: 12px !important;
+        }
+        
+        .modal-header {
+            padding: 12px !important;
+        }
+        
+        .form-group {
+            margin-bottom: 12px !important;
+        }
+        
+        /* Remove extra spacing */
+        .py-4 {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        
+        .mb-4 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Floating action buttons - circular style */
+        .floating-btn {
+            position: fixed;
+            bottom: 16px;
+            z-index: 1000;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .floating-btn-back {
+            left: 16px;
+            background-color: rgba(52, 152, 219, 0.9);
+        }
+        
+        .floating-btn-back:hover {
+            background-color: rgba(41, 128, 185, 1);
+        }
+        
+        .floating-btn-add {
+            right: 16px;
+            background-color: rgba(46, 204, 113, 0.9);
+        }
+        
+        .floating-btn-add:hover {
+            background-color: rgba(39, 174, 96, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Menu Categories</h2>
+                    <p class="mb-0">Manage your food and beverage categories</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="mb-0">Last updated: <span id="lastUpdated">Apr 3, 2025</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Categories</h8>
+                <!-- Replace your current stats container with this simplified version -->
+                <div class="stats-container d-flex text-muted small">
+                    <div class="me-3">
+                        <i class="fas fa-list-ul me-1"></i> <span id="totalCategories">0</span>
+                    </div>
+                    <div class="me-3">
+                        <i class="fas fa-check-circle me-1 text-success"></i> <span id="activeCategories">0</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-times-circle me-1 text-danger"></i> <span id="inactiveCategories">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading categories...</p>
+        </div>
+        
+        <!-- Empty State (shown when no categories) -->
+        <div id="emptyState" class="empty-state d-none">
+            <div class="empty-icon">
+                <i class="fas fa-list-ul"></i>
+            </div>
+            <h4>No Categories Found</h4>
+            <p class="text-muted">Get started by creating your first menu category</p>
+            <button class="btn btn-primary mt-3" onclick="openCategoryModal()">
+                <i class="fas fa-plus me-2"></i>Add Category
+            </button>
+        </div>
+        
+        <!-- Categories Grid -->
+        <div class="row g-4" id="categoriesContainer">
+            <!-- Categories will be populated here via JavaScript -->
+        </div>
+        
+        <!-- Category Modal -->
+        <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="categoryModalLabel">Add Category</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="categoryForm">
+                            <input type="hidden" id="categoryId">
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="categoryName">Category Name</label>
+                                        <input type="text" class="form-control" id="categoryName" required placeholder="e.g. Main Courses">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="categoryDescription">Description</label>
+                                        <textarea class="form-control" id="categoryDescription" rows="3" placeholder="Describe this category..."></textarea>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="displayOrder">Display Order</label>
+                                                <input type="number" class="form-control" id="displayOrder" min="1" value="1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="isActive">Status</label>
+                                                <select class="form-select" id="isActive">
+                                                    <option value="true">Active</option>
+                                                    <option value="false">Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Category Image</label>
+                                        <div class="image-preview" id="imagePreview">
+                                            <div class="image-preview-placeholder">
+                                                <i class="fas fa-image fa-3x mb-2"></i>
+                                                <p>No image selected</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex">
+                                            <div class="input-group mb-3 me-2">
+                                                <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary" onclick="activateCamera()">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                        </div>
+                                        <video id="cameraCapture" class="camera-capture"></video>
+                                        <div id="cameraBtns" class="d-none">
+                                            <button type="button" class="btn btn-primary w-100" id="takePhotoBtn">
+                                                <i class="fas fa-camera me-2"></i>Take Photo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" id="imageBase64">
+                            
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success" id="saveBtn">
+                                    <i class="fas fa-save me-2"></i>Save Category
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete the category "<span id="deleteCategoryName"></span>"?</p>
+                        <p class="text-muted">This action cannot be undone. All menu items in this category may be affected.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                            <i class="fas fa-trash me-2"></i>Delete Category
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Notification message
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../scripts/cloudinary-credentials.js"></script>
+    <script src="../scripts/cloudinary-operations.js"></script>
+
+    <script>
+
+        let categories = [];
+        let categoryToDelete = null;
+        let stream = null;
+        let modalMode = 'add';
+        
+        // DOM Elements
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryIdInput = document.getElementById('categoryId');
+        const categoryNameInput = document.getElementById('categoryName');
+        const categoryDescriptionInput = document.getElementById('categoryDescription');
+        const displayOrderInput = document.getElementById('displayOrder');
+        const isActiveInput = document.getElementById('isActive');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageBase64Input = document.getElementById('imageBase64');
+        const imageUpload = document.getElementById('imageUpload');
+        const cameraCapture = document.getElementById('cameraCapture');
+        const cameraBtns = document.getElementById('cameraBtns');
+        const takePhotoBtn = document.getElementById('takePhotoBtn');
+        const totalCategoriesElement = document.getElementById('totalCategories');
+        const activeCategoriesElement = document.getElementById('activeCategories');
+        const inactiveCategoriesElement = document.getElementById('inactiveCategories');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCategories();
+            setupEventListeners();
+            updateDateTime();
+        });
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Category Form Submit
+            categoryForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveCategory();
+            });
+            
+            // Image Upload
+            imageUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show loading indicator
+                    imagePreview.innerHTML = `
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Uploading...</span>
+                            </div>
+                            <span class="ms-2">Uploading image...</span>
+                        </div>
+                    `;
+                    
+                    try {
+                        // Get username from session/local storage
+                        const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+                        
+                        // Get Cloudinary credentials using your existing function
+                        const credentials = await getCloudinaryCredentials(username);
+                        
+                        if (!credentials || !credentials.cloud_name || !credentials.upload_preset) {
+                            throw new Error('Invalid Cloudinary credentials');
+                        }
+                        
+                        // Use your cloudinary-operations.js to upload the file
+                        const cloudinaryUrl = await uploadToCloudinary(
+                            file, 
+                            credentials.cloud_name, 
+                            credentials.upload_preset
+                        );
+                        
+                        // Update the preview image with the Cloudinary URL
+                        updateImagePreview(cloudinaryUrl);
+                        
+                        // Set the hidden input value to the Cloudinary URL
+                        imageBase64Input.value = cloudinaryUrl;
+                        
+                        // Show success message
+                        showSuccess('Image uploaded successfully!');
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        showError('Failed to upload image: ' + error.message);
+                        
+                        // Fallback to local FileReader if upload fails
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            updateImagePreview(event.target.result);
+                            imageBase64Input.value = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+            
+            // Take Photo Button
+            takePhotoBtn.addEventListener('click', captureImage);
+            
+            // Confirm Delete Button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteCategory);
+        }
+        
+        // Fetch Categories from API with better error handling
+        async function fetchCategories() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/menu-categories');
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    console.error('API error response:', errorData);
+                    
+                    // Show empty state for any error
+                    categories = [];
+                    updateStats();
+                    renderCategories();
+                    
+                    // Log detailed error for debugging
+                    if (errorData && errorData.message && errorData.message.includes("relation")) {
+                        console.error("Database table case mismatch. API is looking for 'MENU_CATEGORIES' but table is 'menu_categories'");
+                    }
+                    
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    categories = data.data || [];
+                    updateStats();
+                    renderCategories();
+                } else {
+                    showError(data.message || 'Failed to load categories');
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                
+                // Use empty array when error occurs, to show empty state
+                categories = [];
+                updateStats();
+                renderCategories();
+                
+                // Still show error toast
+                showError('An error occurred while loading categories. Please try again later.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Render Categories to UI
+        function renderCategories() {
+            // Clear container
+            categoriesContainer.innerHTML = '';
+            
+            if (categories.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            emptyState.classList.add('d-none');
+            
+            // Sort categories by display order
+            const sortedCategories = [...categories].sort((a, b) => a.DISPLAY_ORDER - b.DISPLAY_ORDER);
+            
+            // Create table-like layout
+            const categoryList = document.createElement('div');
+            categoryList.className = 'category-list';
+            
+            // Create category rows
+            sortedCategories.forEach(category => {
+                const bgUrl = category.GROUP_IMGURL || 'https://via.placeholder.com/60x50?text=No+Image';
+                const isActive = category.IS_ACTIVE;
+                
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.onclick = () => viewCategory(category.CATEGORY_ID);
+                
+                categoryItem.innerHTML = `
+                    <div class="category-image" style="background-image: url('${bgUrl}')"></div>
+                    <div class="category-details">
+                        <div class="category-main-info">
+                            <h4 class="category-title" style="margin:0 0 1px 0;">
+                                <span class="category-order-compact">${category.DISPLAY_ORDER}</span>
+                                ${category.NAME}
+                                <span class="category-status ${isActive ? 'active' : 'inactive'}" 
+                                      title="${isActive ? 'Active' : 'Inactive'}"></span>
+                            </h4>
+                            <p class="category-desc">${category.DESCRIPTION ? (category.DESCRIPTION.length > 30 ? category.DESCRIPTION.substring(0, 30) + '...' : category.DESCRIPTION) : ''}</p>
+                        </div>
+                        <div class="category-actions" style="margin-left:auto;">
+                            <button class="category-action-compact action-edit-compact" 
+                                    onclick="editCategory(${category.CATEGORY_ID}, event)" 
+                                    title="Edit category">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="category-action-compact action-delete-compact" 
+                                    onclick="deleteCategory(${category.CATEGORY_ID}, '${category.NAME}', event)" 
+                                    title="Delete category">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                categoryList.appendChild(categoryItem);
+            });
+            
+            categoriesContainer.appendChild(categoryList);
+        }
+        
+        // Open Category Modal for Adding
+        function openCategoryModal() {
+            modalMode = 'add';
+            resetForm();
+            document.getElementById('categoryModalLabel').textContent = 'Add Category';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-plus me-2"></i>Add Category';
+            categoryModal.show();
+        }
+        
+        // View Category
+        function viewCategory(id) {
+            // Navigate to menu items filtered by this category
+            // For now, we'll just show the edit modal
+            editCategory(id);
+        }
+        
+        // Edit Category
+        function editCategory(id, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            modalMode = 'edit';
+            
+            const category = categories.find(c => c.CATEGORY_ID === id);
+            
+            if (!category) {
+                showError('Category not found');
+                return;
+            }
+            
+            // Set form values
+            categoryIdInput.value = category.CATEGORY_ID;
+            categoryNameInput.value = category.NAME || '';
+            categoryDescriptionInput.value = category.DESCRIPTION || '';
+            displayOrderInput.value = category.DISPLAY_ORDER || 1;
+            isActiveInput.value = category.IS_ACTIVE ? 'true' : 'false';
+            
+            // Set image if available
+            if (category.GROUP_IMGURL) {
+                updateImagePreview(category.GROUP_IMGURL);
+                imageBase64Input.value = category.GROUP_IMGURL;
+            } else {
+                // Reset image preview
+                resetImagePreview();
+            }
+            
+            document.getElementById('categoryModalLabel').textContent = 'Edit Category';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save me-2"></i>Update Category';
+            
+            categoryModal.show();
+        }
+        
+        // Delete Category (opens confirmation modal)
+        function deleteCategory(id, name, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            categoryToDelete = id;
+            document.getElementById('deleteCategoryName').textContent = name;
+            deleteModal.show();
+        }
+        
+        // Confirm Delete Category implementation
+        async function confirmDeleteCategory() {
+            if (!categoryToDelete) return;
+            
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Deleting...';
+            
+            try {
+                console.log(`Attempting to delete category ID: ${categoryToDelete}`);
+                
+                const response = await fetch(`/api/menu-categories/${categoryToDelete}`, {
+                    method: 'DELETE'
+                });
+                
+                let errorMsg = "";
+                
+                if (!response.ok) {
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || `Server error (${response.status})`;
+                        console.error('Delete error response:', errorData);
+                    } catch (parseError) {
+                        // If JSON parsing fails, use the status text
+                        errorMsg = `Server error (${response.status}): ${response.statusText}`;
+                    }
+                    
+                    // Handle specific error cases we can identify
+                    if (errorMsg.includes("relation") && errorMsg.includes("does not exist")) {
+                        errorMsg = "Database configuration error. Please contact support.";
+                        // Show more detailed information in the console for debugging
+                        console.error("DATABASE TABLE CASE MISMATCH: The API is looking for 'MENU_CATEGORIES' but the table is likely named differently");
+                    }
+                    
+                    throw new Error(errorMsg);
+                }
+                
+                // Rest of your existing code...
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove from local array
+                    categories = categories.filter(c => c.CATEGORY_ID !== categoryToDelete);
+                    
+                    // Update UI
+                    updateStats();
+                    renderCategories();
+                    
+                    // Show success message
+                    showSuccess('Category deleted successfully');
+                } else {
+                    showError(data.message || 'Failed to delete category');
+                }
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                showError(error.message || 'An error occurred while deleting the category');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Category';
+                deleteModal.hide();
+                categoryToDelete = null;
+            }
+        }
+        
+        // Save Category (both add and edit)
+        async function saveCategory() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            try {
+                const categoryData = {
+                    NAME: categoryNameInput.value,
+                    DESCRIPTION: categoryDescriptionInput.value,
+                    DISPLAY_ORDER: parseInt(displayOrderInput.value) || 1,
+                    IS_ACTIVE: isActiveInput.value === 'true',
+                    GROUP_IMGURL: imageBase64Input.value || null,
+                    UPDATED_BY: sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin'
+                };
+                
+                let url = '/api/menu-categories';
+                let method = 'POST';
+                
+                if (modalMode === 'edit') {
+                    url = `/api/menu-categories/${categoryIdInput.value}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(categoryData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add new category to the array
+                        categories.push(data.data);
+                    } else {
+                        // Update existing category
+                        const index = categories.findIndex(c => c.CATEGORY_ID === parseInt(categoryIdInput.value));
+                        if (index !== -1) {
+                            categories[index] = data.data;
+                        }
+                    }
+                    
+                    // Update UI
+                    updateStats();
+                    renderCategories();
+                    
+                    // Show success message
+                    showSuccess(`Category ${modalMode === 'add' ? 'added' : 'updated'} successfully`);
+                    
+                    // Close modal
+                    categoryModal.hide();
+                } else {
+                    showError(data.message || `Failed to ${modalMode} category`);
+                }
+            } catch (error) {
+                console.error(`Error ${modalMode === 'add' ? 'adding' : 'updating'} category:`, error);
+                showError(`An error occurred while ${modalMode === 'add' ? 'adding' : 'updating'} the category`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add' 
+                    ? '<i class="fas fa-plus me-2"></i>Add Category'
+                    : '<i class="fas fa-save me-2"></i>Update Category';
+            }
+        }
+        
+        // Reset Form
+        function resetForm() {
+            categoryForm.reset();
+            categoryIdInput.value = '';
+            resetImagePreview();
+            imageBase64Input.value = '';
+            
+            // Reset camera if active
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                cameraCapture.style.display = 'none';
+                cameraBtns.classList.add('d-none');
+            }
+        }
+        
+        // Reset Image Preview
+        function resetImagePreview() {
+            imagePreview.innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <p>No image selected</p>
+                </div>
+            `;
+        }
+        
+        // Update Image Preview
+        function updateImagePreview(imageUrl) {
+            imagePreview.innerHTML = `<img src="${imageUrl}" alt="Category Image">`;
+        }
+        
+        // Activate Camera
+        function activateCamera() {
+            if (stream) {
+                // Stop existing stream
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                cameraCapture.style.display = 'none';
+                cameraBtns.classList.add('d-none');
+                return;
+            }
+            
+            // Show camera UI
+            cameraCapture.style.display = 'block';
+            cameraBtns.classList.remove('d-none');
+            
+            // Access the device camera
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'environment' // Prefer rear camera on mobile devices
+                }, 
+                audio: false 
+            })
+            .then(function(mediaStream) {
+                stream = mediaStream;
+                cameraCapture.srcObject = mediaStream;
+                cameraCapture.play();
+            })
+            .catch(function(err) {
+                console.error('Error accessing camera:', err);
+                showError('Unable to access camera: ' + err.message);
+                
+                cameraCapture.style.display = 'none';
+                cameraBtns.classList.add('d-none');
+            });
+        }
+        
+        // Capture Image
+        async function captureImage() {
+            if (!stream) return;
+            
+            // Create a canvas element to capture the current video frame
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraCapture.videoWidth;
+            canvas.height = cameraCapture.videoHeight;
+            
+            // Draw the current video frame to the canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraCapture, 0, 0, canvas.width, canvas.height);
+            
+            // Convert the canvas to a data URL (base64 encoded image)
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Show loading indicator in the preview area
+            imagePreview.innerHTML = `
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Uploading...</span>
+                    </div>
+                    <span class="ms-2">Uploading image...</span>
+                </div>
+            `;
+            
+            try {
+                // Convert base64 to blob
+                const blob = await fetch(imageDataUrl).then(res => res.blob());
+                
+                // Get username from session/local storage
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+                
+                // Get Cloudinary credentials using your existing function
+                const credentials = await getCloudinaryCredentials(username);
+                
+                if (!credentials || !credentials.cloud_name || !credentials.upload_preset) {
+                    throw new Error('Invalid Cloudinary credentials');
+                }
+                
+                // Use your cloudinary-operations.js to upload the image
+                const cloudinaryUrl = await uploadToCloudinary(
+                    blob, 
+                    credentials.cloud_name, 
+                    credentials.upload_preset
+                );
+                
+                // Update the preview image with the Cloudinary URL
+                updateImagePreview(cloudinaryUrl);
+                
+                // Set the hidden input value to the Cloudinary URL
+                imageBase64Input.value = cloudinaryUrl;
+                
+                // Show success message
+                showSuccess('Image uploaded successfully!');
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                showError('Failed to upload image: ' + error.message);
+                
+                // Fallback to local base64 if upload fails
+                updateImagePreview(imageDataUrl);
+                imageBase64Input.value = imageDataUrl;
+            } finally {
+                // Stop the camera stream
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                
+                // Hide camera UI
+                cameraCapture.style.display = 'none';
+                cameraBtns.classList.add('d-none');
+            }
+        }
+        
+        // Update Statistics
+        function updateStats() {
+            const total = categories.length;
+            const active = categories.filter(c => c.IS_ACTIVE).length;
+            const inactive = total - active;
+            
+            totalCategoriesElement.textContent = total;
+            activeCategoriesElement.textContent = active;
+            inactiveCategoriesElement.textContent = inactive;
+        }
+        
+        // Update Date/Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            lastUpdatedElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        // Show Loading
+        function showLoading(show) {
+            if (show) {
+                loadingSpinner.classList.remove('d-none');
+                categoriesContainer.classList.add('d-none');
+            } else {
+                loadingSpinner.classList.add('d-none');
+                categoriesContainer.classList.remove('d-none');
+            }
+        }
+        
+        // Replace the placeholder showError and showSuccess functions
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // Reset previous classes
+            toast.classList.remove('bg-success', 'bg-danger', 'text-white');
+            toast.querySelector('.toast-header').classList.remove('bg-success', 'bg-danger', 'text-white');
+            
+            // Set appropriate classes based on type
+            if (isError) {
+                toast.classList.add('bg-danger', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-danger', 'text-white');
+                toastTitle.textContent = 'Error';
+            } else {
+                toast.classList.add('bg-success', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-success', 'text-white');
+                toastTitle.textContent = 'Success';
+            }
+            
+            toastMessage.textContent = message;
+            
+            // Create toast with auto-hide
+            const bsToast = new bootstrap.Toast(toast, {
+                animation: true,
+                autohide: true,
+                delay: 3000 // Auto-dismiss after 3 seconds
+            });
+            
+            bsToast.show();
+        }
+
+        function showError(message) {
+            showToast(message, true);
+        }
+
+        function showSuccess(message) {
+            showToast(message, false);
+        }
+        
+        // Go Back Function
+        function goBack() {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = '../index.html';
+            }
+        }
+        
+        // Add this helper function to get Cloudinary credentials
+        async function getCloudinaryCredentials(username) {
+            try {
+                const response = await fetch('/api/cloudinary-credentials');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch Cloudinary credentials: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting Cloudinary credentials:', error);
+                throw error;
+            }
+        }
+    </script>
+
+    <!-- Circular back button -->
+    <button class="floating-btn floating-btn-back" onclick="window.location.href='../index.html'" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Circular add category button -->
+    <button class="floating-btn floating-btn-add" onclick="openCategoryModal()" title="Add New Category">
+        <i class="fas fa-plus"></i>
+    </button>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Cloudflare Pages configuration
+name = "foodbaoadmin"
+compatibility_date = "2023-10-16"
+pages_build_output_dir = "public"
+
+# For local development only, use placeholder values 
+# that will be overridden by Cloudflare dashboard settings in production
+[vars]
+# No need to include real credentials here
+
+# Environment-specific variables
+[env.production]
+# Add production-specific variables here if needed
+# SUPABASE_KEY = "your_production_key"
+
+[env.preview]
+# Add preview-specific variables here if needed
+# SUPABASE_KEY = "your_preview_key"
+

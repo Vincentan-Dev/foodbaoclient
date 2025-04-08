@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Variations | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .stats-primary {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .stats-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--secondary-color);
+        }
+        
+        .stats-warning {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .stats-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        
+        .stats-label {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .search-bar {
+            background: white;
+            border-radius: 50px;
+            padding: 5px 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .search-bar input {
+            border: none;
+            box-shadow: none;
+            padding: 12px 0;
+        }
+        
+        .search-bar input:focus {
+            box-shadow: none;
+        }
+        
+        .search-bar .btn {
+            border-radius: 50px;
+            padding: 8px 20px;
+        }
+        
+        .category-card {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            height: 200px;
+            cursor: pointer;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-position: center;
+            background-size: cover;
+            filter: brightness(0.7);
+            transition: all 0.3s;
+        }
+        
+        .category-card:hover .category-card-bg {
+            filter: brightness(0.9);
+            transform: scale(1.05);
+        }
+        
+        .category-card-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .category-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+            z-index: 1;
+        }
+        
+        .category-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .category-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 3;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .badge-active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-inactive {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .category-order {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 3;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .category-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .category-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .action-edit {
+            background-color: rgba(52, 152, 219, 0.6);
+        }
+        
+        .action-delete {
+            background-color: rgba(231, 76, 60, 0.6);
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 20px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            border: 1px dashed #ccc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-preview-placeholder {
+            color: #aaa;
+            text-align: center;
+        }
+        
+        .camera-capture {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .add-button-toggle, .back-button-toggle {
+            position: fixed;
+            bottom: 25px;
+            z-index: 1000;
+        }
+        
+        .add-button-toggle {
+            right: 25px;
+        }
+        
+        .back-button-toggle {
+            left: 25px;
+        }
+        
+        .btn-add, .btn-back {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-add {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-back {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-add:hover, .btn-back:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-add i, .btn-back i {
+            font-size: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .search-bar {
+                margin-bottom: 20px;
+            }
+            
+            .category-card {
+                height: 180px;
+            }
+            
+            .stats-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Standardized button styles */
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-primary {
+            color: #fff;
+            background-color: #0d6efd;
+            border: 1px solid #0d6efd;
+        }
+        
+        .action-btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        
+        .action-btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border: 1px solid #6c757d;
+        }
+        
+        .action-btn-secondary:hover {
+            background-color: #5c636a;
+            border-color: #565e64;
+        }
+        
+        .action-btn-outline {
+            color: #6c757d;
+            background-color: transparent;
+            border: 1px solid #6c757d;
+        }
+        
+        .action-btn-outline:hover {
+            color: #fff;
+            background-color: #6c757d;
+        }
+        
+        .action-btn i {
+            margin-right: 0.375rem;
+        }
+
+        .category-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .category-item {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+            padding: 4px 0;
+        }
+        
+        .category-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .category-item:last-child {
+            border-bottom: none;
+        }
+        
+        .category-image {
+            width: 60px;
+            height: 50px;
+            flex-shrink: 0;
+            margin: 4px;
+            border-radius: 4px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .category-details {
+            flex: 1;
+            display: flex;
+            padding: 4px;
+            align-items: center;
+        }
+        
+        .category-main-info {
+            flex: 1;
+        }
+        
+        .category-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0 0 1px 0;
+        }
+        
+        .category-desc {
+            font-size: 0.7rem;
+            color: #666;
+            margin: 0;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .category-meta {
+            display: flex;
+            font-size: 0.65rem;
+            color: #999;
+            gap: 6px;
+            margin-top: 2px;
+        }
+        
+        .category-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 4px;
+            margin-right: 4px;
+        }
+        
+        .category-status.active {
+            background-color: #2ecc71;
+        }
+        
+        .category-status.inactive {
+            background-color: #e74c3c;
+        }
+        
+        .category-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .category-action-compact {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background-color: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+        
+        .action-edit-compact {
+            color: #0d6efd;
+        }
+        
+        .action-delete-compact {
+            color: #dc3545;
+        }
+        
+        .action-edit-compact:hover {
+            background-color: #e7f1ff;
+        }
+        
+        .action-delete-compact:hover {
+            background-color: #f8d7da;
+        }
+        
+        .category-order-compact {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            background-color: #e9ecef;
+            margin-right: 4px;
+        }
+        
+        .card-header {
+            padding: 0.5rem 1rem;
+        }
+        
+        .container {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .card-body {
+            padding: 0.5rem;
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.4rem;
+            margin-bottom: 0;
+        }
+        
+        .dashboard-header p {
+            font-size: 0.8rem;
+        }
+
+        /* Small floating back button */
+        .small-back-button {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            z-index: 1000;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            background-color: rgba(52, 152, 219, 0.9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .small-back-button:hover {
+            background-color: rgba(41, 128, 185, 1);
+        }
+        
+        /* More compact layout */
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            padding: 8px !important;
+            max-width: 100%;
+        }
+        
+        .dashboard-header {
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .card {
+            margin-bottom: 8px !important;
+        }
+        
+        .card-header {
+            padding: 6px 8px !important;
+        }
+        
+        .card-body {
+            padding: 6px !important;
+        }
+        
+        /* Make category items more compact */
+        .category-item {
+            padding: 2px 0 !important;
+            min-height: 54px;
+        }
+        
+        .category-image {
+            width: 50px !important;
+            height: 42px !important;
+            margin: 2px !important;
+        }
+        
+        .category-details {
+            padding: 2px !important;
+        }
+        
+        .category-desc {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Reduce modal padding */
+        .modal-body {
+            padding: 12px !important;
+        }
+        
+        .modal-header {
+            padding: 12px !important;
+        }
+        
+        .form-group {
+            margin-bottom: 12px !important;
+        }
+        
+        /* Remove extra spacing */
+        .py-4 {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        
+        .mb-4 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Floating action buttons - circular style */
+        .floating-btn {
+            position: fixed;
+            bottom: 16px;
+            z-index: 1000;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .floating-btn-back {
+            left: 16px;
+            background-color: rgba(52, 152, 219, 0.9);
+        }
+        
+        .floating-btn-back:hover {
+            background-color: rgba(41, 128, 185, 1);
+        }
+        
+        .floating-btn-add {
+            right: 16px;
+            background-color: rgba(46, 204, 113, 0.9);
+        }
+        
+        .floating-btn-add:hover {
+            background-color: rgba(39, 174, 96, 1);
+        }
+
+        /* Grid View Styles */
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .variation-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .variation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .variation-info {
+            flex: 1;
+        }
+        
+        .variation-id {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .variation-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .variation-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Compact layout styles */
+        body {
+            font-size: 0.875rem;
+            padding-bottom: 70px; /* Space for floating button */
+        }
+        
+        .dashboard-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 8px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        /* Fixed header card */
+        .card-header-fixed {
+            position: sticky;
+            top: 60px; /* Position below dashboard header */
+            z-index: 900;
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,0.125);
+            padding: 6px 8px !important;
+        }
+        
+        /* Compact card grid */
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 8px;
+            padding: 5px;
+        }
+        
+        /* Smaller variation cards */
+        .variation-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 10px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+        
+        .variation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        
+        .variation-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .variation-id {
+            font-size: 0.65rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .variation-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Status indicator as an icon */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #2ecc71;
+        }
+        
+        .status-inactive {
+            background-color: #e74c3c;
+        }
+        
+        /* Compact action buttons */
+        .variation-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .variation-actions .btn {
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            line-height: 1;
+        }
+        
+        /* Floating add button */
+        .floating-btn-add {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 1000;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #2ecc71;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            border: none;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn-add:hover {
+            transform: scale(1.1);
+            background-color: #27ae60;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        
+        /* Compact layout adjustments */
+        .card-body {
+            padding: 0 !important;
+        }
+        
+        /* Loading spinner adjustment */
+        #variationsLoadingSpinner {
+            padding: 15px !important;
+        }
+        
+        /* Empty state adjustment */
+        #emptyVariationsState {
+            padding: 15px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header - Fixed -->
+        <div class="dashboard-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Item Variations</h2>
+                    <p class="mb-0">Manage variations master file</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <small class="mb-0">Last updated: <span id="lastUpdated">Apr 5, 2025</span></small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content: Variations Grid -->
+        <div class="card mb-4">
+            <!-- Fixed Card Header -->
+            <div class="card-header card-header-fixed d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Item Variations</h6>
+                <div class="stats-container d-flex text-muted small align-items-center">
+                    <div>
+                        <i class="fas fa-tag me-1"></i> <span id="totalVariations">0</span> variations
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Variations grid -->
+                <div class="variations-grid" id="variationsGrid">
+                    <!-- Variations will be loaded here -->
+                </div>
+                
+                <!-- Empty state for variations -->
+                <div id="emptyVariationsState" class="text-center py-3" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-tag text-muted"></i>
+                    </div>
+                    <h6 class="mt-2">No Variations Found</h6>
+                    <p class="text-muted small">Add variations to provide options for your menu items</p>
+                </div>
+                
+                <!-- Loading spinner for variations -->
+                <div id="variationsLoadingSpinner" class="text-center py-3">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 small">Loading variations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <button class="floating-btn-add" id="addVariationBtn" title="Add Variation">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- Back Button -->
+    <button class="floating-btn floating-btn-back" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Variation Modal - Simplified -->
+    <div class="modal fade" id="variationModal" tabindex="-1" aria-labelledby="variationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="variationModalLabel">Add Variation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="variationForm">
+                        <input type="hidden" id="variationId">
+                        
+                        <div class="form-group mb-3">
+                            <label for="variationName">Variation Name</label>
+                            <input type="text" class="form-control" id="variationName" required placeholder="e.g. Size, Color, Flavor">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="status">Status</label>
+                            <select class="form-select" id="status">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-success" id="saveVariationBtn">
+                                <i class="fas fa-save me-2"></i>Save Variation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the variation "<span id="deleteVariationName"></span>"?</p>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-2"></i>Delete Variation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Notification message
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global variables
+        let variations = [];
+        let variationToDelete = null;
+        let modalMode = 'add';
+        
+        // DOM Elements
+        const variationsGrid = document.getElementById('variationsGrid');
+        const emptyVariationsState = document.getElementById('emptyVariationsState');
+        const variationsLoadingSpinner = document.getElementById('variationsLoadingSpinner');
+        const totalVariationsElement = document.getElementById('totalVariations');
+        const addVariationBtn = document.getElementById('addVariationBtn');
+        const variationModal = new bootstrap.Modal(document.getElementById('variationModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const variationForm = document.getElementById('variationForm');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchVariations();
+            setupEventListeners();
+            updateDateTime();
+        });
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add variation buttons
+            addVariationBtn.addEventListener('click', function() {
+                openVariationModal();
+            });
+            
+            // Form submit
+            variationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveVariation();
+            });
+            
+            // Confirm delete button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteVariation);
+            
+            // Back button navigation to dashboard
+            document.querySelectorAll('.floating-btn-back').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.location.href = '../index.html';
+                });
+            });
+        }
+        
+        // Fetch Variations
+        async function fetchVariations() {
+            showLoadingSpinner(true);
+            
+            try {
+                const response = await fetch('/api/item-variations');
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    console.error('API error response:', errorData);
+                    
+                    // Show empty variations state
+                    variations = [];
+                    renderVariations();
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    variations = data.data || [];
+                    renderVariations();
+                } else {
+                    showError(data.message || 'Failed to load variations');
+                }
+            } catch (error) {
+                console.error('Error fetching variations:', error);
+                
+                // Use empty array when error occurs
+                variations = [];
+                renderVariations();
+                
+                // Show error toast
+                showError('An error occurred while loading variations. Please try again later.');
+            } finally {
+                showLoadingSpinner(false);
+            }
+        }
+        
+        // Render Variations
+        function renderVariations() {
+            // Update variation count
+            totalVariationsElement.textContent = variations.length;
+            
+            // Clear grid
+            variationsGrid.innerHTML = '';
+            
+            // Show empty state if no variations
+            if (variations.length === 0) {
+                variationsGrid.style.display = 'none';
+                emptyVariationsState.style.display = 'block';
+                return;
+            }
+            
+            // Show grid and hide empty state
+            variationsGrid.style.display = 'grid';
+            emptyVariationsState.style.display = 'none';
+            
+            // Sort variations by name
+            const sortedVariations = [...variations].sort((a, b) => a.NAME ? a.NAME.localeCompare(b.NAME || '') : 1);
+            
+            // Render each variation as a card
+            sortedVariations.forEach(variation => {
+                const card = document.createElement('div');
+                card.classList.add('variation-card');
+                
+                card.innerHTML = `
+                    <div class="variation-info">
+                        <div class="variation-id">ID: ${variation.VARIATION_ID}</div>
+                        <div class="variation-name">
+                            <span class="status-indicator ${variation.STATUS === 'ACTIVE' ? 'status-active' : 'status-inactive'}"></span>
+                            ${variation.NAME || 'Unnamed'}
+                        </div>
+                    </div>
+                    <div class="variation-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editVariation(${variation.VARIATION_ID})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteVariation(${variation.VARIATION_ID}, '${(variation.NAME || 'Unnamed').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                variationsGrid.appendChild(card);
+            });
+        }
+        
+        // Open Variation Modal
+        function openVariationModal() {
+            modalMode = 'add';
+            resetForm();
+            
+            document.getElementById('variationModalLabel').textContent = 'Add Variation';
+            document.getElementById('saveVariationBtn').innerHTML = '<i class="fas fa-plus me-2"></i>Add Variation';
+            
+            variationModal.show();
+        }
+        
+        // Edit Variation
+        function editVariation(id) {
+            modalMode = 'edit';
+            
+            const variation = variations.find(v => v.VARIATION_ID === id);
+            
+            if (!variation) {
+                showError('Variation not found');
+                return;
+            }
+            
+            // Set form values
+            document.getElementById('variationId').value = variation.VARIATION_ID;
+            document.getElementById('variationName').value = variation.NAME || '';
+            document.getElementById('status').value = variation.STATUS || 'ACTIVE';
+            
+            document.getElementById('variationModalLabel').textContent = 'Edit Variation';
+            document.getElementById('saveVariationBtn').innerHTML = '<i class="fas fa-save me-2"></i>Update Variation';
+            
+            variationModal.show();
+        }
+        
+        // Delete Variation (opens confirmation modal)
+        function deleteVariation(id, name) {
+            variationToDelete = id;
+            document.getElementById('deleteVariationName').textContent = name;
+            deleteModal.show();
+        }
+        
+        // Confirm Delete Variation
+        async function confirmDeleteVariation() {
+            if (!variationToDelete) return;
+            
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Deleting...';
+            
+            try {
+                // Modified to use POST method with action=delete instead of DELETE method
+                // Many hosting environments like Cloudflare Pages have limitations with DELETE requests
+                const response = await fetch(`/api/item-variations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        variation_id: variationToDelete,
+                        updated_by: sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin'
+                    })
+                });
+                
+                let errorMsg = "";
+                
+                if (!response.ok) {
+                    console.error(`Delete failed with status: ${response.status}`);
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || `Server error (${response.status})`;
+                    } catch (parseError) {
+                        errorMsg = `Server error (${response.status}): ${response.statusText}`;
+                    }
+                    
+                    throw new Error(errorMsg);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove from local array
+                    variations = variations.filter(v => v.VARIATION_ID !== variationToDelete);
+                    
+                    // Update UI
+                    renderVariations();
+                    
+                    // Show success message using the central toast system
+                    import('../../../utils/toast.js').then(module => {
+                        const toast = module.default;
+                        toast.success('Variation deleted successfully');
+                    }).catch(() => {
+                        // Fallback to local toast if import fails
+                        showSuccess('Variation deleted successfully');
+                    });
+                } else {
+                    showError(data.message || 'Failed to delete variation');
+                }
+            } catch (error) {
+                console.error('Error deleting variation:', error);
+                showError(error.message || 'An error occurred while deleting the variation');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Variation';
+                deleteModal.hide();
+                variationToDelete = null;
+            }
+        }
+        
+        // Save Variation (both add and edit)
+        async function saveVariation() {
+            const saveBtn = document.getElementById('saveVariationBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            try {
+                const variationData = {
+                    NAME: document.getElementById('variationName').value,
+                    STATUS: document.getElementById('status').value,
+                    UPDATED_BY: sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin'
+                };
+                
+                let url = '/api/item-variations';
+                let method = 'POST';
+                
+                if (modalMode === 'edit') {
+                    const variationId = document.getElementById('variationId').value;
+                    url = `/api/item-variations/${variationId}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(variationData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add the new variation to our local array
+                        variations.push(data.data);
+                        showSuccess('Variation added successfully');
+                    } else {
+                        // Update the variation in the local array
+                        const index = variations.findIndex(v => v.VARIATION_ID === data.data.VARIATION_ID);
+                        if (index !== -1) {
+                            variations[index] = data.data;
+                        } else {
+                            // If not found, add it
+                            variations.push(data.data);
+                        }
+                        showSuccess('Variation updated successfully');
+                    }
+                    
+                    // Update UI
+                    renderVariations();
+                    
+                    // Close the modal
+                    variationModal.hide();
+                } else {
+                    showError(data.message || `Failed to ${modalMode === 'add' ? 'add' : 'update'} variation`);
+                }
+            } catch (error) {
+                console.error(`Error ${modalMode === 'add' ? 'adding' : 'updating'} variation:`, error);
+                showError(`An error occurred while ${modalMode === 'add' ? 'adding' : 'updating'} the variation`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add' 
+                    ? '<i class="fas fa-plus me-2"></i>Add Variation'
+                    : '<i class="fas fa-save me-2"></i>Update Variation';
+            }
+        }
+        
+        // Reset Form
+        function resetForm() {
+            variationForm.reset();
+            document.getElementById('variationId').value = '';
+        }
+        
+        // Show Loading Spinner
+        function showLoadingSpinner(show) {
+            if (show) {
+                variationsLoadingSpinner.style.display = 'block';
+                variationsGrid.style.display = 'none';
+                emptyVariationsState.style.display = 'none';
+            } else {
+                variationsLoadingSpinner.style.display = 'none';
+            }
+        }
+        
+        // Show Success Toast
+        function showSuccess(message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.classList.remove('bg-danger', 'text-white');
+            toast.classList.add('bg-success', 'text-white');
+            toastTitle.textContent = 'Success';
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Show Error Toast
+        function showError(message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.classList.remove('bg-success', 'text-white');
+            toast.classList.add('bg-danger', 'text-white');
+            toastTitle.textContent = 'Error';
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Update Date/Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            lastUpdatedElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+    </script>
+</body>
+</html>

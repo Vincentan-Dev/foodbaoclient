@@ -1,33 +1,23 @@
-class FooterComponent extends HTMLElement {
-  constructor() {
-    super();
-    
-    this.innerHTML = `
-      <style>
-        /* Minimal footer styling */
-        .app-footer {
-          padding: 8px 0;
-          background-color: #f5f5f5;
-          color: #757575;
-          text-align: center;
-          font-size: 11px;
-          position: fixed;
-          bottom: 0;
-          width: 100%;
-          z-index: 900;
-          border-top: 1px solid #e0e0e0;
-        }
-        
-      </style>
+class AppFooter extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `
+        <footer class="page-footer grey lighten-3" style="padding-top: 0; position: fixed; bottom: 0; width: 100%; z-index: 1000;">
+          <div class="footer-copyright" style="min-height: 24px; line-height: 24px; padding: 0 15px; background-color: transparent;">
+            <div class="container center-align">
+              <span style="font-size: 11px; color: #757575;">&copy; ${new Date().getFullYear()} 福宝熊猫 Food Bao Panda App</span>
+            </div>
+          </div>
+        </footer>
+        <div style="height: 24px;"></div> <!-- Spacer to prevent content from being hidden under fixed footer -->
+      `;
       
-      <footer class="app-footer">
-        <div class="container">
-          © ${new Date().getFullYear()} 福宝熊猫 Food Bao Panda
-        </div>
-      </footer>
-    `;
+      // Add padding to bottom of body to prevent footer from overlapping content
+      document.body.style.paddingBottom = '24px';
+    }
+    
+    disconnectedCallback() {
+      document.body.style.paddingBottom = '0';
+    }
   }
-}
-
-// Register the custom element
-customElements.define('app-footer', FooterComponent);
+  
+  customElements.define('app-footer', AppFooter);
