@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Credit RPC Test</title>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+    
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { padding: 20px; margin-top: 20px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; max-height: 400px; }
+        .status-ok { color: green; }
+        .status-error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Credit Top-up RPC Test</h3>
+        <div class="card">
+            <form id="rpcTestForm">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input id="username" type="text" value="test_user">
+                        <label for="username">Username</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+                        <input id="amount" type="number" step="0.01" value="10">
+                        <label for="amount">Amount</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <input id="days" type="number" value="30">
+                        <label for="days">Days</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <select id="payment_method">
+                            <option value="B">Bank Transfer (B)</option>
+                            <option value="C">Credit Card (C)</option>
+                            <option value="E">E-Wallet (E)</option>
+                            <option value="M">Cash (M)</option>
+                            <option value="O">Other (O)</option>
+                        </select>
+                        <label>Payment Method</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input id="description" type="text" value="Test credit top-up">
+                        <label for="description">Description</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s6">
+                        <button type="button" id="testRpcBtn" class="btn waves-effect waves-light">
+                            Test RPC Function
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                    <div class="col s6">
+                        <button type="button" id="testApiBtn" class="btn waves-effect waves-light blue">
+                            Test API Endpoint
+                            <i class="material-icons right">cloud</i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card" id="resultCard" style="display: none;">
+            <h5>Result <span id="statusText"></span></h5>
+            <pre id="resultOutput"></pre>
+        </div>
+    </div>
+
+    <script src="../js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize select
+            const selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+            
+            // Test RPC button
+            document.getElementById('testRpcBtn').addEventListener('click', function() {
+                testCreditRpc();
+            });
+            
+            // Test API button
+            document.getElementById('testApiBtn').addEventListener('click', function() {
+                testCreditTopup();
+            });
+        });
+
+        // Test the RPC function directly
+        async function testCreditRpc() {
+            const username = document.getElementById('username').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const payment_method = document.getElementById('payment_method').value;
+            const description = document.getElementById('description').value;
+            
+            // Prepare test data
+            const testData = {
+                p_username: username,
+                p_amount: amount,
+                p_description: description,
+                p_payment_method: payment_method,
+                p_trans_credit: amount,
+                p_transaction_type: 'T', // TOP_UP
+                p_agent: 'W' // Web
+            };
+            
+            // Show loading
+            showResult('loading', 'Testing RPC function...');
+            
+            try {
+                const response = await fetch('../api/client/test-credit-rpc', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                // Display result
+                showResult(
+                    result.success ? 'ok' : 'error',
+                    JSON.stringify(result, null, 2)
+                );
+            } catch (error) {
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        // Test the top-up API
+        async function testCreditTopup() {
+            const username = document.getElementById('username').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const days = parseInt(document.getElementById('days').value);
+            const payment_method = document.getElementById('payment_method').value;
+            const description = document.getElementById('description').value;
+            
+            // Prepare API data
+            const paymentData = {
+                username: username,
+                amount: amount,
+                days: days,
+                payment_method: payment_method,
+                transaction_type: 'TOP_UP',
+                description: description
+            };
+            
+            // Show loading
+            showResult('loading', 'Testing credit top-up API...');
+            
+            try {
+                const response = await fetch('../api/client/credit-topup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                const result = await response.json();
+                
+                // Display result
+                showResult(
+                    result.success ? 'ok' : 'error',
+                    JSON.stringify(result, null, 2)
+                );
+            } catch (error) {
+                showResult('error', `Error: ${error.message}`);
+            }
+        }
+        
+        // Helper to show results
+        function showResult(status, text) {
+            const resultCard = document.getElementById('resultCard');
+            const statusText = document.getElementById('statusText');
+            const resultOutput = document.getElementById('resultOutput');
+            
+            resultCard.style.display = 'block';
+            resultOutput.textContent = text;
+            
+            statusText.textContent = '';
+            statusText.className = '';
+            
+            if (status === 'ok') {
+                statusText.textContent = '(Success)';
+                statusText.className = 'status-ok';
+            } else if (status === 'error') {
+                statusText.textContent = '(Error)';
+                statusText.className = 'status-error';
+            }
+        }
+    </script>
+</body>
+</html>

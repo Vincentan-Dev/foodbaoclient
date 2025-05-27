@@ -1,0 +1,212 @@
+/* Compact styling for order displays */
+.order-details-container {
+    padding: 5px !important;
+}
+
+.order-details-card {
+    padding: 8px !important;
+    margin-bottom: 10px !important;
+    border-radius: 5px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+.order-details-header {
+    margin-bottom: 8px !important;
+    padding-bottom: 5px !important;
+}
+
+.order-details-header .order-date,
+.order-details-header .order-time {
+    font-size: 0.9rem !important;
+}
+
+.order-details-header .order-status {
+    padding: 3px 6px !important;
+    font-size: 0.75rem !important;
+}
+
+.order-customer-info,
+.order-table-info,
+.order-delivery-info,
+.order-payment-info {
+    margin-bottom: 8px !important;
+    padding: 5px !important;
+}
+
+.order-items-list {
+    margin-bottom: 8px !important;
+}
+
+.order-items-list h2 {
+    margin-top: 0 !important;
+    margin-bottom: 5px !important;
+    font-size: 1rem !important;
+}
+
+.order-customer-info h2,
+.order-table-info h2,
+.order-delivery-info h2,
+.order-payment-info h2 {
+    font-size: 0.95rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 3px !important;
+}
+
+.order-customer-info div,
+.order-table-info div,
+.order-delivery-info div,
+.order-payment-info div {
+    font-size: 0.85rem !important;
+}
+
+.order-item-detail {
+    padding: 3px 5px !important;
+    margin-bottom: 1px !important;
+    font-size: 0.85rem !important;
+}
+
+.order-item-detail.variation {
+    padding: 2px 5px 2px 15px !important;
+    font-size: 0.8rem !important;
+    color: #666 !important;
+    margin-bottom: 0 !important;
+    background-color: #f5f5f5 !important;
+}
+
+.order-summary {
+    margin-top: 8px !important;
+    padding-top: 5px !important;
+}
+
+.summary-line {
+    padding: 2px 0 !important;
+    font-size: 0.85rem !important;
+}
+
+.summary-line.total {
+    font-size: 0.9rem !important;
+    margin-top: 3px !important;
+    padding-top: 3px !important;
+}
+
+/* Compact styling for order summary modal */
+.orders-summary-content {
+    padding: 10px !important;
+}
+
+.orders-summary-header {
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+}
+
+.orders-summary-title {
+    font-size: 1.2rem !important;
+}
+
+.table-section {
+    margin-bottom: 10px !important;
+}
+
+.table-header {
+    padding: 6px 10px !important;
+}
+
+.table-header h3 {
+    font-size: 1rem !important;
+}
+
+.table-orders {
+    padding: 3px !important;
+}
+
+.order-item {
+    padding: 8px !important;
+    margin-bottom: 5px !important;
+}
+
+.order-item-header {
+    font-size: 0.9rem !important;
+    margin-bottom: 3px !important;
+}
+
+.order-item-details {
+    margin-top: 5px !important;
+}
+
+.order-customer-preview {
+    margin: 3px 0 !important;
+    font-size: 0.85rem !important;
+}
+
+.order-items-count, .order-status {
+    font-size: 0.8rem !important;
+    padding: 2px 6px !important;
+}
+
+.order-items-summary {
+    margin-top: 5px !important;
+    padding: 5px !important;
+}
+
+.order-items-header {
+    font-size: 0.8rem !important;
+    padding-bottom: 3px !important;
+    margin-bottom: 3px !important;
+}
+
+.order-item-row {
+    padding: 2px 0 !important;
+    font-size: 0.8rem !important;
+    border-bottom: 1px dotted #eee !important;
+}
+
+.order-variation-row {
+    padding: 1px 0 1px 10px !important;
+    font-size: 0.75rem !important;
+    color: #666 !important;
+}
+
+.float-back-btn {
+    width: 36px !important;
+    height: 36px !important;
+    bottom: 10px !important;
+    left: 10px !important;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+    .order-details-card {
+        padding: 5px !important;
+    }
+    
+    .order-customer-info,
+    .order-table-info,
+    .order-delivery-info,
+    .order-payment-info {
+        padding: 3px !important;
+    }
+    
+    .order-item-detail {
+        font-size: 0.8rem !important;
+    }
+    
+    .order-item-detail.variation {
+        font-size: 0.75rem !important;
+    }
+    
+    .orders-summary-content {
+        padding: 8px !important;
+    }
+    
+    .table-header {
+        padding: 4px 6px !important;
+    }
+    
+    .table-header h3 {
+        font-size: 0.9rem !important;
+    }
+    
+    .order-item {
+        padding: 5px !important;
+    }
+}

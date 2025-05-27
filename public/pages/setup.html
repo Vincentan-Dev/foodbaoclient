@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodBao - Setup</title>
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --primary-light: #a4d0f5;
+            --accent-color: #2ecc71;
+            --secondary-color: #f39c12;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --text-on-primary: white;
+            --text-dark: #333;
+            --bg-light: #f5f9ff;
+            --transition-speed: 0.3s;
+            --header-height: 44px;
+        }
+        
+        /* App header styling */
+        app-header {
+            display: block;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            height: var(--header-height);
+        }
+        
+        app-header .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            min-height: var(--header-height);
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            padding-top: var(--header-height);
+        }
+        
+        .setup-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0.5rem;
+        }
+        
+        /* Flat design section instead of card */
+        .setup-section {
+            background: white;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .setup-section-header {
+            padding: 10px 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            color: var(--primary-dark);
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .setup-section-header i {
+            margin-right: 10px;
+        }
+        
+        .setup-section-content {
+            padding: 10px 0;
+        }
+        
+        .btn-custom {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .btn-custom:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-custom i {
+            margin-right: 5px;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .device-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        .device-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .device-item:last-child {
+            border-bottom: none;
+        }
+        
+        .device-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .device-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .device-id {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .device-status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background-color: #f1f1f1;
+        }
+        
+        .device-status.connected {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .device-status.paired {
+            background-color: #fff8e1;
+            color: #f57f17;
+        }
+        
+        .device-status.available {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .device-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-icon:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-icon i {
+            font-size: 18px;
+        }
+        
+        .printer-output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-family: monospace;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        
+        .status-message {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status-message.success {
+            display: block;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+        
+        .status-message.error {
+            display: block;
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+        
+        .status-message.warning {
+            display: block;
+            background-color: #fff8e1;
+            border: 1px solid #ffecb3;
+            color: #f57f17;
+        }
+        
+        .status-message.info {
+            display: block;
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+        }
+        
+        /* Customizing checkbox */
+        [type="checkbox"]:not(:checked),
+        [type="checkbox"]:checked {
+            position: absolute;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .settings-group {
+            margin-bottom: 20px;
+        }
+        
+        .settings-title {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .settings-row label {
+            margin-left: 10px;
+            color: #333;
+            user-select: none;
+        }
+        
+        /* Test receipt styling */
+        #receiptPreview {
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            max-width: 300px;
+            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+        
+        .receipt-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-subtitle {
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .receipt-date {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .receipt-items {
+            margin: 10px 0;
+        }
+        
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .receipt-divider {
+            border-top: 1px dashed #ccc;
+            margin: 10px 0;
+        }
+        
+        .receipt-total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .receipt-footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .receipt-barcode {
+            text-align: center;
+            margin: 10px 0;
+            font-family: 'Libre Barcode 39', cursive;
+            font-size: 40px;
+            letter-spacing: -2px;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #receiptPreview, #receiptPreview * {
+                visibility: visible;
+            }
+            #receiptPreview {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+                border: none;
+            }
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-message {
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            margin-top: 70px;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .printer-tabs .tab a {
+            color: var(--primary-color);
+        }
+
+        .printer-tabs .tab a:hover, .printer-tabs .tab a.active {
+            color: var(--primary-dark);
+        }
+
+        .printer-tabs .indicator {
+            background-color: var(--primary-color);
+        }
+
+        .printer-list {
+            margin-top: 20px;
+        }
+
+        .printer-item {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .printer-item .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 0 4px 0 4px;
+            padding: 2px 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .printer-item .badge.default {
+            background: var(--success-color);
+        }
+
+        .printer-name {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .printer-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .printer-department {
+            font-size: 12px;
+            background: #f1f1f1;
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .printer-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .department-filter {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .department-chip {
+            padding: 5px 15px;
+            background: #f1f1f1;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .department-chip.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .printer-type-icon {
+            margin-right: 5px;
+        }
+
+        /* Form modal styles */
+        .modal {
+            max-width: 500px;
+            border-radius: 4px;
+        }
+
+        .modal-content h4 {
+            margin-top: 0;
+        }
+
+        .input-field {
+            margin-top: 20px;
+        }
+
+        .select-wrapper input.select-dropdown {
+            border-bottom: 1px solid #9e9e9e;
+        }
+    </style>
+    
+    <!-- Google Fonts - For barcode simulation -->
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#3498db">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="loading-spinner"></div>
+            <div class="loading-message">Processing...</div>
+        </div>
+    </div>
+
+    <app-header></app-header>
+    
+    <div class="setup-container">
+        <h4>System Setup</h4>
+        
+        <div class="setup-section">
+            <div class="setup-section-header">
+                <i class="material-icons">print</i>
+                Printer Management
+            </div>
+            <div class="setup-section-content">
+                <p>Configure and manage printers for different departments.</p>
+                
+                <div>
+                    <button id="addPrinterBtn" class="btn-custom">
+                        <i class="material-icons">add</i>
+                        Add New Printer
+                    </button>
+                </div>
+                
+                <div id="statusMessage" class="status-message"></div>
+                
+                <!-- Department filter chips -->
+                <div class="department-filter" id="departmentFilter">
+                    <div class="department-chip active" data-department="ALL">All Departments</div>
+                    <div class="department-chip" data-department="KITCHEN">Kitchen</div>
+                    <div class="department-chip" data-department="CASHIER">Cashier</div>
+                    <div class="department-chip" data-department="FOOD_ORDER">Food Order</div>
+                    <div class="department-chip" data-department="SERVING">Serving</div>
+                </div>
+                
+                <div class="printer-list" id="printerList">
+                    <div class="printer-item" style="text-align: center; color: #888;">
+                        No printers configured. Click "Add New Printer" to set up a printer.
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <h5 class="settings-title">Print Settings</h5>
+                    
+                    <div class="settings-row">
+                        <input type="checkbox" id="autoPrint" checked>
+                        <label for="autoPrint">Auto-print receipts when orders are completed</label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <input type="checkbox" id="printLogo" checked>
+                        <label for="printLogo">Print store logo on receipts</label>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <input type="checkbox" id="printBarcode" checked>
+                        <label for="printBarcode">Print barcode/QR code on receipts</label>
+                    </div>
+                </div>
+                
+                <h5>Test Receipt Preview</h5>
+                <div id="receiptPreview">
+                    <div class="receipt-header">
+                        <div class="receipt-title">FoodBao Restaurant</div>
+                        <div class="receipt-subtitle">123 Main Street, City</div>
+                        <div class="receipt-subtitle">Tel: +123 456 7890</div>
+                        <div class="receipt-date">Date: <span id="receiptDate"></span></div>
+                    </div>
+                    
+                    <div class="receipt-items">
+                        <div class="receipt-item">
+                            <span>1x Nasi Lemak</span>
+                            <span>RM 8.50</span>
+                        </div>
+                        <div class="receipt-item">
+                            <span>2x Teh Tarik</span>
+                            <span>RM 5.00</span>
+                        </div>
+                        <div class="receipt-item">
+                            <span>1x Roti Canai</span>
+                            <span>RM 4.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-divider"></div>
+                    
+                    <div class="receipt-total">
+                        <span>TOTAL:</span>
+                        <span>RM 17.50</span>
+                    </div>
+                    
+                    <div class="receipt-footer">
+                        <p>Thank you for your order!</p>
+                        <p>Please come again</p>
+                    </div>
+                    
+                    <div class="receipt-barcode">
+                        *TEST1234*
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Printer Modal -->
+    <div id="addPrinterModal" class="modal">
+        <div class="modal-content">
+            <h4>Add New Printer</h4>
+            
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="printerName" type="text" class="validate" required>
+                    <label for="printerName">Printer Name</label>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="input-field col s12">
+                    <select id="printerDepartment">
+                        <option value="" disabled>Select Department</option>
+                        <option value="KITCHEN">Kitchen</option>
+                        <option value="CASHIER">Cashier</option>
+                        <option value="FOOD_ORDER">Food Order</option>
+                        <option value="SERVING">Serving</option>
+                    </select>
+                    <label>Department</label>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="input-field col s12">
+                    <div class="printer-tabs">
+                        <ul class="tabs">
+                            <li class="tab col s4"><a href="#bluetoothTab" class="active">Bluetooth</a></li>
+                            <li class="tab col s4"><a href="#networkTab">Network</a></li>
+                            <li class="tab col s4"><a href="#usbTab">USB</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="bluetoothTab" class="col s12">
+                <p>Click the button below to search for and connect to a Bluetooth printer.</p>
+                <button id="scanBluetoothBtn" class="btn-custom">
+                    <i class="material-icons">bluetooth_searching</i>
+                    Scan for Bluetooth Printers
+                </button>
+                
+                <div id="bluetoothDeviceList" class="device-list" style="margin-top: 15px;"></div>
+            </div>
+            
+            <div id="networkTab" class="col s12">
+                <div class="row">
+                    <div class="input-field col s8">
+                        <input id="ipAddress" type="text" class="validate">
+                        <label for="ipAddress">IP Address</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <input id="port" type="text" class="validate" value="9100">
+                        <label for="port">Port</label>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="input-field col s12">
+                        <select id="protocol">
+                            <option value="RAW" selected>RAW</option>
+                            <option value="HTTP">HTTP</option>
+                        </select>
+                        <label>Protocol</label>
+                    </div>
+                </div>
+                
+                <button id="testNetworkBtn" class="btn-custom">
+                    <i class="material-icons">wifi</i>
+                    Test Network Connection
+                </button>
+            </div>
+            
+            <div id="usbTab" class="col s12">
+                <p>USB printers can only be accessed on desktop via the PWA installed version.</p>
+                <button id="scanUsbBtn" class="btn-custom">
+                    <i class="material-icons">usb</i>
+                    Select USB Printer
+                </button>
+                
+                <div id="usbDeviceList" class="device-list" style="margin-top: 15px;"></div>
+            </div>
+            
+            <div class="row" style="margin-top: 20px;">
+                <div class="col s12">
+                    <label>
+                        <input type="checkbox" id="setAsDefault" />
+                        <span>Set as default printer for this department</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-custom modal-close">Cancel</button>
+            <button id="savePrinterBtn" class="btn-custom btn-success">Save Printer</button>
+        </div>
+    </div>
+    
+    <app-footer></app-footer>
+    
+    <!-- Load custom components first -->
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/footer.js"></script>
+
+    <!-- API Handler -->
+    <script src="../js/api-handler.js"></script>
+    
+    <!-- Materialize JS -->
+    <script src="../js/materialize.min.js"></script>
+    
+    <!-- Load Printer Service Script -->
+    <script src="../js/printer-service.js"></script>
+      <!-- Bluetooth Printer Scripts -->    <script>
+        // Declare these variables at global scope for the script
+        let statusMessage, loadingOverlay, autoPrintCheckbox, printerList, departmentFilter;
+        let addPrinterBtn, addPrinterModal, savePrinterBtn, scanBluetoothBtn, scanUsbBtn, testNetworkBtn;
+        let modalInstance, tabs, selects;
+            
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize UI elements first
+            initializeUIElements();
+            
+            // Check authentication status before page renders
+            (function checkAuth() {
+                const token = localStorage.getItem('auth_token');
+                const username = localStorage.getItem('username');
+                
+                if (!token || !username) {
+                    console.log('Not authenticated, redirecting to login page');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                
+                // Load user profile data
+                fetchProfileData();
+                
+                // Initialize printer service
+                initPrinterManager();
+            })();              // Initialize UI elements function
+            function initializeUIElements() {
+                // Elements
+                statusMessage = document.getElementById('statusMessage');
+                loadingOverlay = document.getElementById('loadingOverlay');
+                autoPrintCheckbox = document.getElementById('autoPrint');
+                printerList = document.getElementById('printerList');
+                departmentFilter = document.getElementById('departmentFilter');
+                
+                // Modal elements
+                addPrinterBtn = document.getElementById('addPrinterBtn');
+                addPrinterModal = document.getElementById('addPrinterModal');
+                savePrinterBtn = document.getElementById('savePrinterBtn');
+                scanBluetoothBtn = document.getElementById('scanBluetoothBtn');
+                scanUsbBtn = document.getElementById('scanUsbBtn');
+                testNetworkBtn = document.getElementById('testNetworkBtn');
+                
+                // Update checkbox from stored settings
+                if (autoPrintCheckbox) {
+                    autoPrintCheckbox.checked = localStorage.getItem('autoPrint') !== 'false';
+                }
+                
+                // Initialize UI components
+                initializeUIComponents();
+                
+                // Setup event listeners
+                setupEventListeners();
+            }
+            
+            // Initialize UI components (Materialize)
+            function initializeUIComponents() {
+                // Initialize Modal
+                if (document.getElementById('addPrinterModal')) {
+                    modalInstance = M.Modal.init(document.getElementById('addPrinterModal'), {
+                        dismissible: false,
+                        opacity: 0.5
+                    });
+                }
+                
+                // Initialize Tabs
+                if (document.querySelector('.tabs')) {
+                    tabs = M.Tabs.init(document.querySelector('.tabs'), {});
+                }
+                
+                // Initialize Selects
+                selects = document.querySelectorAll('select');
+                if (selects.length > 0) {
+                    M.FormSelect.init(selects);
+                }
+            }
+            
+            // Setup event listeners
+            function setupEventListeners() {
+                // Update receipt date
+                const now = new Date();
+                const receiptDateEl = document.getElementById('receiptDate');
+                if (receiptDateEl) {
+                    receiptDateEl.textContent = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+                }
+                
+                if (addPrinterBtn) {
+                    addPrinterBtn.addEventListener('click', () => {
+                        resetPrinterForm();
+                        modalInstance.open();
+                    });
+                }
+                
+                if (savePrinterBtn) {
+                    savePrinterBtn.addEventListener('click', savePrinter);
+                }
+                
+                if (scanBluetoothBtn) {
+                    scanBluetoothBtn.addEventListener('click', scanForBluetoothDevices);
+                }
+                
+                if (scanUsbBtn) {
+                    scanUsbBtn.addEventListener('click', scanForUsbDevices);
+                }
+                
+                if (testNetworkBtn) {
+                    testNetworkBtn.addEventListener('click', testNetworkConnection);
+                }
+                
+                // Department filter event listeners
+                if (departmentFilter) {
+                    departmentFilter.querySelectorAll('.department-chip').forEach(chip => {
+                        chip.addEventListener('click', function() {
+                            // Remove active class from all chips
+                            departmentFilter.querySelectorAll('.department-chip').forEach(c => {
+                                c.classList.remove('active');
+                            });
+                            
+                            // Add active class to clicked chip
+                            this.classList.add('active');
+                            
+                            // Filter printers
+                            const department = this.dataset.department;
+                            filterPrintersByDepartment(department);
+                        });
+                    });
+                }
+            }
+
+            // Fetch profile data from API
+            async function fetchProfileData() {
+                // ...existing code...
+            }
+              // Elements section removed - now initialized in initializeUIElements()
+              // Initialize the printer service
+            const printerService = window.printerService;
+            
+            // Get existing Modal instance - already initialized in initializeUIComponents
+            // Access through the global variable instead of redefining
+            
+            // Open modal when needed
+            function openAddPrinterModal() {
+                if (modalInstance) {
+                    modalInstance.open();
+                } else {
+                    console.error("Modal instance not initialized");
+                }
+            }
+            
+            // Event listeners
+            addPrinterBtn.addEventListener('click', () => {
+                resetPrinterForm();
+                modalInstance.open();
+            });
+            
+            savePrinterBtn.addEventListener('click', savePrinter);
+            scanBluetoothBtn.addEventListener('click', scanForBluetoothDevices);
+            scanUsbBtn.addEventListener('click', scanForUsbDevices);
+            testNetworkBtn.addEventListener('click', testNetworkConnection);
+            
+            // Department filter event listeners
+            departmentFilter.querySelectorAll('.department-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    // Remove active class from all chips
+                    departmentFilter.querySelectorAll('.department-chip').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked chip
+                    this.classList.add('active');
+                    
+                    // Filter printers
+                    const department = this.dataset.department;
+                    filterPrintersByDepartment(department);
+                });
+            });
+            
+            // Check if needed APIs are supported
+            function checkApiSupport() {
+                const supportInfo = {
+                    bluetooth: 'bluetooth' in navigator,
+                    usb: 'usb' in navigator,
+                    network: true // Network printing via API is always available
+                };
+                
+                if (!supportInfo.bluetooth) {
+                    document.querySelector('#bluetoothTab').innerHTML = 
+                        '<p class="red-text">Your browser does not support Bluetooth. Please use Chrome, Edge, or Opera.</p>';
+                }
+                
+                if (!supportInfo.usb) {
+                    document.querySelector('#usbTab').innerHTML = 
+                        '<p class="red-text">Your browser does not support USB devices or you\'re not using the installed PWA.</p>';
+                }
+                
+                return supportInfo;
+            }
+              // Initialize printer manager
+            async function initPrinterManager() {
+                try {
+                    // Check API support
+                    const apiSupport = checkApiSupport();
+                    console.log('API support:', apiSupport);
+                    
+                    // Load printers from database
+                    await loadPrinters();
+                    
+                    // Initialize event handlers
+                    if (typeof initEventHandlers === 'function') {
+                        initEventHandlers();
+                    }
+                } catch (error) {
+                    console.error('Error initializing printer manager:', error);
+                    showStatus('Error initializing printer manager: ' + error.message, 'error');
+                }
+            }
+              // Show loading overlay
+            function showLoading(message = 'Processing...') {
+                if (!loadingOverlay) {
+                    loadingOverlay = document.getElementById('loadingOverlay');
+                    if (!loadingOverlay) {
+                        console.error('Loading overlay element not found');
+                        return;
+                    }
+                }
+                const messageEl = document.querySelector('.loading-message');
+                if (messageEl) {
+                    messageEl.textContent = message;
+                }
+                loadingOverlay.classList.add('active');
+            }
+            
+            // Hide loading overlay
+            function hideLoading() {
+                if (!loadingOverlay) {
+                    loadingOverlay = document.getElementById('loadingOverlay');
+                    if (!loadingOverlay) {
+                        console.error('Loading overlay element not found');
+                        return;
+                    }
+                }
+                loadingOverlay.classList.remove('active');
+            }
+              // Show status message
+            function showStatus(message, type = 'info') {
+                if (!statusMessage) {
+                    statusMessage = document.getElementById('statusMessage');
+                    if (!statusMessage) {
+                        console.error('Status message element not found');
+                        return;
+                    }
+                }
+                
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message ' + type;
+                statusMessage.style.display = 'block';
+                
+                // Auto-hide success messages after 5 seconds
+                if (type === 'success') {
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 5000);
+                }
+            }
+              // Load printers from database
+            async function loadPrinters() {
+                try {
+                    showLoading('Loading printers...');
+                    
+                    const token = localStorage.getItem('auth_token');
+                    if (!token) {
+                        throw new Error('Authentication required');
+                    }
+                    
+                    // Get client ID from localStorage
+                    const clientId = localStorage.getItem('client_id');
+                    
+                    // API call to get printers
+                    const response = await fetch('../api/printers', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error loading printers: ${response.status}`);
+                    }
+                    
+                    const printerData = await response.json();
+                    
+                    // Render printers
+                    renderPrinters(printerData);
+                    
+                } catch (error) {
+                    console.error('Error loading printers:', error);
+                    if (typeof showStatus === 'function') {
+                        showStatus(`Error: ${error.message}`, 'error');
+                    }
+                    
+                    // Show empty state
+                    if (printerList) {
+                        printerList.innerHTML = `
+                            <div class="printer-item" style="text-align: center; color: #888;">
+                                No printers configured or error loading printers. Click "Add New Printer" to set up a printer.
+                            </div>
+                        `;
+                    }
+                } finally {
+                    hideLoading();
+                }
+            }
+              // Render printers in the list
+            function renderPrinters(printers) {
+                if (!printerList) {
+                    printerList = document.getElementById('printerList');
+                    if (!printerList) {
+                        console.error('Printer list element not found');
+                        return;
+                    }
+                }
+                
+                if (!printers || printers.length === 0) {
+                    printerList.innerHTML = `
+                        <div class="printer-item" style="text-align: center; color: #888;">
+                            No printers configured. Click "Add New Printer" to set up a printer.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                printerList.innerHTML = '';
+                
+                printers.forEach(printer => {
+                    const printerItem = document.createElement('div');
+                    printerItem.className = 'printer-item';
+                    printerItem.dataset.id = printer.id;
+                    printerItem.dataset.department = printer.department;
+                    
+                    let printerTypeIcon = 'print';
+                    let connectionDetails = '';
+                    
+                    switch (printer.printer_type) {
+                        case 'BLUETOOTH':
+                            printerTypeIcon = 'bluetooth';
+                            connectionDetails = `Bluetooth: ${printer.connection_info.deviceName || 'Unknown Device'}`;
+                            break;
+                        case 'NETWORK':
+                            printerTypeIcon = 'wifi';
+                            connectionDetails = `Network: ${printer.connection_info.ipAddress}:${printer.connection_info.port}`;
+                            break;
+                        case 'USB':
+                            printerTypeIcon = 'usb';
+                            connectionDetails = `USB: ${printer.connection_info.productName || 'Unknown Device'}`;
+                            break;
+                    }
+                    
+                    if (printer.is_default) {
+                        printerItem.innerHTML += `<span class="badge default">Default</span>`;
+                    }
+                    
+                    printerItem.innerHTML += `
+                        <div>
+                            <div class="printer-name">
+                                <i class="material-icons printer-type-icon">${printerTypeIcon}</i>
+                                ${printer.name}
+                                <span class="printer-department">${getDepartmentName(printer.department)}</span>
+                            </div>
+                            <div class="printer-details">${connectionDetails}</div>
+                        </div>
+                        <div class="printer-actions">
+                            <button class="btn-icon test-printer" data-id="${printer.id}" title="Test Printer">
+                                <i class="material-icons">receipt</i>
+                            </button>
+                            <button class="btn-icon edit-printer" data-id="${printer.id}" title="Edit Printer">
+                                <i class="material-icons">edit</i>
+                            </button>
+                            <button class="btn-icon delete-printer" data-id="${printer.id}" title="Delete Printer">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    printerList.appendChild(printerItem);
+                });
+                
+                // Add event listeners to buttons
+                document.querySelectorAll('.test-printer').forEach(btn => {
+                    btn.addEventListener('click', () => testPrinter(btn.dataset.id));
+                });
+                
+                document.querySelectorAll('.edit-printer').forEach(btn => {
+                    btn.addEventListener('click', () => editPrinter(btn.dataset.id));
+                });
+                
+                document.querySelectorAll('.delete-printer').forEach(btn => {
+                    btn.addEventListener('click', () => deletePrinter(btn.dataset.id));
+                });
+            }
+            
+            // Filter printers by department
+            function filterPrintersByDepartment(department) {
+                const printerItems = document.querySelectorAll('.printer-item');
+                
+                if (department === 'ALL') {
+                    printerItems.forEach(item => {
+                        item.style.display = 'flex';
+                    });
+                } else {
+                    printerItems.forEach(item => {
+                        if (item.dataset.department === department) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+            }
+            
+            // Reset printer form
+            function resetPrinterForm() {
+                document.getElementById('printerName').value = '';
+                document.getElementById('printerDepartment').value = '';
+                document.getElementById('ipAddress').value = '';
+                document.getElementById('port').value = '9100';
+                document.getElementById('protocol').value = 'RAW';
+                document.getElementById('setAsDefault').checked = false;
+                document.getElementById('bluetoothDeviceList').innerHTML = '';
+                document.getElementById('usbDeviceList').innerHTML = '';
+                
+                // Reset select dropdowns
+                M.FormSelect.init(document.querySelectorAll('select'));
+                
+                // Reset tabs to first tab
+                const tabsInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
+                tabsInstance.select('bluetoothTab');
+                
+                // Reset form labels
+                M.updateTextFields();
+            }
+            
+            // Get department name from code
+            function getDepartmentName(departmentCode) {
+                const departments = {
+                    'KITCHEN': 'Kitchen',
+                    'CASHIER': 'Cashier',
+                    'FOOD_ORDER': 'Food Order',
+                    'SERVING': 'Serving'
+                };
+                
+                return departments[departmentCode] || departmentCode;
+            }
+            
+            // Scan for Bluetooth devices
+            async function scanForBluetoothDevices() {
+                try {
+                    if (!('bluetooth' in navigator)) {
+                        showStatus('Your browser does not support Bluetooth functionality.', 'error');
+                        return;
+                    }
+                    
+                    showLoading('Scanning for Bluetooth printers...');
+                    
+                    // Reset device list
+                    document.getElementById('bluetoothDeviceList').innerHTML = '';
+                    
+                    // Request device
+                    const device = await navigator.bluetooth.requestDevice({
+                        // Accept all devices since many thermal printers don't advertise specific services
+                        acceptAllDevices: true,
+                        optionalServices: [
+                            '000018f0-0000-1000-8000-00805f9b34fb', // Common printer service
+                            '49535343-fe7d-4ae5-8fa9-9fafd205e455', // Printer service sometimes used
+                            '0000ff00-0000-1000-8000-00805f9b34fb', // Generic service sometimes used by printers
+                            0x1800, 0x1801 // Generic Access and Generic Attribute
+                        ]
+                    });
+                    
+                    console.log('Bluetooth device selected:', device);
+                    
+                    // Create device element
+                    const deviceItem = document.createElement('div');
+                    deviceItem.className = 'device-item';
+                    deviceItem.dataset.id = device.id;
+                    deviceItem.dataset.name = device.name || 'Unknown Device';
+                    deviceItem.innerHTML = `
+                        <div class="device-info">
+                            <div class="device-name">${device.name || 'Unknown Device'}</div>
+                            <div class="device-id">${device.id}</div>
+                        </div>
+                        <span class="device-status selected">Selected</span>
+                    `;
+                    
+                    document.getElementById('bluetoothDeviceList').innerHTML = '';
+                    document.getElementById('bluetoothDeviceList').appendChild(deviceItem);
+                    
+                } catch (error) {
+                    console.error('Error scanning for Bluetooth devices:', error);
+                    if (error.name === 'NotFoundError') {
+                        showStatus('No Bluetooth devices found. Make sure your printer is turned on and in pairing mode.', 'warning');
+                    } else {
+                        showStatus(`Error: ${error.message}`, 'error');
+                    }
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Scan for USB devices
+            async function scanForUsbDevices() {
+                try {
+                    if (!('usb' in navigator)) {
+                        showStatus('Your browser does not support USB functionality.', 'error');
+                        return;
+                    }
+                    
+                    showLoading('Scanning for USB printers...');
+                    
+                    // Reset device list
+                    document.getElementById('usbDeviceList').innerHTML = '';
+                    
+                    // Request device
+                    const device = await navigator.usb.requestDevice({
+                        filters: [
+                            // Common USB printer filters
+                            { classCode: 7 }, // Printer class
+                            { classCode: 0xFF } // Vendor specific
+                        ]
+                    });
+                    
+                    console.log('USB device selected:', device);
+                    
+                    // Create device element
+                    const deviceItem = document.createElement('div');
+                    deviceItem.className = 'device-item';
+                    deviceItem.dataset.id = `${device.vendorId}-${device.productId}`;
+                    deviceItem.dataset.vendorId = device.vendorId;
+                    deviceItem.dataset.productId = device.productId;
+                    deviceItem.dataset.name = device.productName || 'USB Printer';
+                    
+                    deviceItem.innerHTML = `
+                        <div class="device-info">
+                            <div class="device-name">${device.productName || 'USB Printer'}</div>
+                            <div class="device-id">Vendor: ${device.vendorId.toString(16)}, Product: ${device.productId.toString(16)}</div>
+                        </div>
+                        <span class="device-status selected">Selected</span>
+                    `;
+                    
+                    document.getElementById('usbDeviceList').innerHTML = '';
+                    document.getElementById('usbDeviceList').appendChild(deviceItem);
+                    
+                } catch (error) {
+                    console.error('Error scanning for USB devices:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Test network connection
+            async function testNetworkConnection() {
+                try {
+                    const ipAddress = document.getElementById('ipAddress').value;
+                    const port = document.getElementById('port').value;
+                    
+                    if (!ipAddress) {
+                        showStatus('Please enter an IP address', 'warning');
+                        return;
+                    }
+                    
+                    showLoading('Testing network connection...');
+                    
+                    // This is a simple test - in a real app you'd want to verify the printer is responding
+                    // Here we're just checking the IP format and that we can make a request to the API
+                    
+                    // Test the network connection via API
+                    const token = localStorage.getItem('auth_token');
+                    const response = await fetch('../api/test-printer-connection', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            type: 'NETWORK',
+                            ipAddress,
+                            port
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error testing connection: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showStatus('Network printer connection successful!', 'success');
+                    } else {
+                        showStatus(`Connection failed: ${result.message}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error testing network connection:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Save printer
+            async function savePrinter() {
+                try {
+                    const printerName = document.getElementById('printerName').value;
+                    const printerDepartment = document.getElementById('printerDepartment').value;
+                    const setAsDefault = document.getElementById('setAsDefault').checked;
+                    
+                    // Validate form
+                    if (!printerName) {
+                        showStatus('Please enter a printer name', 'warning');
+                        return;
+                    }
+                    
+                    if (!printerDepartment) {
+                        showStatus('Please select a department', 'warning');
+                        return;
+                    }
+                    
+                    // Get active tab
+                    const activeTab = M.Tabs.getInstance(document.querySelector('.tabs')).index;
+                    let printerType, connectionInfo;
+                    
+                    switch (activeTab) {
+                        case 0: // Bluetooth tab
+                            const bluetoothDevice = document.querySelector('#bluetoothDeviceList .device-item');
+                            if (!bluetoothDevice) {
+                                showStatus('Please select a Bluetooth printer', 'warning');
+                                return;
+                            }
+                            
+                            printerType = 'BLUETOOTH';
+                            connectionInfo = {
+                                deviceId: bluetoothDevice.dataset.id,
+                                deviceName: bluetoothDevice.dataset.name
+                            };
+                            break;
+                            
+                        case 1: // Network tab
+                            const ipAddress = document.getElementById('ipAddress').value;
+                            const port = document.getElementById('port').value;
+                            const protocol = document.getElementById('protocol').value;
+                            
+                            if (!ipAddress) {
+                                showStatus('Please enter an IP address', 'warning');
+                                return;
+                            }
+                            
+                            printerType = 'NETWORK';
+                            connectionInfo = {
+                                ipAddress,
+                                port,
+                                protocol
+                            };
+                            break;
+                            
+                        case 2: // USB tab
+                            const usbDevice = document.querySelector('#usbDeviceList .device-item');
+                            if (!usbDevice) {
+                                showStatus('Please select a USB printer', 'warning');
+                                return;
+                            }
+                            
+                            printerType = 'USB';
+                            connectionInfo = {
+                                vendorId: usbDevice.dataset.vendorId,
+                                productId: usbDevice.dataset.productId,
+                                productName: usbDevice.dataset.name
+                            };
+                            break;
+                    }
+                    
+                    showLoading('Saving printer...');
+                    
+                    // Get client ID from localStorage
+                    const clientId = localStorage.getItem('client_id');
+                    const token = localStorage.getItem('auth_token');
+                    
+                    // Prepare printer data
+                    const printerData = {
+                        name: printerName,
+                        printer_type: printerType,
+                        connection_info: connectionInfo,
+                        department: printerDepartment,
+                        is_default: setAsDefault,
+                        client_id: clientId
+                    };
+                    
+                    // Save printer to database
+                    const response = await fetch('../api/printers', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(printerData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error saving printer: ${response.status}`);
+                    }
+                    
+                    const savedPrinter = await response.json();
+                    
+                    showStatus('Printer saved successfully!', 'success');
+                    
+                    // Close modal
+                    modalInstance.close();
+                    
+                    // Reload printers
+                    await loadPrinters();
+                    
+                } catch (error) {
+                    console.error('Error saving printer:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Test printer
+            async function testPrinter(printerId) {
+                try {
+                    showLoading('Testing printer...');
+                    
+                    const token = localStorage.getItem('auth_token');
+                    
+                    // Get receipt content from the preview
+                    const receiptContent = document.getElementById('receiptPreview').innerText;
+                    
+                    // Test print via API
+                    const response = await fetch(`../api/printers/${printerId}/test`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content: receiptContent
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error testing printer: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showStatus('Test print sent successfully!', 'success');
+                    } else {
+                        showStatus(`Test print failed: ${result.message}`, 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error testing printer:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Edit printer
+            async function editPrinter(printerId) {
+                try {
+                    showLoading('Loading printer details...');
+                    
+                    const token = localStorage.getItem('auth_token');
+                    
+                    // Get printer details
+                    const response = await fetch(`../api/printers/${printerId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error loading printer: ${response.status}`);
+                    }
+                    
+                    const printer = await response.json();
+                    
+                    // Populate form
+                    document.getElementById('printerName').value = printer.name;
+                    document.getElementById('printerDepartment').value = printer.department;
+                    document.getElementById('setAsDefault').checked = printer.is_default;
+                    
+                    // Update form labels
+                    M.updateTextFields();
+                    M.FormSelect.init(document.querySelectorAll('select'));
+                    
+                    // Select the appropriate tab and populate fields based on printer type
+                    const tabsInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
+                    
+                    switch (printer.printer_type) {
+                        case 'BLUETOOTH':
+                            tabsInstance.select('bluetoothTab');
+                            
+                            // Create device element
+                            const bluetoothItem = document.createElement('div');
+                            bluetoothItem.className = 'device-item';
+                            bluetoothItem.dataset.id = printer.connection_info.deviceId;
+                            bluetoothItem.dataset.name = printer.connection_info.deviceName || 'Unknown Device';
+                            bluetoothItem.innerHTML = `
+                                <div class="device-info">
+                                    <div class="device-name">${printer.connection_info.deviceName || 'Unknown Device'}</div>
+                                    <div class="device-id">${printer.connection_info.deviceId}</div>
+                                </div>
+                                <span class="device-status selected">Selected</span>
+                            `;
+                            
+                            document.getElementById('bluetoothDeviceList').innerHTML = '';
+                            document.getElementById('bluetoothDeviceList').appendChild(bluetoothItem);
+                            break;
+                            
+                        case 'NETWORK':
+                            tabsInstance.select('networkTab');
+                            document.getElementById('ipAddress').value = printer.connection_info.ipAddress || '';
+                            document.getElementById('port').value = printer.connection_info.port || '9100';
+                            document.getElementById('protocol').value = printer.connection_info.protocol || 'RAW';
+                            
+                            // Update form labels
+                            M.updateTextFields();
+                            M.FormSelect.init(document.querySelectorAll('select'));
+                            break;
+                            
+                        case 'USB':
+                            tabsInstance.select('usbTab');
+                            
+                            // Create device element
+                            const usbItem = document.createElement('div');
+                            usbItem.className = 'device-item';
+                            usbItem.dataset.id = `${printer.connection_info.vendorId}-${printer.connection_info.productId}`;
+                            usbItem.dataset.vendorId = printer.connection_info.vendorId;
+                            usbItem.dataset.productId = printer.connection_info.productId;
+                            usbItem.dataset.name = printer.connection_info.productName || 'USB Printer';
+                            
+                            usbItem.innerHTML = `
+                                <div class="device-info">
+                                    <div class="device-name">${printer.connection_info.productName || 'USB Printer'}</div>
+                                    <div class="device-id">Vendor: ${printer.connection_info.vendorId}, Product: ${printer.connection_info.productId}</div>
+                                </div>
+                                <span class="device-status selected">Selected</span>
+                            `;
+                            
+                            document.getElementById('usbDeviceList').innerHTML = '';
+                            document.getElementById('usbDeviceList').appendChild(usbItem);
+                            break;
+                    }
+                    
+                    // Open modal
+                    modalInstance.open();
+                    
+                } catch (error) {
+                    console.error('Error editing printer:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Delete printer
+            async function deletePrinter(printerId) {
+                try {
+                    if (!confirm('Are you sure you want to delete this printer?')) {
+                        return;
+                    }
+                    
+                    showLoading('Deleting printer...');
+                    
+                    const token = localStorage.getItem('auth_token');
+                    
+                    // Delete printer
+                    const response = await fetch(`../api/printers/${printerId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error deleting printer: ${response.status}`);
+                    }
+                    
+                    showStatus('Printer deleted successfully!', 'success');
+                    
+                    // Reload printers
+                    await loadPrinters();
+                    
+                } catch (error) {
+                    console.error('Error deleting printer:', error);
+                    showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+            
+            // Initialize event handlers
+            function initEventHandlers() {
+                // Save printer settings when checkbox changes
+                autoPrintCheckbox.addEventListener('change', function() {
+                    localStorage.setItem('autoPrint', this.checked);
+                    
+                    // Update printer service if it's initialized
+                    if (printerService) {
+                        printerService.setAutoPrint(this.checked);
+                    }
+                });
+            }
+            
+            // Create device element
+            function createDeviceElement(device) {
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-item';
+                deviceItem.dataset.id = device.id;
+                
+                const deviceInfo = document.createElement('div');
+                deviceInfo.className = 'device-info';
+                
+                const deviceName = document.createElement('div');
+                deviceName.className = 'device-name';
+                deviceName.textContent = device.name || 'Unknown Device';
+                
+                const deviceId = document.createElement('div');
+                deviceId.className = 'device-id';
+                deviceId.textContent = device.id;
+                
+                deviceInfo.appendChild(deviceName);
+                deviceInfo.appendChild(deviceId);
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'device-status';
+                statusSpan.textContent = 'Available';
+                
+                deviceItem.appendChild(deviceInfo);
+                deviceItem.appendChild(statusSpan);
+                
+                return deviceItem;
+            }
+            
+            // Update the device status in the UI
+            function updateDeviceStatus(deviceId, status) {
+                const deviceItem = deviceList.querySelector(`[data-id="${deviceId}"]`);
+                if (deviceItem) {
+                    const statusEl = deviceItem.querySelector('.device-status');
+                    
+                    if (statusEl) {
+                        statusEl.className = 'device-status ' + status;
+                        
+                        switch (status) {
+                            case 'connected':
+                                statusEl.textContent = 'Connected';
+                                break;
+                            case 'paired':
+                                statusEl.textContent = 'Paired';
+                                break;
+                            case 'available':
+                                statusEl.textContent = 'Available';
+                                break;
+                            default:
+                                statusEl.textContent = status;
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

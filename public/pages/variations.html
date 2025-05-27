@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Variations | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+        
+        /* Modal styles with no margin/padding */
+        .modal-content {
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 0;
+        }
+        
+        .modal-header h5 {
+            font-size: 1rem;
+            margin: 0;
+        }
+        
+        .modal-body {
+            padding: 12px;
+            margin: 0;
+        }
+        
+        .modal-body .form-group {
+            margin-bottom: 8px;
+        }
+        
+        .modal-body label {
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+        
+        .modal-body .form-control, 
+        .modal-body .form-select {
+            font-size: 0.85rem;
+            padding: 0.375rem 0.5rem;
+            margin: 0;
+            width: 100%;
+            border-radius: 3px;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding: 8px 12px;
+            margin: 0;
+        }
+        
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+            padding: 0.25rem;
+            font-size: 0.8rem;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.5rem !important;
+            margin: 0 !important;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-radius: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .dashboard-header p {
+            font-size: 0.8rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+        
+        /* Variation table styles */
+        .variations-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .variations-table td {
+            font-size: 0.85rem;
+            padding: 8px;
+            vertical-align: middle;
+        }
+        
+        .variations-table tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .variation-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .variation-badge.required {
+            background-color: #e74c3c;
+        }
+        
+        .variation-badge.optional {
+            background-color: #3498db;
+        }
+        
+        /* Floating action buttons */
+        .floating-btn {
+            position: fixed;
+            bottom: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 16px;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .floating-btn-back {
+            left: 12px;
+            background-color: var(--primary-color);
+        }
+        
+        .floating-btn-add {
+            right: 12px;
+            background-color: var(--secondary-color);
+        }
+        
+        /* Make modals fullscreen on mobile */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+            
+            .modal-content {
+                height: 100%;
+                border: 0;
+                border-radius: 0;
+            }
+            
+            .modal-body {
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Menu Item Variations</h2>
+                    <p class="mb-0">Manage variations and options for menu items</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="mb-0">Last updated: <span id="lastUpdated">Apr 18, 2025</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search and Filter Row -->
+        <div class="card mb-4">
+            <div class="card-body p-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="searchVariation" placeholder="Search variations...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm" id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 text-md-end">
+                        <span class="me-2 small text-muted">Total: <span id="totalVariations">0</span></span>
+                        <span class="me-2 small text-muted">Active: <span id="activeVariations">0</span></span>
+                        <span class="small text-muted">Inactive: <span id="inactiveVariations">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading variations...</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center my-5 d-none">
+            <div class="mb-3">
+                <i class="fas fa-list-alt fa-3x text-muted"></i>
+            </div>
+            <h5>No Variations Found</h5>
+            <p class="text-muted">Get started by creating your first variation</p>
+            <button class="btn btn-primary mt-2" onclick="openVariationModal()">
+                <i class="fas fa-plus me-2"></i>Add New Variation
+            </button>
+        </div>
+        
+        <!-- Variations Table -->
+        <div class="card mb-4" id="variationsTableCard">
+            <div class="table-responsive">
+                <table class="table table-hover variations-table mb-0" id="variationsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price Range</th>
+                            <th>Status</th>
+                            <th>Options</th>
+                            <th style="width: 100px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variationsTableBody">
+                        <!-- Variations will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Variation Modal -->
+    <div class="modal fade" id="variationModal" tabindex="-1" aria-labelledby="variationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="variationModalLabel">Add Variation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="variationForm">
+                        <input type="hidden" id="variationId">
+                        
+                        <div class="form-group mb-3">
+                            <label for="variationName">Variation Name</label>
+                            <input type="text" class="form-control" id="variationName" placeholder="e.g. Size, Flavor, Spice Level" required>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="minPrice">Min Price ($)</label>
+                                    <input type="number" class="form-control" id="minPrice" placeholder="0.00" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="maxPrice">Max Price ($)</label>
+                                    <input type="number" class="form-control" id="maxPrice" placeholder="0.00" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="minSelections">Min Selections</label>
+                                    <input type="number" class="form-control" id="minSelections" placeholder="0" min="0" step="1" value="0">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="maxSelections">Max Selections</label>
+                                    <input type="number" class="form-control" id="maxSelections" placeholder="1" min="1" step="1" value="1">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="displayOrder">Display Order</label>
+                            <input type="number" class="form-control" id="displayOrder" placeholder="1" min="1" step="1" value="1">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="isRequired">
+                                <label class="form-check-label" for="isRequired">Required Variation</label>
+                            </div>
+                            <small class="form-text text-muted">If checked, customer must select at least one option</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="variationStatus">Status</label>
+                            <select class="form-select" id="variationStatus">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveVariationBtn">Save Variation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Variation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the variation <strong id="deleteVariationName"></strong>?</p>
+                    <p class="text-danger"><small>This action cannot be undone.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Variation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="toastContainer"></div>
+    </div>
+    
+    <!-- Floating Buttons -->
+    <button class="floating-btn floating-btn-back" onclick="window.location.href='../index.html'" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <button class="floating-btn floating-btn-add" onclick="openVariationModal()" title="Add New Variation">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let variations = [];
+        let variationToDelete = null;
+        let modalMode = 'add';
+        
+        // DOM Elements
+        const variationsTableBody = document.getElementById('variationsTableBody');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const emptyState = document.getElementById('emptyState');
+        const variationsTableCard = document.getElementById('variationsTableCard');
+        const variationModal = new bootstrap.Modal(document.getElementById('variationModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const totalVariationsEl = document.getElementById('totalVariations');
+        const activeVariationsEl = document.getElementById('activeVariations');
+        const inactiveVariationsEl = document.getElementById('inactiveVariations');
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            checkAuthentication();
+            
+            // Fetch variations
+            fetchVariations();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Update date/time
+            updateDateTime();
+        });
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Save button
+            document.getElementById('saveVariationBtn').addEventListener('click', saveVariation);
+            
+            // Confirm delete button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteVariation);
+            
+            // Search input
+            document.getElementById('searchVariation').addEventListener('input', filterVariations);
+            
+            // Status filter
+            document.getElementById('statusFilter').addEventListener('change', filterVariations);
+        }
+        
+        // Check authentication
+        function checkAuthentication() {
+            const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+            
+            if (!token || !username) {
+                // Redirect to login if not authenticated
+                window.location.href = '../login.html';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Fetch variations from API
+        async function fetchVariations() {
+            showLoading(true);
+            
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                
+                const response = await fetch('/api/item-variations', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch variations');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    variations = data.data || [];
+                    console.log('Fetched variations:', variations.length);
+                    updateStats();
+                    renderVariations();
+                } else {
+                    showToast('Failed to load variations: ' + (data.message || 'Unknown error'), 'error');
+                    variations = [];
+                    updateStats();
+                    renderVariations();
+                }
+            } catch (error) {
+                console.error('Error fetching variations:', error);
+                showToast('Failed to load variations: ' + error.message, 'error');
+                variations = [];
+                updateStats();
+                renderVariations();
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Render variations table
+        function renderVariations() {
+            // Clear table body
+            variationsTableBody.innerHTML = '';
+            
+            // Show/hide elements based on data
+            if (variations.length === 0) {
+                variationsTableCard.classList.add('d-none');
+                emptyState.classList.remove('d-none');
+                return;
+            }
+            
+            variationsTableCard.classList.remove('d-none');
+            emptyState.classList.add('d-none');
+            
+            // Filter variations based on search and status filter
+            const searchTerm = document.getElementById('searchVariation').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const filteredVariations = variations.filter(variation => {
+                // Apply search filter
+                const nameMatch = (variation.NAME || '').toLowerCase().includes(searchTerm);
+                
+                // Apply status filter
+                const statusMatch = statusFilter === 'all' || variation.STATUS === statusFilter;
+                
+                return nameMatch && statusMatch;
+            });
+            
+            // Sort variations by name
+            filteredVariations.sort((a, b) => (a.NAME || '').localeCompare(b.NAME || ''));
+            
+            // Render variations
+            filteredVariations.forEach(variation => {
+                const tr = document.createElement('tr');
+                
+                // Format price range
+                let priceRange = 'No price';
+                if (variation.MIN_PRICE || variation.MAX_PRICE) {
+                    const minPrice = variation.MIN_PRICE ? `$${parseFloat(variation.MIN_PRICE).toFixed(2)}` : 'Any';
+                    const maxPrice = variation.MAX_PRICE ? `$${parseFloat(variation.MAX_PRICE).toFixed(2)}` : 'Any';
+                    priceRange = `${minPrice} - ${maxPrice}`;
+                }
+                
+                // Format status badge
+                const statusBadge = variation.STATUS === 'ACTIVE' ? 
+                    '<span class="badge bg-success">Active</span>' : 
+                    '<span class="badge bg-secondary">Inactive</span>';
+                
+                // Format required badge
+                const requiredBadge = variation.IS_REQUIRED ? 
+                    '<span class="variation-badge required">Required</span>' : 
+                    '<span class="variation-badge optional">Optional</span>';
+                
+                // Format min/max selections
+                let selectionsText = 'Any number';
+                if (variation.MIN_SELECTIONS && variation.MAX_SELECTIONS) {
+                    selectionsText = `${variation.MIN_SELECTIONS} - ${variation.MAX_SELECTIONS}`;
+                } else if (variation.MIN_SELECTIONS) {
+                    selectionsText = `Min: ${variation.MIN_SELECTIONS}`;
+                } else if (variation.MAX_SELECTIONS) {
+                    selectionsText = `Max: ${variation.MAX_SELECTIONS}`;
+                }
+                
+                tr.innerHTML = `
+                    <td>
+                        <div class="fw-medium">${variation.NAME || 'Unnamed'}</div>
+                        <div class="text-muted small">Display order: ${variation.DISPLAY_ORDER || 1}</div>
+                    </td>
+                    <td>${priceRange}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div>${requiredBadge}</div>
+                        <div class="text-muted small">${selectionsText}</div>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editVariation(${variation.VARIATION_ID})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteVariation(${variation.VARIATION_ID}, '${variation.NAME || 'Unnamed'}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                variationsTableBody.appendChild(tr);
+            });
+            
+            // Show no results message if no matches
+            if (filteredVariations.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="5" class="text-center py-3">
+                        <p class="text-muted mb-0">No variations match your search</p>
+                    </td>
+                `;
+                variationsTableBody.appendChild(tr);
+            }
+        }
+        
+        // Open modal to add new variation
+        function openVariationModal() {
+            modalMode = 'add';
+            resetVariationForm();
+            document.getElementById('variationModalLabel').textContent = 'Add Variation';
+            document.getElementById('saveVariationBtn').textContent = 'Save Variation';
+            variationModal.show();
+        }
+        
+        // Edit variation
+        function editVariation(id) {
+            modalMode = 'edit';
+            resetVariationForm();
+            
+            const variation = variations.find(v => v.VARIATION_ID === id);
+            if (!variation) {
+                showToast('Variation not found', 'error');
+                return;
+            }
+            
+            // Populate form
+            document.getElementById('variationId').value = variation.VARIATION_ID;
+            document.getElementById('variationName').value = variation.NAME || '';
+            document.getElementById('minPrice').value = variation.MIN_PRICE || 0;
+            document.getElementById('maxPrice').value = variation.MAX_PRICE || 0;
+            document.getElementById('minSelections').value = variation.MIN_SELECTIONS || 0;
+            document.getElementById('maxSelections').value = variation.MAX_SELECTIONS || 1;
+            document.getElementById('displayOrder').value = variation.DISPLAY_ORDER || 1;
+            document.getElementById('isRequired').checked = variation.IS_REQUIRED || false;
+            document.getElementById('variationStatus').value = variation.STATUS || 'ACTIVE';
+            
+            document.getElementById('variationModalLabel').textContent = 'Edit Variation';
+            document.getElementById('saveVariationBtn').textContent = 'Update Variation';
+            variationModal.show();
+        }
+        
+        // Delete variation (show confirmation)
+        function deleteVariation(id, name) {
+            variationToDelete = id;
+            document.getElementById('deleteVariationName').textContent = name;
+            deleteModal.show();
+        }
+        
+        // Confirm delete variation
+        async function confirmDeleteVariation() {
+            if (!variationToDelete) return;
+            
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Deleting...';
+            
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                
+                const response = await fetch(`/api/item-variations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        variation_id: variationToDelete
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete variation');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove from array
+                    variations = variations.filter(v => v.VARIATION_ID !== variationToDelete);
+                    
+                    // Update UI
+                    updateStats();
+                    renderVariations();
+                    
+                    showToast('Variation deleted successfully', 'success');
+                } else {
+                    showToast('Failed to delete variation: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting variation:', error);
+                showToast('Failed to delete variation: ' + error.message, 'error');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = 'Delete Variation';
+                deleteModal.hide();
+                variationToDelete = null;
+            }
+        }
+        
+        // Save variation (add or update)
+        async function saveVariation() {
+            const saveBtn = document.getElementById('saveVariationBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Saving...';
+            
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+                
+                const variationData = {
+                    NAME: document.getElementById('variationName').value,
+                    MIN_PRICE: parseFloat(document.getElementById('minPrice').value) || null,
+                    MAX_PRICE: parseFloat(document.getElementById('maxPrice').value) || null,
+                    MIN_SELECTIONS: parseInt(document.getElementById('minSelections').value) || null,
+                    MAX_SELECTIONS: parseInt(document.getElementById('maxSelections').value) || null,
+                    DISPLAY_ORDER: parseInt(document.getElementById('displayOrder').value) || 1,
+                    IS_REQUIRED: document.getElementById('isRequired').checked,
+                    STATUS: document.getElementById('variationStatus').value,
+                    USERNAME: username,
+                    UPDATED_BY: username
+                };
+                
+                let url = '/api/item-variations';
+                let method = 'POST';
+                
+                if (modalMode === 'edit') {
+                    const variationId = document.getElementById('variationId').value;
+                    variationData.action = 'update';
+                    variationData.variation_id = variationId;
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(variationData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save variation');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add to array
+                        variations.push(data.data);
+                        showToast('Variation added successfully', 'success');
+                    } else {
+                        // Update in array
+                        const index = variations.findIndex(v => v.VARIATION_ID === parseInt(document.getElementById('variationId').value));
+                        if (index !== -1) {
+                            variations[index] = data.data;
+                        }
+                        showToast('Variation updated successfully', 'success');
+                    }
+                    
+                    // Update UI
+                    updateStats();
+                    renderVariations();
+                    
+                    // Close modal
+                    variationModal.hide();
+                } else {
+                    showToast('Failed to save variation: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error saving variation:', error);
+                showToast('Failed to save variation: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add' ? 'Save Variation' : 'Update Variation';
+            }
+        }
+        
+        // Filter variations
+        function filterVariations() {
+            renderVariations();
+        }
+        
+        // Reset variation form
+        function resetVariationForm() {
+            document.getElementById('variationId').value = '';
+            document.getElementById('variationName').value = '';
+            document.getElementById('minPrice').value = '0';
+            document.getElementById('maxPrice').value = '0';
+            document.getElementById('minSelections').value = '0';
+            document.getElementById('maxSelections').value = '1';
+            document.getElementById('displayOrder').value = '1';
+            document.getElementById('isRequired').checked = false;
+            document.getElementById('variationStatus').value = 'ACTIVE';
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const total = variations.length;
+            const active = variations.filter(v => v.STATUS === 'ACTIVE').length;
+            const inactive = total - active;
+            
+            totalVariationsEl.textContent = total;
+            activeVariationsEl.textContent = active;
+            inactiveVariationsEl.textContent = inactive;
+        }
+        
+        // Update date/time
+        function updateDateTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            lastUpdatedEl.textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        // Show or hide loading spinner
+        function showLoading(show) {
+            if (show) {
+                loadingSpinner.classList.remove('d-none');
+                variationsTableCard.classList.add('d-none');
+                emptyState.classList.add('d-none');
+            } else {
+                loadingSpinner.classList.add('d-none');
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastId = 'toast-' + Date.now();
+            const toastEl = document.createElement('div');
+            toastEl.className = 'toast';
+            toastEl.id = toastId;
+            
+            // Set appropriate color based on type
+            const bgColor = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+            
+            toastEl.innerHTML = `
+                <div class="toast-header ${bgColor} text-white">
+                    <strong class="me-auto">${type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Information'}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toastEl);
+            
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 5000,
+                autohide: true
+            });
+            
+            toast.show();
+            
+            // Remove toast from DOM after it's hidden
+            toastEl.addEventListener('hidden.bs.toast', () => {
+                toastEl.remove();
+            });
+        }
+    </script>
+</body>
+</html>

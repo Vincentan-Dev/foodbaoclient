@@ -1,12 +1,43 @@
 {
-  "name": "FoodBao Order App",
+  "name": "FoodBao Admin",
   "short_name": "FoodBao",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#00897b",
-  "description": "Food ordering and management application",
+  "background_color": "#009688",
+  "theme_color": "#009688",
+  "description": "Food order management system",
+  "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "img/FBLogo.jpg",
+      "sizes": "72x72",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/FBLogo.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/FBLogo.jpg",
+      "sizes": "128x128",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/FBLogo.jpg",
+      "sizes": "144x144",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/FBLogo.jpg",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
     {
       "src": "img/FBLogo.jpg",
       "sizes": "192x192",
@@ -14,7 +45,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "img/FBLogo-512.jpg",
+      "src": "img/FBLogo.jpg",
+      "sizes": "384x384",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/FBLogo.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"

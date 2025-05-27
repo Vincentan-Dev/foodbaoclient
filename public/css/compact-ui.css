@@ -1,0 +1,467 @@
+/* 
+ * FoodBao Compact UI
+ * This file provides global compact styling for the entire application
+ * to reduce excessive spacing and create a more space-efficient design
+ */
+
+/* ==== GENERAL LAYOUT SPACING ==== */
+:root {
+  /* Reduced spacing variables */
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  
+  /* Original header height overrides */
+  --header-height: 40px !important; /* Reduced from 44px */
+}
+
+/* Reduce body padding */
+body {
+  padding-top: var(--header-height) !important;
+  padding-bottom: 40px !important; /* Reduced bottom padding */
+  font-size: 0.9rem !important; /* Slightly smaller base font */
+}
+
+/* Container spacing */
+.container {
+  padding: var(--spacing-sm) !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 1280px !important;
+}
+
+.row {
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.col {
+  padding: var(--spacing-sm) !important;
+}
+
+/* Page section spacing */
+.section {
+  padding-top: var(--spacing-lg) !important;
+  padding-bottom: var(--spacing-lg) !important;
+}
+
+.page-title {
+  margin: var(--spacing-sm) 0 !important;
+  font-size: 1.1rem !important;
+}
+
+/* ==== CARDS AND PANELS ==== */
+.card {
+  margin: var(--spacing-sm) 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+}
+
+.card-panel {
+  padding: var(--spacing-md) !important;
+  margin: var(--spacing-sm) 0 !important;
+}
+
+.card .card-content {
+  padding: var(--spacing-md) !important;
+}
+
+.card .card-action {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+.card .card-title {
+  margin-bottom: var(--spacing-sm) !important;
+  font-size: 1.2rem !important;
+}
+
+.card-header {
+  padding: var(--spacing-md) !important;
+}
+
+.card-body {
+  padding: var(--spacing-md) !important;
+}
+
+.card-footer {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+/* ==== FORMS & INPUTS ==== */
+.input-field {
+  margin-top: var(--spacing-md) !important;
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.input-field input, 
+.input-field textarea {
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.input-field label {
+  font-size: 0.9rem !important;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.form-control {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  height: auto !important;
+  min-height: 32px !important;
+}
+
+.form-label {
+  margin-bottom: var(--spacing-xs) !important;
+  font-size: 0.85rem !important;
+}
+
+.form-check {
+  min-height: auto !important;
+  padding-left: 1.5rem !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.form-select {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  height: auto !important;
+  min-height: 32px !important;
+}
+
+/* ==== BUTTONS ==== */
+.btn, .btn-flat, .btn-small, .btn-large {
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 var(--spacing-lg) !important;
+}
+
+.btn-small {
+  height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 var(--spacing-md) !important;
+  font-size: 0.8rem !important;
+}
+
+.btn i, .btn-flat i, .btn-small i {
+  font-size: 1.2rem !important;
+  line-height: inherit !important;
+  margin-right: var(--spacing-sm) !important;
+}
+
+/* ==== MODALS ==== */
+.modal {
+  max-height: 85% !important;
+}
+
+.modal .modal-content {
+  padding: var(--spacing-md) !important;
+}
+
+.modal .modal-footer {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  height: auto !important;
+  min-height: 48px !important;
+}
+
+.modal-header {
+  padding: var(--spacing-md) !important;
+}
+
+.modal-body {
+  padding: var(--spacing-md) !important;
+}
+
+.modal-footer {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+/* ==== FULL FRAME MODALS ==== */
+.full-frame-modal .modal-header,
+.full-frame-modal .modal-body,
+.full-frame-modal .modal-footer {
+  padding: var(--spacing-md) !important;
+}
+
+/* ==== TABLES ==== */
+table {
+  margin-top: var(--spacing-sm) !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+table td, table th {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  font-size: 0.85rem !important;
+}
+
+/* Compact table rows */
+tr {
+  height: auto !important;
+  min-height: 32px !important;
+  line-height: 1.2 !important;
+}
+
+/* Table header styling */
+thead tr {
+  background-color: #f5f5f5 !important;
+}
+
+thead th {
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+/* Zebra striping for better readability */
+tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Table responsive behavior */
+.table-responsive {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  margin-bottom: var(--spacing-md) !important;
+}
+
+/* Table action buttons */
+.table-action-btn {
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+/* ==== LISTS ==== */
+.collection {
+  margin: var(--spacing-sm) 0 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.collection .collection-item {
+  padding: var(--spacing-md) !important;
+  min-height: auto !important;
+}
+
+/* LIST & CARD VIEWS FOR ORDERS & ITEMS */
+.list-view-row {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+.order-card, 
+.data-row, 
+.order-row,
+.item-card {
+  padding: var(--spacing-md) !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.order-header, 
+.item-header {
+  padding: var(--spacing-sm) 0 !important;
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+.order-body, 
+.item-body {
+  padding: var(--spacing-xs) 0 !important;
+}
+
+.order-footer, 
+.item-footer {
+  padding: var(--spacing-sm) 0 !important;
+  margin-top: var(--spacing-xs) !important;
+}
+
+.order-item, 
+.data-item {
+  padding: var(--spacing-xs) 0 !important;
+}
+
+/* ==== TABS & NAVIGATION ==== */
+.tabs {
+  height: 42px !important;
+}
+
+.tabs .tab {
+  line-height: 42px !important;
+}
+
+.tabs .tab a {
+  padding: 0 var(--spacing-md) !important;
+}
+
+.order-tabs {
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.order-tab {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  min-width: 50px !important;
+}
+
+/* ==== GRID LAYOUTS ==== */
+.orders-grid {
+  gap: var(--spacing-sm) !important;
+}
+
+/* ==== UTILITY CLASSES ==== */
+.mt-1 { margin-top: var(--spacing-xs) !important; }
+.mt-2 { margin-top: var(--spacing-sm) !important; }
+.mt-3 { margin-top: var(--spacing-md) !important; }
+.mt-4 { margin-top: var(--spacing-lg) !important; }
+
+.mb-1 { margin-bottom: var(--spacing-xs) !important; }
+.mb-2 { margin-bottom: var(--spacing-sm) !important; }
+.mb-3 { margin-bottom: var(--spacing-md) !important; }
+.mb-4 { margin-bottom: var(--spacing-lg) !important; }
+
+.ml-1 { margin-left: var(--spacing-xs) !important; }
+.ml-2 { margin-left: var(--spacing-sm) !important; }
+.ml-3 { margin-left: var(--spacing-md) !important; }
+.ml-4 { margin-left: var(--spacing-lg) !important; }
+
+.mr-1 { margin-right: var(--spacing-xs) !important; }
+.mr-2 { margin-right: var(--spacing-sm) !important; }
+.mr-3 { margin-right: var(--spacing-md) !important; }
+.mr-4 { margin-right: var(--spacing-lg) !important; }
+
+.p-1 { padding: var(--spacing-xs) !important; }
+.p-2 { padding: var(--spacing-sm) !important; }
+.p-3 { padding: var(--spacing-md) !important; }
+.p-4 { padding: var(--spacing-lg) !important; }
+
+.pt-1 { padding-top: var(--spacing-xs) !important; }
+.pt-2 { padding-top: var(--spacing-sm) !important; }
+.pt-3 { padding-top: var(--spacing-md) !important; }
+.pt-4 { padding-top: var(--spacing-lg) !important; }
+
+.pb-1 { padding-bottom: var(--spacing-xs) !important; }
+.pb-2 { padding-bottom: var(--spacing-sm) !important; }
+.pb-3 { padding-bottom: var(--spacing-md) !important; }
+.pb-4 { padding-bottom: var(--spacing-lg) !important; }
+
+.pl-1 { padding-left: var(--spacing-xs) !important; }
+.pl-2 { padding-left: var(--spacing-sm) !important; }
+.pl-3 { padding-left: var(--spacing-md) !important; }
+.pl-4 { padding-left: var(--spacing-lg) !important; }
+
+.pr-1 { padding-right: var(--spacing-xs) !important; }
+.pr-2 { padding-right: var(--spacing-sm) !important; }
+.pr-3 { padding-right: var(--spacing-md) !important; }
+.pr-4 { padding-right: var(--spacing-lg) !important; }
+
+.gap-1 { gap: var(--spacing-xs) !important; }
+.gap-2 { gap: var(--spacing-sm) !important; }
+.gap-3 { gap: var(--spacing-md) !important; }
+.gap-4 { gap: var(--spacing-lg) !important; }
+
+/* ==== TOAST & NOTIFICATION ==== */
+.toast {
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+/* ==== MEDIA QUERIES FOR RESPONSIVE DESIGN ==== */
+@media (max-width: 600px) {
+  /* Even more compact on mobile */
+  :root {
+    --header-height: 36px !important;
+  }
+  
+  .container {
+    width: 100% !important;
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .card .card-content {
+    padding: var(--spacing-sm) !important;
+  }
+  
+  .modal {
+    width: 95% !important;
+    max-height: 90% !important;
+  }
+}
+
+/* ==== ORDER DISPLAY SPECIFIC STYLES ==== */
+/* Compact order cards */
+.order-card {
+  margin-bottom: var(--spacing-sm) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+/* Compact order header */
+.order-top-section {
+  padding: var(--spacing-sm) !important;
+}
+
+.order-header {
+  padding: var(--spacing-xs) !important;
+}
+
+.order-number {
+  font-size: 1rem !important;
+  margin: 0 !important;
+}
+
+.order-time {
+  font-size: 0.8rem !important;
+  margin: 0 !important;
+}
+
+/* Compact order items list */
+.order-items {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.order-item {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  min-height: auto !important;
+}
+
+.item-name {
+  font-size: 0.85rem !important;
+  margin: 0 !important;
+}
+
+.item-price {
+  font-size: 0.85rem !important;
+  margin: 0 !important;
+}
+
+.order-actions {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+}
+
+/* Order status badges */
+.status-badge {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  font-size: 0.75rem !important;
+  margin: var(--spacing-xs) !important;
+}
+
+/* Order totals section */
+.order-totals {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  margin-top: var(--spacing-xs) !important;
+}
+
+.total-amount {
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+}
+
+/* Order grid layout */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-sm) !important;
+  padding: var(--spacing-xs) !important;
+}
+
+@media (max-width: 600px) {
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,3751 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Menu Items | FoodBao Admin</title>
+
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+
+    <!-- Add this script block before your other scripts but after the early session check -->
+    <script>
+        // Idle timeout and enhanced session management
+        (function () {
+            const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+            let idleTimer = null;
+            let isIdle = false;
+
+            function resetIdleTimer() {
+                clearTimeout(idleTimer);
+                sessionStorage.setItem('last_activity', new Date().getTime().toString());
+
+                if (isIdle) {
+                    isIdle = false;
+                }
+
+                // Set a new timeout
+                idleTimer = setTimeout(doIdle, IDLE_TIMEOUT);
+            }
+
+            function doIdle() {
+                isIdle = true;
+
+                // Clear session data
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+
+                // Redirect to login with idle parameter
+                window.location.replace('/login.html?idle=true&nocache=' + new Date().getTime());
+            }
+
+            // Set up event listeners for user activity
+            const resetEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+            resetEvents.forEach(function (eventName) {
+                document.addEventListener(eventName, resetIdleTimer, true);
+            });
+
+            // Initial setup of idle timer
+            resetIdleTimer();
+        })();
+    </script>
+
+    <!-- Add jQuery before Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/materialize.min.css" rel="stylesheet">
+    <link href="../css/fullscreen-camera.css" rel="stylesheet">
+    <!-- Add Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />    <link href="../css/variations-modal.css" rel="stylesheet" />
+    <!-- Advanced Compact UI styles -->
+    <link rel="stylesheet" href="../css/compact-ui-advanced.css">
+    <!-- Global ultra-compact UI loader script -->
+    <script src="../js/global-compact-ui-loader.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        /* Remove all padding for better space utilization */
+        .container {
+            padding: 0 !important;
+            max-width: 100%;
+            width: 100%;
+        }        /* Standardized header style */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.5rem !important;
+            margin: 0 !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-radius: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .dashboard-header p {
+            font-size: 0.8rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        /* Flat card styles */
+        .card {
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
+            background-color: transparent;
+        }
+
+        .card-header {
+            padding: 0.4rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+
+        .card-header h5,
+        .card-header h6 {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 0 !important;
+        }
+
+        /* Grid layout for menu items */
+        .menu-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Style menu items with image backgrounds */
+        .menu-item-card {
+            position: relative;
+            height: 130px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #f5f5f5;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            z-index: 1;
+        }
+
+        .menu-item-info {
+            position: relative;
+            z-index: 2;
+            padding: 8px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .menu-item-category {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 2px 5px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .menu-item-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .menu-item-price {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #ffeb3b;
+        }
+
+        .menu-item-description {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .menu-item-actions {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            z-index: 3;
+            display: flex;
+            gap: 3px;
+        }
+
+        .menu-item-actions .btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            border-radius: 3px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Floating button styles */
+        .floating-btn {
+            position: fixed;
+            bottom: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 16px;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .floating-btn-back {
+            left: 12px;
+            background-color: var(--primary-color);
+        }
+
+        .floating-btn-add {
+            right: 12px;
+            background-color: var(--secondary-color);
+        }
+
+        /* Modal styles with matching theme */
+        .modal-content {
+            border-radius: 0;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 8px;
+        }
+
+        .modal-header h5 {
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 8px;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 8px;
+        }
+
+        .modal-body label {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+
+        .modal-body .form-control,
+        .modal-body .form-select {
+            font-size: 0.85rem;
+            padding: 0.375rem 0.5rem;
+        }
+
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+            padding: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        /* Status badge for menu items */
+        .status-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 3;
+            font-size: 0.65rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .status-active {
+            background-color: rgba(46, 204, 113, 0.8);
+            color: white;
+        }
+
+        .status-inactive {
+            background-color: rgba(231, 76, 60, 0.8);
+            color: white;
+        }
+
+        /* Loading and empty states */
+        #menuItemsLoadingSpinner,
+        #emptyMenuItemsState {
+            padding: 15px !important;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        /* Filter controls */
+        .filter-toolbar {
+            background-color: white;
+            padding: 6px;
+            margin: 0 0 5px 0;
+            border-radius: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 56px;
+            z-index: 999;
+        }
+
+        .filter-button {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+            border-radius: 3px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            margin-right: 4px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .filter-button i {
+            margin-right: 3px;
+            font-size: 0.7rem;
+        }
+
+        .filter-button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Make modals fullscreen on mobile */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+
+            .modal-content {
+                height: 100%;
+                border: 0;
+                border-radius: 0;
+            }
+
+            .modal-body {
+                overflow-y: auto;
+            }
+
+            /* Adjust camera/photo frame size */
+            #cameraCapture {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+                object-fit: cover;
+            }
+
+            .image-preview {
+                width: 100%;
+                height: 150px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #f5f5f5;
+                border-radius: 4px;
+                border: 1px solid #dee2e6;
+            }
+
+            .image-preview img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            /* Decrease footer button sizes */
+            .modal-footer {
+                padding: 8px;
+            }
+
+            .modal-footer .btn {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            /* Smaller menu items on mobile */
+            .menu-items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            }
+
+            .menu-item-card {
+                height: 110px;
+            }
+
+            .menu-item-description {
+                display: none;
+            }
+
+            /* Make small modal buttons better spaced */
+            .btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            /* Fullwidth buttons in footer on small screens */
+            .modal-footer {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
+
+        /* Even smaller on very small screens */
+        @media (max-width: 360px) {
+            .menu-items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+
+            .menu-item-card {
+                height: 95px;
+            }
+
+            .menu-item-name {
+                font-size: 0.8rem;
+            }
+
+            .menu-item-price {
+                font-size: 0.75rem;
+            }
+
+            .filter-toolbar {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+            }
+        }
+
+        /* Menu Item List layout styles (matching menu-categories) */
+        .menu-item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        .menu-item-image {
+            width: 80px;
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .menu-item-details {
+            padding: 10px;
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-item-main-info {
+            flex-grow: 1;
+            padding-right: 80px;
+            /* Make space for action buttons */
+        }
+
+        .menu-item-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            margin: 0 0 2px 0;
+        }
+
+        .menu-item-desc {
+            color: #666;
+            font-size: 0.8rem;
+            margin: 2px 0 0 0;
+        }
+
+        .menu-item-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .menu-item-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .menu-item-status.active {
+            background-color: var(--secondary-color);
+        }
+
+        .menu-item-status.inactive {
+            background-color: var(--danger-color);
+        }
+
+        .menu-item-actions {
+            display: flex;
+            gap: 5px;
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            z-index: 5;
+            opacity: 1;
+        }
+
+        .menu-item-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background-color: #f8f9fa;
+            color: #444;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item-action.edit:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .menu-item-action.delete:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Mobile optimizations */
+        @media only screen and (max-width: 600px) {
+            body::before {
+                opacity: 0.25;
+                /* Slightly less opacity on mobile for readability */
+            }
+
+            #app-content {
+                background-color: rgba(255, 255, 255, 0.85);
+                /* Less transparent on mobile */
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .fadeOut {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        /* Full Frame Modal Styles */        .full-frame-modal {
+            position: fixed;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            background-color: white;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .full-frame-modal.show {
+            display: flex;
+        }
+
+        .full-frame-modal-header {
+            padding: 8px 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .full-frame-modal-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }        .full-frame-modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            opacity: 0.8;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .full-frame-modal-body {
+            padding: 10px 12px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .full-frame-modal-footer {
+            padding: 8px 12px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Better Button Alignment in Modals */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .modal-footer .btn {
+            margin-left: 8px;
+        }
+
+        /* Item Detail Modal styling matching menu-categories.html */
+        .item-detail-modal {
+            max-width: 95% !important;
+            /* Set modal width to 95% of viewport */
+            width: 95%;
+            /* Ensure the width is enforced */
+            margin: 10px auto;
+            /* Keep centered with some margin */
+        }
+
+        .item-detail-modal .modal-content {
+            border-radius: 5px;
+            overflow: hidden;
+            padding: 0;
+            width: 100%;
+        }
+
+        .item-detail-content {
+            padding: 15px;
+        }
+
+        /* Fixed mobile button spacing */
+        @media (max-width: 576px) {
+
+            /* Ensure buttons are always visible on mobile */
+            .menu-item-action {
+                width: 32px;
+                height: 32px;
+            }
+
+            .menu-item-actions {
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                transform: translateY(-50%);
+                opacity: 1;
+            }
+
+            /* Modal button fixes for small screens */
+            .modal-dialog-centered {
+                display: flex;
+                align-items: center;
+                min-height: calc(100% - 1rem);
+            }
+
+            /* Modal footer improvements for mobile */
+            .item-detail-modal .modal-footer {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+
+            /* Full width buttons only in specific contexts */
+            .full-frame-modal-footer .btn {
+                flex: none;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Menu Items</h2>
+                    <p class="mb-0">Manage your food and beverage items</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="mb-0">Last updated: <span id="lastUpdated">Apr 4, 2025</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+      <div class="container" style="margin-top: 65px !important; padding-top: 8px;">
+        <!-- Statistics Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Menu Items</h5>
+                <!-- Replace your current stats container with this simplified version -->
+                <div class="stats-container d-flex text-muted small">
+                    <div class="me-3">
+                        <i class="fas fa-utensils me-1"></i> <span id="totalCategories">0</span>
+                    </div>
+                    <div class="me-3">
+                        <i class="fas fa-check-circle me-1 text-success"></i> <span id="activeCategories">0</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-star me-1 text-warning"></i> <span id="inactiveCategories">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading categories...</p>
+        </div>
+
+        <!-- Empty State (shown when no categories) -->
+        <div id="emptyState" class="empty-state d-none">
+            <div class="empty-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h4>No Menu Items Found</h4>
+            <p class="text-muted">Get started by creating your first menu item</p>
+            <button class="btn btn-primary mt-3" onclick="openItemModal()">
+                <i class="fas fa-plus me-2"></i>Add Menu Item
+            </button>
+        </div>
+
+        <!-- Categories Grid -->
+        <div class="row g-4" id="categoriesContainer">
+            <!-- Categories will be populated here via JavaScript -->
+        </div>
+
+        <!-- Category Modal -->
+        <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="categoryModalLabel">Add Menu Item</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="categoryForm">
+                            <input type="hidden" id="itemId">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="categoryName">Item Name</label>
+                                        <input type="text" class="form-control" id="categoryName" required
+                                            placeholder="e.g. Beef Noodles">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="categoryId">Category</label>
+                                        <div class="d-flex align-items-center">
+                                            <select class="form-select" id="categoryId" style="flex-grow: 1;">
+                                                <option value="">-- Select Category --</option>
+                                                <!-- Categories will be loaded here -->
+                                            </select>
+                                            <!-- Removing category management buttons -->
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="categoryDescription">Description</label>
+                                        <textarea class="form-control" id="categoryDescription" rows="2"
+                                            placeholder="Describe this item..."></textarea>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="basePrice">Price ($)</label>
+                                                <input type="number" class="form-control" id="basePrice" step="0.01"
+                                                    min="0" required value="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="preparationTime">Prep Time</label>
+                                                <input type="text" class="form-control" id="preparationTime"
+                                                    placeholder="e.g. 10 mins">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="calories">Calories</label>
+                                                <input type="number" class="form-control" id="calories" min="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="status">Status</label>
+                                                <select class="form-select" id="status">
+                                                    <option value="ACTIVE">Active</option>
+                                                    <option value="INACTIVE">Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Item Variations Management Button -->
+                                    <div class="form-group mt-3 d-flex justify-content-between gap-2">
+                                        <!-- Category Management Button Removed -->
+
+                                        <button type="button"
+                                            class="btn btn-outline-primary flex-grow-1 d-flex align-items-center justify-content-center"
+                                            id="manageVariationsBtn"
+                                            onclick="openVariationsModal(document.getElementById('itemId').value)"
+                                            title="Manage Item Variations">
+                                            <i class="fas fa-list-alt me-2"></i>
+                                            <span>Item Variations</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Item Image</label>
+                                        <div class="image-preview" id="imagePreview">
+                                            <div class="image-preview-placeholder">
+                                                <i class="fas fa-image fa-3x mb-2"></i>
+                                                <p>No image selected</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex">
+                                            <div class="input-group mb-3 me-2">
+                                                <input type="file" class="form-control" id="imageUpload"
+                                                    accept="image/*">
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="activateCamera()">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                        </div>
+                                        <video id="cameraCapture" class="camera-capture"></video>
+                                        <div id="cameraBtns" class="d-none">
+                                            <button type="button" class="btn btn-primary w-100" id="takePhotoBtn">
+                                                <i class="fas fa-camera me-2"></i>Take Photo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="imageBase64">
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal"
+                                    title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button type="submit" class="btn btn-success" id="saveBtn" title="Save Item">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete the menu item "<span id="deleteCategoryName"></span>"?</p>
+                        <p class="text-muted">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                            <i class="fas fa-trash me-2"></i>Delete Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Notification message
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Frame Modal for Menu Item -->
+    <div class="full-frame-modal" id="fullFrameItemModal">
+        <div class="full-frame-modal-header">
+            <h2 class="full-frame-modal-title" id="fullFrameModalTitle">Edit Menu Item</h2>
+            <button type="button" class="full-frame-modal-close" onclick="closeFullFrameModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="full-frame-modal-body">
+            <form id="fullFrameItemForm">
+                <input type="hidden" id="fullFrameItemId">                <div class="row g-2">
+                    <div class="col-md-6">
+                        <div class="form-group mb-2">
+                            <label for="fullFrameCategoryId" class="form-label small mb-1">Category</label>
+                            <select class="form-select form-select-sm" id="fullFrameCategoryId">
+                                <option value="">-- Select Category --</option>
+                                <!-- Categories will be loaded here -->
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="fullFrameItemName" class="form-label small mb-1">Item Name</label>
+                            <input type="text" class="form-control form-control-sm" id="fullFrameItemName" required
+                                placeholder="e.g. Beef Noodles">
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="fullFrameItemDescription" class="form-label small mb-1">Description</label>
+                            <textarea class="form-control form-control-sm" id="fullFrameItemDescription" rows="2"
+                                placeholder="Describe this item..."></textarea>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="fullFrameBasePrice" class="form-label small mb-1">Price ($)</label>
+                                    <input type="number" class="form-control form-control-sm" id="fullFrameBasePrice" step="0.01"
+                                        min="0" required value="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="fullFramePreparationTime" class="form-label small mb-1">Prep Time</label>
+                                    <input type="text" class="form-control form-control-sm" id="fullFramePreparationTime"
+                                        placeholder="e.g. 10 mins">
+                                </div>
+                            </div>
+                        </div>                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="fullFrameCalories" class="form-label small mb-1">Calories</label>
+                                    <input type="number" class="form-control form-control-sm" id="fullFrameCalories" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="fullFrameStatus" class="form-label small mb-1">Status</label>
+                                    <select class="form-select form-select-sm" id="fullFrameStatus">
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>                        </div>                          <!-- Item Variations Management Button -->
+                        <div class="form-group mb-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" id="fullFrameManageVariationsBtn"
+                                onclick="openVariationsModal(document.getElementById('fullFrameItemId').value)">
+                                <i class="fas fa-list-ul me-1"></i>Item Variations
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-2">
+                            <label class="form-label small mb-1">Item Image</label>                            <div class="image-preview" id="fullFrameImagePreview" style="height: 150px; margin-bottom: 8px;">
+                                <div class="image-preview-placeholder">
+                                    <i class="fas fa-image fa-2x mb-1"></i>
+                                    <p class="small">No image selected</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                <div class="input-group input-group-sm me-1" style="flex-grow: 1;">
+                                    <input type="file" class="form-control form-control-sm" id="fullFrameImageUpload" accept="image/*">
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="activateFullFrameCamera()">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <video id="fullFrameCameraCapture" class="camera-capture d-none"
+                                style="width: 100%; height: auto; margin-top: 8px;"></video>
+                            <div id="fullFrameCameraBtns" class="d-none mt-1">
+                                <button type="button" class="btn btn-sm btn-primary w-100" id="fullFrameTakePhotoBtn">
+                                    <i class="fas fa-camera me-1"></i>Take Photo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="fullFrameImageBase64">
+            </form>
+        </div>        <div class="full-frame-modal-footer">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeFullFrameModal()">Cancel</button>
+            <button type="button" class="btn btn-sm btn-primary" id="fullFrameSaveBtn" onclick="saveFullFrameMenuItem()">Save Changes</button>
+        </div>
+    </div>
+
+    <div class="full-frame-modal" id="fullFrameDeleteModal">
+        <div class="full-frame-modal-header bg-danger">
+            <h2 class="full-frame-modal-title">Confirm Deletion</h2>
+            <button type="button" class="full-frame-modal-close" onclick="closeFullFrameDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>        <div class="full-frame-modal-body">
+            <div class="text-center py-2">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-2"></i>
+                <h5>Are you sure you want to delete this menu item?</h5>
+                <p><strong>"<span id="fullFrameDeleteItemName"></span>"</strong></p>
+                <p class="text-muted small">This action cannot be undone and will permanently remove this item.</p>
+            </div>
+        </div>
+        <div class="full-frame-modal-footer">
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                onclick="closeFullFrameDeleteModal()">Cancel</button>
+            <button type="button" class="btn btn-sm btn-danger" id="fullFrameConfirmDeleteBtn">
+                <i class="fas fa-trash me-1"></i>Delete Item
+            </button>
+        </div>
+    </div>
+
+    <!-- Full-screen Camera Modal -->
+    <div id="fullScreenCameraModal" class="fullscreen-camera-overlay" style="display: none; z-index: 3000;">
+        <div class="camera-header"
+            style="background-color: rgba(0,0,0,0.7); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: absolute; top: 0; left: 0; right: 0; z-index: 3001;">
+            <h5 style="color: white; margin: 0;">Take Photo</h5>
+            <button type="button" class="close-camera-btn" id="closeFullScreenCamera"
+                style="background: rgba(255,255,255,0.3); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <video id="fullScreenCameraView" class="fullscreen-camera" autoplay playsinline
+            style="width: 100%; height: 100%; object-fit: cover; background-color: #000;"></video>
+        <div id="cameraControlsContainer" class="camera-controls"
+            style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; padding: 20px; z-index: 3001;">
+            <button type="button" id="cameraSwitchBtn" class="flip-camera-btn"
+                style="position: absolute; left: 20px; bottom: 35px;">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button type="button" id="fullScreenCaptureBtn" class="capture-btn">
+                <i class="fas fa-camera fa-2x"></i>
+            </button>
+        </div>
+
+        <!-- Hidden canvas for capturing images -->
+        <canvas id="fullScreenCaptureCanvas" style="display: none;"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Add Select2 JS after jQuery and Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Use local scripts instead of CDN to avoid MIME type errors -->
+    <script src="../js/cloudinary-credentials.js"></script>
+    <script src="../js/cloudinary-operations.js"></script>
+    <!-- Variations modal script -->
+    <script src="../js/variations-modal.js"></script>
+    <!-- Removed category management script -->
+
+    <script>
+
+        let menuItems = [];
+        let categories = []; // To populate category dropdown
+        let itemToDelete = null;
+        let stream = null; // For camera capture
+        let modalMode = 'add';
+        let fullFrameStream = null; // For full frame camera capture
+
+        // DOM Elements
+        const menuItemsContainer = document.getElementById('categoriesContainer'); // Reusing the same container
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const emptyState = document.getElementById('emptyState');
+        const itemModal = new bootstrap.Modal(document.getElementById('categoryModal')); // Reusing the same modal
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const itemForm = document.getElementById('categoryForm'); // Reusing the same form
+        const itemIdInput = document.getElementById('categoryId');
+        const totalItemsElement = document.getElementById('totalCategories');
+        const availableItemsElement = document.getElementById('activeCategories');
+        const featuredItemsElement = document.getElementById('inactiveCategories');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        const fullFrameItemModal = document.getElementById('fullFrameItemModal');
+
+        // Initialize with security checks
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check authentication on page load
+            checkAuthentication();
+
+            fetchMenuItems();
+            fetchCategories(); // To populate category dropdown
+            setupEventListeners();
+            updateDateTime();
+
+            // Add security measures
+            setupSecurityMeasures();
+
+            // Setup full screen camera event listeners
+            setupFullScreenCameraEventListeners();
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Form Submit
+            itemForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                saveMenuItem();
+            });
+
+            // Image Upload
+            document.getElementById('imageUpload').addEventListener('change', async function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show loading indicator
+                    document.getElementById('imagePreview').innerHTML = `
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Uploading...</span>
+                            </div>
+                            <span class="ms-2">Uploading image...</span>
+                        </div>
+                    `;
+
+                    try {
+                        // Get username from session/local storage
+                        const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+
+                        // Get Cloudinary credentials
+                        const credentials = await getCloudinaryCredentials(username);
+
+                        if (!credentials || !credentials.cloud_name || !credentials.upload_preset) {
+                            throw new Error('Invalid Cloudinary credentials');
+                        }
+
+                        // Upload to Cloudinary
+                        const cloudinaryUrl = await uploadToCloudinary(
+                            file,
+                            credentials.cloud_name,
+                            credentials.upload_preset
+                        );
+
+                        // Update the preview image
+                        updateImagePreview(cloudinaryUrl);
+
+                        // Set the hidden input value
+                        document.getElementById('imageBase64').value = cloudinaryUrl;
+
+                        // Show success message
+                        showSuccess('Image uploaded successfully!');
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        showError('Failed to upload image: ' + error.message);
+
+                        // Fallback to local FileReader
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            updateImagePreview(event.target.result);
+                            document.getElementById('imageBase64').value = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // Full Frame Image Upload
+            document.getElementById('fullFrameImageUpload').addEventListener('change', async function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show loading indicator
+                    document.getElementById('fullFrameImagePreview').innerHTML = `
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Uploading...</span>
+                            </div>
+                            <span class="ms-2">Uploading image...</span>
+                        </div>
+                    `;
+
+                    try {
+                        // Get username from session/local storage
+                        const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+
+                        // Get Cloudinary credentials
+                        const credentials = await getCloudinaryCredentials(username);
+
+                        if (!credentials || !credentials.cloud_name || !credentials.upload_preset) {
+                            throw new Error('Invalid Cloudinary credentials');
+                        }
+
+                        // Upload to Cloudinary
+                        const cloudinaryUrl = await uploadToCloudinary(
+                            file,
+                            credentials.cloud_name,
+                            credentials.upload_preset
+                        );
+
+                        // Update the preview image
+                        updateFullFrameImagePreview(cloudinaryUrl);
+
+                        // Set the hidden input value
+                        document.getElementById('fullFrameImageBase64').value = cloudinaryUrl;
+
+                        // Show success message
+                        showSuccess('Image uploaded successfully!');
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        showError('Failed to upload image: ' + error.message);
+
+                        // Fallback to local FileReader
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            updateFullFrameImagePreview(event.target.result);
+                            document.getElementById('fullFrameImageBase64').value = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // Take Photo Button
+            document.getElementById('takePhotoBtn').addEventListener('click', captureImage);
+            document.getElementById('fullFrameTakePhotoBtn').addEventListener('click', captureFullFrameImage);
+
+            // Confirm Delete Button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteItem);
+
+            // Full Frame Confirm Delete Button
+            document.getElementById('fullFrameConfirmDeleteBtn').addEventListener('click', confirmDeleteFullFrame);
+
+            // Logout Button - if it exists on this page
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', secureClearLogout);
+            }
+        }
+
+        // Enhanced secure logout with browser data clearing
+        async function secureClearLogout() {
+            try {
+                console.log('Performing secure logout with data clearing...');
+
+                // 1. Clear all localStorage items
+                const keysToRemove = [
+                    'auth_token',
+                    'username',
+                    'user_role',
+                    'user_id',
+                    'user_email',
+                    'token',
+                    'user',
+                    'authenticated',
+                    'last_login',
+                    'client_id',
+                    'menuItemsDebug',
+                    'login_success'
+                ];
+
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+
+                // 2. Clear all sessionStorage
+                sessionStorage.clear();
+
+                // 3. Clear cookies for this domain
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i];
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                }
+
+                // 4. Clear caches using Cache API if available
+                if ('caches' in window) {
+                    try {
+                        // Get all cache names
+                        const cacheNames = await caches.keys();
+                        // Delete each cache
+                        await Promise.all(
+                            cacheNames.map(cacheName => {
+                                console.log('Deleting cache:', cacheName);
+                                return caches.delete(cacheName);
+                            })
+                        );
+                        console.log('All cache data cleared');
+                    } catch (cacheError) {
+                        console.error('Error clearing caches:', cacheError);
+                    }
+                }
+
+                // 5. Clear IndexedDB data if available
+                if ('indexedDB' in window) {
+                    try {
+                        const databases = await window.indexedDB.databases();
+                        databases.forEach(db => {
+                            console.log('Deleting IndexedDB database:', db.name);
+                            window.indexedDB.deleteDatabase(db.name);
+                        });
+                        console.log('All IndexedDB databases cleared');
+                    } catch (indexedDBError) {
+                        console.error('Error clearing IndexedDB:', indexedDBError);
+                    }
+                }
+
+                // 6. Clear service worker registrations if available
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let registration of registrations) {
+                            await registration.unregister();
+                            console.log('Service worker unregistered');
+                        }
+                    } catch (swError) {
+                        console.error('Error unregistering service workers:', swError);
+                    }
+                }
+
+                // 7. Navigate to login page with cache-busting query parameter
+                const cacheBuster = new Date().getTime();
+                const isInSubfolder = window.location.pathname.includes('/pages/');
+                const loginPath = isInSubfolder ? '../login.html' : '/login.html';
+
+                console.log('Logout completed, redirecting to login page...');
+                window.location.href = `${loginPath}?logout=true&cb=${cacheBuster}`;
+
+            } catch (error) {
+                console.error('Error during secure logout:', error);
+                // Fallback to simple redirect if anything fails
+                window.location.href = '/login.html?logout=true';
+            }
+        }
+
+        // Fetch Menu Items with authentication
+        async function fetchMenuItems() {
+            showLoading(true);
+
+            try {
+                // Add authentication token
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+
+                const response = await fetch('/api/menu-items', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    console.error('API error response:', errorData);
+
+                    // Show empty state for any error
+                    menuItems = [];
+                    updateStats();
+                    renderMenuItems();
+
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Filter menu items by the logged-in user's username
+                    const allItems = data.data || [];
+                    menuItems = allItems.filter(item => item.USERNAME === username);
+
+                    console.log(`Filtered ${allItems.length} menu items to ${menuItems.length} for user ${username}`);
+
+                    updateStats();
+                    renderMenuItems();
+                } else {
+                    showError(data.message || 'Failed to load menu items');
+                }
+            } catch (error) {
+                console.error('Error fetching menu items:', error);
+
+                // Use empty array when error occurs, to show empty state
+                menuItems = [];
+                updateStats();
+                renderMenuItems();
+
+                // Still show error toast
+                showError('An error occurred while loading menu items. Please try again later.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Fetch Categories for dropdown
+        async function fetchCategories() {
+            try {
+                const response = await fetch('/api/menu-categories');
+
+                if (!response.ok) {
+                    console.error('Error fetching categories:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    categories = data.data || [];
+                    console.log('Categories loaded:', categories.length);
+                    populateCategoryDropdown();
+                } else {
+                    console.error('Failed to load categories:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        }
+
+        // Populate Category Dropdown
+        function populateCategoryDropdown() {
+            const categorySelect = document.getElementById('categoryId');
+            if (!categorySelect) {
+                console.error("Category select element not found");
+                return;
+            }
+
+            // Sort categories by name
+            const sortedCategories = [...categories].sort((a, b) => {
+                return a.NAME.localeCompare(b.NAME);
+            });
+
+            // Clear any existing options first
+            categorySelect.innerHTML = '<option value="">-- No Category --</option>';
+
+            // Add options to the select element
+            sortedCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.CATEGORY_ID;
+                option.textContent = category.NAME;
+                categorySelect.appendChild(option);
+            });
+
+            // Create visual selector UI
+            createCompactCategorySelector(sortedCategories, categorySelect);
+        }
+
+        // Create a compact category selector with images on left and text on right
+        function createCompactCategorySelector(sortedCategories, categorySelect) {
+            // Create container directly after the select
+            const container = document.createElement('div');
+            container.className = 'category-compact-list mt-2';
+            container.style.border = '1px solid #ced4da';
+            container.style.borderRadius = '4px';
+            container.style.maxHeight = '250px';
+            container.style.overflowY = 'auto';
+            container.style.display = 'none'; // Hidden by default, shown on click
+
+            // Add "No Category" option first
+            const noCategory = document.createElement('div');
+            noCategory.className = 'category-list-item d-flex align-items-center';
+            noCategory.dataset.value = '';
+            noCategory.style.padding = '8px 12px';
+            noCategory.style.borderBottom = '1px solid #e9ecef';
+            noCategory.style.cursor = 'pointer';
+            noCategory.style.transition = 'background-color 0.2s';
+            noCategory.innerHTML = `
+                <div class="category-list-icon me-2 d-flex justify-content-center align-items-center" 
+                     style="width: 32px; height: 32px; background: #f8f9fa; border-radius: 4px;">
+                    <i class="fas fa-ban text-muted" style="font-size: 14px;"></i>
+                </div>
+                <div class="category-list-text">
+                    <div style="font-weight: 500; font-size: 0.9rem;">No Category</div>
+                </div>
+            `;
+
+            noCategory.onclick = function () {
+                selectCompactCategory('', categorySelect, container);
+            };
+            container.appendChild(noCategory);
+
+            // Add all categories
+            sortedCategories.forEach(category => {
+                const item = document.createElement('div');
+                item.className = 'category-list-item d-flex align-items-center';
+                item.dataset.value = category.CATEGORY_ID;
+                item.style.padding = '8px 12px';
+                item.style.borderBottom = '1px solid #e9ecef';
+                item.style.cursor = 'pointer';
+                item.style.transition = 'background-color 0.2s';
+
+                const imgUrl = category.GROUP_IMGURL || 'https://via.placeholder.com/32x32?text=No+Image';
+
+                item.innerHTML = `
+                    <div class="category-list-img me-2" style="width: 32px; height: 32px; background-image: url('${imgUrl}'); 
+                         background-size: cover; background-position: center; border-radius: 4px;"></div>
+                    <div class="category-list-text">
+                    </div>
+                `;
+
+                item.onmouseover = function () {
+                    this.style.backgroundColor = '#f8f9fa';
+                };
+
+                item.onmouseout = function () {
+                    this.style.backgroundColor = '';
+                };
+
+                item.onclick = function () {
+                    selectCompactCategory(category.CATEGORY_ID, categorySelect, container);
+                };
+
+                container.appendChild(item);
+            });
+
+            // Create the custom dropdown display
+            const customDropdown = document.createElement('div');
+            customDropdown.className = 'form-control d-flex align-items-center';
+            customDropdown.id = 'customCategoryDropdown';
+            customDropdown.style.cursor = 'pointer';
+            customDropdown.style.userSelect = 'none';
+            customDropdown.innerHTML = `
+                <div class="d-flex align-items-center flex-grow-1">
+                    <div class="category-preview-img me-2 d-flex justify-content-center align-items-center"
+                    </div>
+                    <div>Select Category</div>
+                </div>
+                <div><i class="fas fa-chevron-down text-muted"></i></div>
+            `;
+
+            // Toggle dropdown on click
+            customDropdown.onclick = function () {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    customDropdown.querySelector('i.fa-chevron-down').classList.replace('fa-chevron-down', 'fa-chevron-up');
+                } else {
+                    container.style.display = 'none';
+                    customDropdown.querySelector('i.fa-chevron-up').classList.replace('fa-chevron-up', 'fa-chevron-down');
+                }
+            };
+
+            // Position UI elements
+            const selectParent = categorySelect.parentNode;
+            categorySelect.style.display = 'none';
+            selectParent.appendChild(customDropdown);
+            selectParent.appendChild(container);
+
+            // Close when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!customDropdown.contains(e.target) && !container.contains(e.target)) {
+                    container.style.display = 'none';
+                    const chevron = customDropdown.querySelector('i.fa-chevron-up');
+                    if (chevron) {
+                        chevron.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                    }
+                }
+            });
+
+            // Update the dropdown display based on the current selection
+            if (categorySelect.value) {
+                const selectedCategory = categories.find(c => c.CATEGORY_ID == categorySelect.value);
+                if (selectedCategory) {
+                    updateCompactDropdownDisplay(customDropdown, selectedCategory);
+                }
+            }
+        }
+
+        // Select a category in the compact list
+        function selectCompactCategory(categoryId, categorySelect, container) {
+            // Update the hidden select element value
+            categorySelect.value = categoryId;
+
+            // Update visual selection indication
+            const items = container.querySelectorAll('.category-list-item');
+            items.forEach(item => {
+                if (item.dataset.value == categoryId) {
+                    item.style.backgroundColor = '#e7f1ff';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+
+            // Update the dropdown display
+            const customDropdown = document.getElementById('customCategoryDropdown');
+            if (categoryId) {
+                const selectedCategory = categories.find(c => c.CATEGORY_ID == categoryId);
+                if (selectedCategory) {
+                    updateCompactDropdownDisplay(customDropdown, selectedCategory);
+                }
+            } else {
+                // Reset to "Select Category"
+                customDropdown.innerHTML = `
+                    <div class="d-flex align-items-center flex-grow-1">
+                    </div>
+                    <div><i class="fas fa-chevron-down text-muted"></i></div>
+                `;
+            }
+
+            // Hide the dropdown container
+            container.style.display = 'none';
+            const chevron = customDropdown.querySelector('i.fa-chevron-up');
+            if (chevron) {
+                chevron.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        // Update the dropdown display with the selected category
+        function updateCompactDropdownDisplay(dropdown, category) {
+            const imgUrl = category.GROUP_IMGURL || 'https://via.placeholder.com/24x24?text=No+Image';
+            dropdown.innerHTML = `
+                <div class="d-flex align-items-center flex-grow-1">
+                    <div class="category-preview-img me-2" 
+                         background-size: cover; background-position: center; border-radius: 4px;"></div>
+                    <div>${category.NAME}</div>
+                </div>
+                <div><i class="fas fa-chevron-down text-muted"></i></div>
+            `;
+        }
+
+        // Create visual category selector UI - no longer used, replaced by the compact version
+        function createVisualCategorySelector(sortedCategories, categorySelect) {
+            // This function is now replaced by createCompactCategorySelector
+            // Keeping it for compatibility but not using it anymore
+        }
+
+        // Render Menu Items with improved layout
+        function renderMenuItems() {
+            // Clear container
+            menuItemsContainer.innerHTML = '';
+
+            if (menuItems.length === 0) {
+                emptyState.classList.remove('d-none');
+                return;
+            }
+
+            emptyState.classList.add('d-none');
+
+            // Sort items by name
+            const sortedItems = [...menuItems].sort((a, b) => a.NAME.localeCompare(b.NAME));
+
+            // Create list layout container
+            const itemList = document.createElement('div');
+            itemList.className = 'menu-item-list';
+
+            // Create item rows with improved image handling
+            sortedItems.forEach(item => {
+                // Set default image if none provided
+                const imgUrl = item.IMAGE_URL || 'https://via.placeholder.com/160x160?text=No+Image';
+                const isAvailable = item.IS_AVAILABLE !== false;
+                const isFeatured = item.IS_FEATURED === true;
+
+                // Get category name if available
+                let categoryName = '';
+                if (item.CATEGORY_ID) {
+                    const category = categories.find(c => c.CATEGORY_ID === parseInt(item.CATEGORY_ID));
+                    if (category) {
+                        categoryName = category.NAME;
+                    }
+                }
+
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.onclick = () => viewItem(item.ITEM_ID);
+
+                menuItem.innerHTML = `
+                    <div class="menu-item-image" style="background-image: url('${imgUrl}')"></div>
+                    <div class="menu-item-details">
+                        <div class="menu-item-main-info">
+                            <h4 class="menu-item-title">
+                                ${item.NAME}
+                                <span class="menu-item-status ${isAvailable ? 'active' : 'inactive'}" 
+                                      title="${isAvailable ? 'Available' : 'Unavailable'}"></span>
+                                ${isFeatured ? '<span class="badge bg-warning text-dark" style="font-size:0.6rem; padding:1px 4px; margin-left:3px;">Featured</span>' : ''}
+                            </h4>
+                            <p class="menu-item-desc">${item.DESCRIPTION || 'No description'}</p>
+                            <div class="menu-item-meta">
+                                <span style="font-weight:600; color:#28a745;">$${parseFloat(item.BASE_PRICE).toFixed(2)}</span>
+                                ${categoryName ? `<span class="badge bg-light text-dark" style="font-size:0.6rem; padding:1px 5px;">${categoryName}</span>` : ''}
+                                ${item.PREPARATION_TIME ? `<span><i class="far fa-clock" style="font-size:0.6rem;"></i> ${item.PREPARATION_TIME}</span>` : ''}
+                                ${item.CALORIES ? `<span><i class="fas fa-fire-alt" style="font-size:0.6rem;"></i> ${item.CALORIES}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="menu-item-actions">
+                            <button class="menu-item-action edit" 
+                                    onclick="editItem(${item.ITEM_ID}, event)" 
+                                    title="Edit item">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="menu-item-action delete" 
+                                    onclick="deleteItem(${item.ITEM_ID}, '${item.NAME.replace(/'/g, "\\'")}', event)" 
+                                    title="Delete item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                itemList.appendChild(menuItem);
+            });
+
+            menuItemsContainer.appendChild(itemList);
+
+            // Add debug log to console for image loading
+            console.log('Menu items rendered with images:',
+                sortedItems.map(c => ({
+                    id: c.ITEM_ID,
+                    name: c.NAME,
+                    hasImage: !!c.IMAGE_URL,
+                    imageSrc: c.IMAGE_URL || '(placeholder)'
+                }))
+            );
+        }
+
+        // Open Modal for Adding - Updated to use full-frame modal
+        function openItemModal() {
+            // Use the full-frame modal instead of the bootstrap modal
+            openFullFrameModal();
+        }
+
+        // Update Modal Fields for Menu Items (different from categories)
+        function updateModalFields() {
+            // Replace category-specific fields with menu item fields
+            const modalBody = document.querySelector('.modal-body form .row');
+
+            // Update left column
+            const leftColumn = modalBody.querySelector('.col-md-6:first-child');
+            leftColumn.innerHTML = `
+                <div class="form-group">
+                    <label for="categoryId">Category</label>
+                    <select class="form-select" id="categoryId">
+                        <option value="">-- Select Category --</option>
+                        <!-- Categories will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryName">Item Name</label>
+                    <input type="text" class="form-control" id="categoryName" required placeholder="e.g. Beef Noodles">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryDescription">Description</label>
+                    <textarea class="form-control" id="categoryDescription" rows="2" placeholder="Describe this item..."></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="basePrice">Price ($)</label>
+                            <input type="number" class="form-control" id="basePrice" step="0.01" min="0" required value="0.00">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="preparationTime">Prep Time</label>
+                            <input type="text" class="form-control" id="preparationTime" placeholder="e.g. 10 mins">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="calories">Calories</label>
+                            <input type="number" class="form-control" id="calories" min="0">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-select" id="status">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                                
+                <!-- Item Variations Management Button -->
+                <div class="form-group mt-3">
+                    <button type="button" class="btn btn-outline-primary w-100" id="manageVariationsBtn">
+                        <i class="fas fa-list-ul me-2"></i>Manage Item Variations
+                    </button>
+                </div>
+            `;
+
+            // Add hidden fields
+            const hiddenInputs = document.createElement('div');
+            hiddenInputs.innerHTML = `
+                <input type="hidden" id="basePrice">
+                <input type="hidden" id="preparationTime">
+                <input type="hidden" id="calories">
+                <input type="hidden" id="status">
+                <input type="hidden" id="isAvailable">
+                <input type="hidden" id="isFeatured">
+            `;
+
+            // Append hidden inputs to the form
+            itemForm.appendChild(hiddenInputs);
+
+            // Populate category dropdown
+            populateCategoryDropdown();
+        }
+
+        // View Item
+        function viewItem(id) {
+            // Just open edit modal for now
+            editItem(id);
+        }
+
+        // Edit Item
+        function editItem(id, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            modalMode = 'edit';
+
+            const item = menuItems.find(item => item.ITEM_ID === id);
+
+            if (!item) {
+                showError('Menu item not found');
+                return;
+            }
+
+            // Set form values
+            document.getElementById('itemId').value = item.ITEM_ID;
+            document.getElementById('categoryName').value = item.NAME || '';
+            document.getElementById('categoryDescription').value = item.DESCRIPTION || '';
+            document.getElementById('basePrice').value = item.BASE_PRICE || 0;
+            document.getElementById('preparationTime').value = item.PREPARATION_TIME || '';
+            document.getElementById('calories').value = item.CALORIES || '';
+            document.getElementById('status').value = item.STATUS || 'ACTIVE';
+            document.getElementById('isAvailable').checked = item.IS_AVAILABLE !== false;
+            document.getElementById('isFeatured').checked = item.IS_FEATURED === true;
+
+            if (item.CATEGORY_ID) {
+                document.getElementById('categoryId').value = item.CATEGORY_ID;
+            } else {
+                document.getElementById('categoryId').value = '';
+            }
+
+            // Set image if available
+            if (item.IMAGE_URL) {
+                updateImagePreview(item.IMAGE_URL);
+                document.getElementById('imageBase64').value = item.IMAGE_URL;
+            } else {
+                // Reset image preview
+                resetImagePreview();
+            }
+
+            document.getElementById('categoryModalLabel').textContent = 'Edit Menu Item';
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save me-2"></i>Update Menu Item';
+
+            DebugLogger.log('Prepared edit form with item data', 'info', { id: item.ITEM_ID, name: item.NAME });
+
+            itemModal.show();
+        }
+
+        // Delete Item (opens confirmation modal) - Updated to use full-frame modal
+        function deleteItem(id, name, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            itemToDelete = id;
+            document.getElementById('fullFrameDeleteItemName').textContent = name;
+            // Show the full-frame delete modal
+            document.getElementById('fullFrameDeleteModal').classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        // Close Full Frame Delete Modal
+        function closeFullFrameDeleteModal() {
+            document.getElementById('fullFrameDeleteModal').classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+            itemToDelete = null;
+        }
+
+        // Confirm Delete Item
+        async function confirmDeleteItem() {
+            if (!itemToDelete) return;
+
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Deleting...';
+
+            try {
+                console.log(`Attempting to delete menu item ID: ${itemToDelete}`);
+
+                const response = await fetch(`/api/menu-items/${itemToDelete}`, {
+                    method: 'DELETE'
+                });
+
+                let errorMsg = "";
+
+                if (!response.ok) {
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.message || `Server error (${response.status})`;
+                        console.error('Delete error response:', errorData);
+                    } catch (parseError) {
+                        // If JSON parsing fails, use the status text
+                        errorMsg = `Server error (${response.status}): ${response.statusText}`;
+                    }
+
+                    throw new Error(errorMsg);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Remove from local array
+                    menuItems = menuItems.filter(item => item.ITEM_ID !== itemToDelete);
+
+                    // Update UI
+                    updateStats();
+                    renderMenuItems();
+
+                    // Show success message
+                    showSuccess('Menu item deleted successfully');
+                } else {
+                    showError(data.message || 'Failed to delete menu item');
+                }
+            } catch (error) {
+                console.error('Error deleting menu item:', error);
+                showError(error.message || 'An error occurred while deleting the menu item');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Item';
+                deleteModal.hide();
+                itemToDelete = null;
+            }
+        }
+
+        // Confirm Delete Item from Full Frame Modal
+        async function confirmDeleteFullFrame() {
+            if (!itemToDelete) return;
+
+            const deleteBtn = document.getElementById('fullFrameConfirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Deleting...';
+
+            try {
+                // Get auth token for authorization
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+
+                console.log(`Attempting to delete menu item ID: ${itemToDelete}`);
+
+                // Make direct call to Cloudflare Worker endpoint with proper headers
+                const response = await fetch(`/api/menu-items/${itemToDelete}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Server error (${response.status}): ${errorText}`);
+                    throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear any cached data that might contain the deleted item
+                    localStorage.removeItem('menuItems');
+                    sessionStorage.removeItem('menuItems');
+
+                    // Show success notification
+                    showSuccess('Menu item deleted successfully');
+
+                    // Update the UI by removing the deleted item
+                    menuItems = menuItems.filter(item => item.ITEM_ID !== itemToDelete);
+
+                    // Re-render the menu items list to reflect the change
+                    renderMenuItems();
+
+                    // Update statistics
+                    updateStats();
+
+                    // Close the modal
+                    closeFullFrameDeleteModal();
+                } else {
+                    showError(data.message || 'Failed to delete menu item');
+                }
+            } catch (error) {
+                console.error('Error deleting menu item:', error);
+                showError(error.message || 'An error occurred while deleting the menu item');
+                // Close the modal on error
+                closeFullFrameDeleteModal();
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Item';
+                // Reset itemToDelete 
+                itemToDelete = null;
+            }
+        }
+
+        // Helper function to update the item name in the delete modal
+        function updateDeleteItemName() {
+            if (!itemToDelete) return;
+
+            const item = menuItems.find(item => item.ITEM_ID === itemToDelete);
+            if (item) {
+                const nameElement = document.getElementById('fullFrameDeleteItemName');
+                if (nameElement) {
+                    nameElement.textContent = item.NAME || 'Unknown Item';
+                }
+            }
+        }
+
+
+        // Save Menu Item with debug tracking
+        async function saveMenuItem() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+
+            try {
+                // Get username from session/local storage with proper fallbacks
+                const username = sessionStorage.getItem('username') ||
+                    localStorage.getItem('username') ||
+                    'unknown_user';
+
+                DebugLogger.log('Starting saveMenuItem operation', 'info', { modalMode });
+                DebugLogger.log(`Current user: ${username}`, 'info');
+
+                const itemData = {
+                    NAME: document.getElementById('categoryName').value,
+                    DESCRIPTION: document.getElementById('categoryDescription').value,
+                    BASE_PRICE: parseFloat(document.getElementById('basePrice').value) || 0,
+                    PREPARATION_TIME: document.getElementById('preparationTime').value,
+                    CALORIES: document.getElementById('calories').value ? parseInt(document.getElementById('calories').value) : null,
+                    STATUS: document.getElementById('status').value,
+                    IS_AVAILABLE: document.getElementById('isAvailable').checked,
+                    IS_FEATURED: document.getElementById('isFeatured').checked,
+                    IMAGE_URL: document.getElementById('imageBase64').value || null,
+                    // Add both CREATED_BY and UPDATED_BY fields with username value
+                    CREATED_BY: username,
+                    UPDATED_BY: username
+                };
+
+                // Add category ID if selected
+                const categoryId = document.getElementById('categoryId').value;
+                if (categoryId) {
+                    itemData.CATEGORY_ID = parseInt(categoryId);
+                } else {
+                    itemData.CATEGORY_ID = null;
+                }
+
+                DebugLogger.log('Prepared item data for API request', 'info', itemData);
+
+                let url = '/api/menu-items';
+                let method = 'POST';
+
+                if (modalMode === 'edit') {
+                    const itemId = document.getElementById('itemId').value;
+                    url = `/api/menu-items/${itemId}`;
+                    method = 'PUT';
+                    // For edit mode, we only need to set UPDATED_BY
+                    delete itemData.CREATED_BY;
+
+                    DebugLogger.log(`Editing existing item with ID: ${itemId}`, 'info');
+                }
+
+                DebugLogger.log(`Sending ${method} request to ${url}`, 'api');
+
+                // Get auth token
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                DebugLogger.log('Auth token available: ' + (authToken ? 'Yes' : 'No'), 'info');
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(itemData)
+                });
+
+                DebugLogger.log(`API response status: ${response.status} ${response.statusText}`, 'api');
+
+                const data = await response.json();
+                DebugLogger.log('API response data', 'api', data);
+
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add new item to the array
+                        menuItems.push(data.data);
+                        DebugLogger.log('New item added successfully', 'success', data.data);
+                    } else {
+                        // Update existing item
+                        const index = menuItems.findIndex(item => item.ITEM_ID === parseInt(document.getElementById('itemId').value));
+                        if (index !== -1) {
+                            menuItems[index] = data.data;
+                            DebugLogger.log('Existing item updated successfully', 'success', data.data);
+                        } else {
+                            DebugLogger.log('Item not found in local cache after update', 'warning', {
+                                searchId: parseInt(document.getElementById('itemId').value),
+                                returnedData: data.data
+                            });
+                        }
+                    }
+
+                    // Update UI
+                    updateStats();
+                    renderMenuItems();
+
+                    // Show success message
+                    showSuccess(`Menu item ${modalMode === 'add' ? 'added' : 'updated'} successfully`);
+
+                    // Close modal
+                    itemModal.hide();
+                } else {
+                    DebugLogger.log('API returned error', 'error', data);
+                    showError(data.message || `Failed to ${modalMode} menu item`);
+                }
+            } catch (error) {
+                console.error(`Error ${modalMode === 'add' ? 'adding' : 'updating'} menu item:`, error);
+                DebugLogger.log(`Exception during save operation`, 'error', {
+                    message: error.message,
+                    stack: error.stack
+                });
+                showError(`An error occurred while ${modalMode === 'add' ? 'adding' : 'updating'} the menu item`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add'
+                    ? '<i class="fas fa-plus me-2"></i>Add Menu Item'
+                    : '<i class="fas fa-save me-2"></i>Update Menu Item';
+
+                DebugLogger.log('Save operation completed', 'info');
+            }
+        }
+
+        // Reset Form
+        function resetForm() {
+            itemForm.reset();
+            itemIdInput.value = '';
+            resetImagePreview();
+            document.getElementById('imageBase64').value = '';
+
+            // Reset camera if active
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                document.getElementById('cameraCapture').style.display = 'none';
+                document.getElementById('cameraBtns').classList.add('d-none');
+            }
+        }
+
+        // Reset Image Preview
+        function resetImagePreview() {
+            document.getElementById('imagePreview').innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <p>No image selected</p>
+                </div>
+            `;
+        }
+
+        // Update Image Preview
+        function updateImagePreview(imageUrl) {
+            document.getElementById('imagePreview').innerHTML = `<img src="${imageUrl}" alt="Menu Item Image">`;
+        }
+
+        // Activate Camera (same as menu-categories)
+        function activateCamera() {
+            if (stream) {
+                // Stop existing stream
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                document.getElementById('cameraCapture').style.display = 'none';
+                document.getElementById('cameraBtns').classList.add('d-none');
+                return;
+            }
+
+            // Show camera UI
+            document.getElementById('cameraCapture').style.display = 'block';
+            document.getElementById('cameraBtns').classList.remove('d-none');
+
+            // Access the device camera
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'environment' // Prefer rear camera on mobile devices
+                },
+                audio: false
+            })
+                .then(function (mediaStream) {
+                    stream = mediaStream;
+                    document.getElementById('cameraCapture').srcObject = mediaStream;
+                    document.getElementById('cameraCapture').play();
+                })
+                .catch(function (err) {
+                    console.error('Error accessing camera:', err);
+                    showError('Unable to access camera: ' + err.message);
+
+                    document.getElementById('cameraCapture').style.display = 'none';
+                    document.getElementById('cameraBtns').classList.add('d-none');
+                });
+        }
+
+        // Capture Image
+        async function captureImage() {
+            if (!stream) return;
+
+            try {
+                const result = await captureAndUploadImage(
+                    document.getElementById('cameraCapture'),
+                    document.getElementById('imagePreview'),
+                    document.getElementById('imageBase64')
+                );
+
+                if (result.success) {
+                    // Show success message
+                    showSuccess(result.message);
+                } else {
+                    // Show error message
+                    showError(result.message);
+
+                    // Fallback to local image if Cloudinary upload fails
+                    const canvas = document.createElement('canvas');
+                    canvas.width = document.getElementById('cameraCapture').videoWidth;
+                    canvas.height = document.getElementById('cameraCapture').videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(document.getElementById('cameraCapture'), 0, 0, canvas.width, canvas.height);
+                    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Update preview with local image
+                    updateImagePreview(imageDataUrl);
+                    document.getElementById('imageBase64').value = imageDataUrl;
+                }
+            } catch (error) {
+                console.error('Error capturing image:', error);
+                showError('Failed to capture image: ' + error.message);
+            } finally {
+                // Stop camera stream
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                    document.getElementById('cameraCapture').style.display = 'none';
+                    document.getElementById('cameraBtns').classList.add('d-none');
+                }
+            }
+        }
+
+        // Update Statistics (different metrics for menu items)
+        function updateStats() {
+            // Update count numbers
+            const total = menuItems.length;
+            const available = menuItems.filter(item => item.IS_AVAILABLE !== false).length;
+            const featured = menuItems.filter(item => item.IS_FEATURED === true).length;
+
+            // Safely update counter elements if they exist
+            if (totalItemsElement) totalItemsElement.textContent = total;
+            if (availableItemsElement) availableItemsElement.textContent = available;
+            if (featuredItemsElement) featuredItemsElement.textContent = featured;
+
+            // Safely update icons if they exist
+            try {
+                // Update heading display
+                const headerTitle = document.querySelector('.card-header h5');
+                if (headerTitle) headerTitle.textContent = 'Menu Items';
+
+                // Get all stat container divs
+                const statDivs = document.querySelectorAll('.stats-container div');
+
+                // Only update if elements exist
+                if (statDivs && statDivs.length > 0) {
+                    // Update icons
+                    const icon1 = statDivs[0]?.querySelector('i');
+                    const icon2 = statDivs[1]?.querySelector('i');
+                    const icon3 = statDivs[2]?.querySelector('i');
+
+                    if (icon1) icon1.className = 'fas fa-utensils me-1';
+                    if (icon2) icon2.className = 'fas fa-check-circle me-1 text-success';
+                    if (icon3) icon3.className = 'fas fa-star me-1 text-warning';
+                }
+            } catch (error) {
+                console.warn("Couldn't update all stat elements:", error);
+            }
+        }
+
+        // Update Date/Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            lastUpdatedElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Show Loading
+        function showLoading(show) {
+            if (show) {
+                loadingSpinner.classList.remove('d-none');
+                menuItemsContainer.classList.add('d-none');
+            } else {
+                loadingSpinner.classList.add('d-none');
+                menuItemsContainer.classList.remove('d-none');
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // Reset previous classes
+            toast.classList.remove('bg-success', 'bg-danger', 'text-white');
+            toast.querySelector('.toast-header').classList.remove('bg-success', 'bg-danger', 'text-white');
+
+            // Set appropriate classes based on type
+            if (isError) {
+                toast.classList.add('bg-danger', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-danger', 'text-white');
+                toastTitle.textContent = 'Error';
+            } else {
+                toast.classList.add('bg-success', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-success', 'text-white');
+                toastTitle.textContent = 'Success';
+            }
+
+            toastMessage.textContent = message;
+
+            // Create toast with auto-hide
+            const bsToast = new bootstrap.Toast(toast, {
+                animation: true,
+                autohide: true,
+                delay: 3000 // Auto-dismiss after 3 seconds
+            });
+
+            bsToast.show();
+        }
+
+        function showError(message) {
+            showToast(message, true);
+        }
+
+        function showSuccess(message) {
+            showToast(message, false);
+        }
+
+        // Add this helper function to get Cloudinary credentials
+        async function getCloudinaryCredentials(username) {
+            try {
+                const response = await fetch('/api/cloudinary-credentials');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch Cloudinary credentials: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting Cloudinary credentials:', error);
+                throw error;
+            }
+        }
+
+        // Authentication check
+        function checkAuthentication() {
+            const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+            if (!token || !username) {
+                // Redirect to login if not authenticated
+                window.location.href = '../login.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Handle Secure Logout - Clears storage, history and cache
+        function secureLogout() {
+            // First clear all authentication data
+            const keysToRemove = [
+                'auth_token',
+                'username',
+                'user_role',
+                'user_id',
+                'user_email',
+                'authenticated',
+                'last_login',
+                'client_id'
+            ];
+
+            // Clear both localStorage and sessionStorage
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+
+            // Clear all cookies
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            }
+
+            // Clear browsing history for current domain
+            if (window.history && window.history.pushState) {
+                window.history.pushState(null, null, window.location.href);
+                window.onpopstate = function () {
+                    window.history.pushState(null, null, window.location.href);
+                };
+            }
+
+            // Attempt to clear browser cache and history for this domain
+            if ('caches' in window) {
+                try {
+                    // Clear all cache storage related to this origin
+                    caches.keys().then(keyList => {
+                        return Promise.all(keyList.map(key => {
+                            return caches.delete(key);
+                        }));
+                    });
+                    console.log('Cache cleared successfully');
+                } catch (e) {
+                    console.error('Error clearing cache:', e);
+                }
+            }
+
+            // Create a timestamp to prevent browser from using cached login page
+            const timestamp = new Date().getTime();
+
+            // Redirect to login
+            setTimeout(() => {
+                window.location.href = `../login.html?cb=${timestamp}`;
+            }, 100);
+
+            return true;
+        }
+
+        // Security measures
+        function setupSecurityMeasures() {
+            // Hide source code content from dev tools
+            setInterval(function () {
+                // This makes it harder to view source in browser
+                const devtools = /./;
+                devtools.toString = function () {
+                    checkAuthentication();
+                    return '';
+                };
+
+                // Removed console.clear() to allow viewing console messages
+            }, 3000);
+
+            // Disable right-click
+            document.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Add listener for devtools opening using firebug technique
+            window.addEventListener('devtoolschange', function (e) {
+                if (e.detail.open) {
+                    // Reload page when devtools opens
+                    window.location.reload();
+                }
+            });
+        }
+
+        // Debug Logger Implementation
+        const DebugLogger = {
+            logs: [],
+            maxLogs: 1000,
+            isEnabled: false,
+
+            init() {
+                // Check if debug elements exist before setting up listeners
+                const debugToggle = document.getElementById('debugToggle');
+                if (debugToggle) {
+                    this.setupEventListeners();
+                }
+
+                // Check URL params for debug mode or localstorage preference
+                const urlParams = new URLSearchParams(window.location.search);
+                const debugParam = urlParams.get('debug');
+                const storedDebug = localStorage.getItem('menuItemsDebug');
+
+                if (debugParam === 'true' || storedDebug === 'true') {
+                    this.enable();
+                }
+
+                // Only log if enabled
+                if (this.isEnabled) {
+                    console.log('Debug Logger Initialized');
+                    console.log('Watching for API operations...');
+                }
+            },
+
+            setupEventListeners() {
+                // Safely add event listeners only if elements exist
+                const debugToggle = document.getElementById('debugToggle');
+                const clearDebug = document.getElementById('clearDebug');
+                const copyDebug = document.getElementById('copyDebug');
+                const closeDebug = document.getElementById('closeDebug');
+
+                if (debugToggle) {
+                    debugToggle.addEventListener('click', () => {
+                        this.toggle();
+                    });
+                }
+
+                if (clearDebug) {
+                    clearDebug.addEventListener('click', () => {
+                        this.clear();
+                    });
+                }
+
+                if (copyDebug) {
+                    copyDebug.addEventListener('click', () => {
+                        this.copyToClipboard();
+                    });
+                }
+
+                if (closeDebug) {
+                    closeDebug.addEventListener('click', () => {
+                        this.disable();
+                    });
+                }
+            },
+
+            log(message, type = 'log', data = null) {
+                if (!this.isEnabled) return;
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+                const logData = {
+                    timestamp: timeStr,
+                    type: type,
+                    message: message,
+                    data: data
+                };
+
+                if (this.logs.length >= this.maxLogs) {
+                    // Remove oldest log if we exceed max
+                    this.logs.shift();
+                }
+
+                this.logs.push(logData);
+
+                console.log(`[${type.toUpperCase()}] ${message}`, data);
+
+                this.render();
+            },
+
+            render() {
+                if (!this.isEnabled) return;
+
+                const output = document.getElementById('debugOutput');
+                if (!output) return;
+
+                output.innerHTML = '';
+
+                this.logs.forEach(log => {
+                    const logElement = document.createElement('div');
+                    logElement.className = `log log-${log.type}`;
+                    logElement.innerHTML = `
+                        <span class="timestamp">${log.timestamp}</span>
+                        <span class="message">${log.message}</span>
+                        ${log.data ? `<pre class="data">${this.stringify(log.data)}</pre>` : ''}
+                    `;
+                    output.appendChild(logElement);
+                });
+
+                // Scroll to bottom
+                output.scrollTop = output.scrollHeight;
+            },
+
+            enable() {
+                this.isEnabled = true;
+                const debugConsole = document.getElementById('debugConsole');
+                if (debugConsole) {
+                    debugConsole.classList.add('show');
+                }
+                document.body.classList.add('debug-mode');
+                localStorage.setItem('menuItemsDebug', 'true');
+                this.render();
+            },
+
+            disable() {
+                this.isEnabled = false;
+                const debugConsole = document.getElementById('debugConsole');
+                if (debugConsole) {
+                    debugConsole.classList.remove('show');
+                }
+                document.body.classList.remove('debug-mode');
+                localStorage.setItem('menuItemsDebug', 'false');
+            },
+
+            toggle() {
+                if (this.isEnabled) {
+                    this.disable();
+                } else {
+                    this.enable();
+                }
+            },
+
+            clear() {
+                this.logs = [];
+                this.render();
+            },
+
+            copyToClipboard() {
+                const text = this.logs.map(log =>
+                    `[${log.timestamp}] [${log.type.toUpperCase()}] ${log.message} ${log.data ? JSON.stringify(log.data, null, 2) : ''}`
+                ).join('\n');
+
+                navigator.clipboard.writeText(text).then(() => {
+                    // Flash a message in the console header
+                    const header = document.querySelector('#debugConsole .header h4');
+                    if (header) {
+                        const originalText = header.textContent;
+
+                        header.textContent = 'Copied to clipboard!';
+
+                        setTimeout(() => {
+                            header.textContent = originalText;
+                        }, 1500);
+                    }
+                });
+            },
+
+            stringify(obj) {
+                try {
+                    if (obj === undefined) return 'undefined';
+                    if (obj === null) return 'null';
+
+                    if (typeof obj === 'object') {
+                        // Try to convert to string with JSON
+                        return JSON.stringify(obj, null, 2);
+                    }
+
+                    return String(obj);
+                } catch (e) {
+                    return `[Object could not be stringified: ${e.message}]`;
+                }
+            }
+        };
+
+        // Initialize Debug Logger after document is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Debug Logger
+            DebugLogger.init();
+
+            // Rest of your initialization code....
+            checkAuthentication();
+            fetchMenuItems();
+            fetchCategories();
+            setupEventListeners();
+            updateDateTime();
+            setupSecurityMeasures();
+        });
+
+        // Open Full Frame Modal for Adding
+        function openFullFrameModal() {
+            modalMode = 'add';
+            resetFullFrameForm();
+            document.getElementById('fullFrameModalTitle').textContent = 'Add Menu Item';
+            document.getElementById('fullFrameSaveBtn').textContent = 'Add Item';
+            populateFullFrameCategoryDropdown();
+            fullFrameItemModal.classList.add('show');
+        }
+
+        // Open Full Frame Modal for Editing
+        function openFullFrameModalForEdit(id) {
+            modalMode = 'edit';
+            resetFullFrameForm();
+            document.getElementById('fullFrameModalTitle').textContent = 'Edit Menu Item';
+            document.getElementById('fullFrameSaveBtn').textContent = 'Update Item';
+
+            const item = menuItems.find(item => item.ITEM_ID === id);
+
+            if (!item) {
+                showError('Menu item not found');
+                return;
+            }
+
+            // First populate the category dropdown
+            populateFullFrameCategoryDropdown();
+
+            // Set form values for full-frame modal
+            document.getElementById('fullFrameItemId').value = item.ITEM_ID;
+            document.getElementById('fullFrameItemName').value = item.NAME || '';
+            document.getElementById('fullFrameItemDescription').value = item.DESCRIPTION || '';
+            document.getElementById('fullFrameBasePrice').value = item.BASE_PRICE || 0;
+            document.getElementById('fullFramePreparationTime').value = item.PREPARATION_TIME || '';
+            document.getElementById('fullFrameCalories').value = item.CALORIES || '';            document.getElementById('fullFrameStatus').value = item.STATUS || 'ACTIVE';
+            // Removed checkbox references for availability and featured status
+
+            // Set the category ID after populating the dropdown
+            if (item.CATEGORY_ID) {
+                // Ensure the CATEGORY_ID is treated as a string when setting the select value
+                document.getElementById('fullFrameCategoryId').value = String(item.CATEGORY_ID);
+                console.log('Setting category ID to:', String(item.CATEGORY_ID));
+            } else {
+                document.getElementById('fullFrameCategoryId').value = '';
+            }
+
+            // Set image if available
+            if (item.IMAGE_URL) {
+                updateFullFrameImagePreview(item.IMAGE_URL);
+                document.getElementById('fullFrameImageBase64').value = item.IMAGE_URL;
+            } else {
+                // Reset image preview
+                resetFullFrameImagePreview();
+            }
+
+            // Show the modal
+            fullFrameItemModal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling behind modal
+        }
+
+        // Close Full Frame Modal
+        function closeFullFrameModal() {
+            fullFrameItemModal.classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+
+            // Stop camera if active
+            if (fullFrameStream) {
+                fullFrameStream.getTracks().forEach(track => track.stop());
+                fullFrameStream = null;
+                document.getElementById('fullFrameCameraCapture').classList.add('d-none');
+                document.getElementById('fullFrameCameraBtns').classList.add('d-none');
+            }
+        }
+
+        // Reset Full Frame Form
+        function resetFullFrameForm() {
+            document.getElementById('fullFrameItemForm').reset();
+            document.getElementById('fullFrameItemId').value = '';
+            resetFullFrameImagePreview();
+            document.getElementById('fullFrameImageBase64').value = '';
+
+            // Reset camera if active
+            if (fullFrameStream) {
+                fullFrameStream.getTracks().forEach(track => track.stop());
+                fullFrameStream = null;
+                document.getElementById('fullFrameCameraCapture').classList.add('d-none');
+                document.getElementById('fullFrameCameraBtns').classList.add('d-none');
+            }
+        }
+
+        // Reset Full Frame Image Preview
+        function resetFullFrameImagePreview() {
+            document.getElementById('fullFrameImagePreview').innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <p>No image selected</p>
+                </div>
+            `;
+        }
+
+        // Update Full Frame Image Preview
+        function updateFullFrameImagePreview(imageUrl) {
+            document.getElementById('fullFrameImagePreview').innerHTML = `<img src="${imageUrl}" alt="Menu Item Image">`;
+        }
+
+        // Activate Full Frame Camera
+        function activateFullFrameCamera() {
+            if (fullFrameStream) {
+                // Stop existing stream
+                fullFrameStream.getTracks().forEach(track => track.stop());
+                fullFrameStream = null;
+                document.getElementById('fullFrameCameraCapture').classList.add('d-none');
+                document.getElementById('fullFrameCameraBtns').classList.add('d-none');
+                return;
+            }
+
+            // Show camera UI
+            document.getElementById('fullFrameCameraCapture').classList.remove('d-none');
+            document.getElementById('fullFrameCameraBtns').classList.remove('d-none');
+
+            // Access the device camera
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'environment' // Prefer rear camera on mobile devices
+                },
+                audio: false
+            })
+                .then(function (mediaStream) {
+                    fullFrameStream = mediaStream;
+                    document.getElementById('fullFrameCameraCapture').srcObject = mediaStream;
+                    document.getElementById('fullFrameCameraCapture').play();
+                })
+                .catch(function (err) {
+                    console.error('Error accessing camera:', err);
+                    showError('Unable to access camera: ' + err.message);
+
+                    document.getElementById('fullFrameCameraCapture').classList.add('d-none');
+                    document.getElementById('fullFrameCameraBtns').classList.add('d-none');
+                });
+        }
+
+        // Capture Full Frame Image
+        async function captureFullFrameImage() {
+            if (!fullFrameStream) return;
+
+            try {
+                const result = await captureAndUploadImage(
+                    document.getElementById('fullFrameCameraCapture'),
+                    document.getElementById('fullFrameImagePreview'),
+                    document.getElementById('fullFrameImageBase64')
+                );
+
+                if (result.success) {
+                    // Show success message
+                    showSuccess(result.message);
+                } else {
+                    // Show error message
+                    showError(result.message);
+
+                    // Fallback to local image if Cloudinary upload fails
+                    const canvas = document.createElement('canvas');
+                    canvas.width = document.getElementById('fullFrameCameraCapture').videoWidth;
+                    canvas.height = document.getElementById('fullFrameCameraCapture').videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(document.getElementById('fullFrameCameraCapture'), 0, 0, canvas.width, canvas.height);
+                    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Update preview with local image
+                    updateFullFrameImagePreview(imageDataUrl);
+                    document.getElementById('fullFrameImageBase64').value = imageDataUrl;
+                }
+            } catch (error) {
+                console.error('Error capturing image:', error);
+                showError('Failed to capture image: ' + error.message);
+            } finally {
+                // Stop camera stream
+                if (fullFrameStream) {
+                    fullFrameStream.getTracks().forEach(track => track.stop());
+                    fullFrameStream = null;
+                    document.getElementById('fullFrameCameraCapture').classList.add('d-none');
+                    document.getElementById('fullFrameCameraBtns').classList.add('d-none');
+                }
+            }
+        }
+
+        // Save Full Frame Menu Item
+        async function saveFullFrameMenuItem() {
+            const saveBtn = document.getElementById('fullFrameSaveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+
+            try {
+                // Get username from session/local storage with proper fallbacks
+                const username = sessionStorage.getItem('username') ||
+                    localStorage.getItem('username') ||
+                    'unknown_user';
+
+                console.log('Starting saveFullFrameMenuItem operation', modalMode);
+
+                const itemData = {
+                    NAME: document.getElementById('fullFrameItemName').value,
+                    DESCRIPTION: document.getElementById('fullFrameItemDescription').value,
+                    BASE_PRICE: parseFloat(document.getElementById('fullFrameBasePrice').value) || 0,                    PREPARATION_TIME: document.getElementById('fullFramePreparationTime').value,
+                    CALORIES: document.getElementById('fullFrameCalories').value ? parseInt(document.getElementById('fullFrameCalories').value) : null,
+                    STATUS: document.getElementById('fullFrameStatus').value,
+                    IS_AVAILABLE: true, // Set default value since checkbox is removed
+                    IS_FEATURED: false, // Set default value since checkbox is removed
+                    IMAGE_URL: document.getElementById('fullFrameImageBase64').value || null,
+                    USERNAME: username, // Add username for filtering
+                    // Add both CREATED_BY and UPDATED_BY fields with username value
+                    CREATED_BY: username,
+                    UPDATED_BY: username
+                    // Do NOT include any variations data or flags here
+                };
+
+                // Add category ID if selected
+                const categoryId = document.getElementById('fullFrameCategoryId').value;
+                if (categoryId) {
+                    itemData.CATEGORY_ID = parseInt(categoryId);
+                } else {
+                    itemData.CATEGORY_ID = null;
+                }
+
+                console.log('Prepared item data for API request', itemData);
+
+                let url = '/api/menu-items';
+                let method = 'POST';
+
+                if (modalMode === 'edit') {
+                    const itemId = document.getElementById('fullFrameItemId').value;
+                    url = `/api/menu-items/${itemId}`;
+                    method = 'PUT';
+                    // For edit mode, we only need to set UPDATED_BY
+                    delete itemData.CREATED_BY;
+
+                    console.log(`Editing existing item with ID: ${itemId}`);
+                }
+
+                console.log(`Sending ${method} request to ${url}`);
+
+                // Get auth token
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                console.log('Auth token available: ' + (authToken ? 'Yes' : 'No'));
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(itemData)
+                });
+
+                console.log(`API response status: ${response.status} ${response.statusText}`);
+
+                const data = await response.json();
+                console.log('API response data', data);
+
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add new item to the array
+                        menuItems.push(data.data);
+                        console.log('New item added successfully', data.data);
+                    } else {
+                        // Update existing item
+                        const index = menuItems.findIndex(item => item.ITEM_ID === parseInt(document.getElementById('fullFrameItemId').value));
+                        if (index !== -1) {
+                            menuItems[index] = data.data;
+                            console.log('Existing item updated successfully', data.data);
+                        } else {
+                            console.log('Item not found in local cache after update', {
+                                returnedData: data.data
+                            });
+                        }
+                    }
+
+                    // Update UI
+                    updateStats();
+                    renderMenuItems();
+
+                    // Show success message
+                    showSuccess(`Menu item ${modalMode === 'add' ? 'added' : 'updated'} successfully`);
+
+                    // Clear any cached data that might contain the old item
+                    localStorage.removeItem('menuItems');
+                    sessionStorage.removeItem('menuItems');
+
+                    // Close modal
+                    closeFullFrameModal();
+                } else {
+                    console.log('API returned error', data);
+                    showError(data.message || `Failed to ${modalMode} menu item`);
+                }
+            } catch (error) {
+                console.error(`Error ${modalMode === 'add' ? 'adding' : 'updating'} menu item:`, error);
+                showError(`An error occurred while ${modalMode === 'add' ? 'adding' : 'updating'} the menu item`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add'
+                    ? 'Add Item'
+                    : 'Update Item';
+
+                console.log('Save operation completed');
+            }
+        }
+
+        // Populate Full Frame Category Dropdown
+        function populateFullFrameCategoryDropdown() {
+            const categorySelect = document.getElementById('fullFrameCategoryId');
+            if (!categorySelect) {
+                console.error("Full frame category select element not found");
+                return;
+            }
+
+            // Sort categories by name
+            const sortedCategories = [...categories].sort((a, b) => {
+                return a.NAME.localeCompare(b.NAME);
+            });
+
+            // Clear any existing options first
+            categorySelect.innerHTML = '<option value="">-- No Category --</option>';
+
+            // Add options to the select element
+            sortedCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.CATEGORY_ID;
+                option.textContent = category.NAME;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        // View Item - updated to use full-frame modal
+        function viewItem(id) {
+            // Open the full-frame modal for edit
+            openFullFrameModalForEdit(id);
+        }
+
+        // Edit Item - use either regular modal or full-frame modal
+        function editItem(id, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            // Use the full-frame modal for editing
+            openFullFrameModalForEdit(id);
+        }
+
+        // Full Screen Camera Variables
+        let fullScreenCameraStream = null;
+        let currentCameraContext = null; // To track which modal is calling the camera
+        let facingMode = 'environment'; // Default to rear camera
+
+        // Setup Event Listeners for Full-Screen Camera Modal
+        function setupFullScreenCameraEventListeners() {
+            // Close button
+            const closeFullScreenCamera = document.getElementById('closeFullScreenCamera');
+            if (closeFullScreenCamera) {
+                closeFullScreenCamera.addEventListener('click', closeFullScreenCameraModal);
+            }
+
+            // Capture button
+            const fullScreenCaptureBtn = document.getElementById('fullScreenCaptureBtn');
+            if (fullScreenCaptureBtn) {
+                fullScreenCaptureBtn.addEventListener('click', captureFullScreenImage);
+            }
+
+            // Camera switch button
+            const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
+            if (cameraSwitchBtn) {
+                cameraSwitchBtn.addEventListener('click', switchCamera);
+            }
+        }
+
+        // Open Full-Screen Camera Modal - Called from both standard and full-frame modals
+        function activateCamera() {
+            // Use the full-screen camera modal instead of inline camera
+            openFullScreenCamera('standard');
+        }
+
+        // Open full-frame camera
+        function activateFullFrameCamera() {
+            // Use the full-screen camera modal
+            openFullScreenCamera('fullFrame');
+        }
+
+        // Open Full-Screen Camera Modal with context tracking and debugging
+        function openFullScreenCamera(context) {
+            console.log('[DEBUG] openFullScreenCamera called with context:', context);
+
+            // Store the context (which modal is using the camera)
+            currentCameraContext = context;
+            console.log('[DEBUG] Set currentCameraContext to:', currentCameraContext);
+
+            // Clean up any existing loading indicators
+            console.log('[DEBUG] Cleaning up existing loading indicators');
+            const existingIndicators = document.querySelectorAll('#initialCameraLoadingIndicator, #cameraLoadingIndicator');
+            existingIndicators.forEach(indicator => {
+                console.log('[DEBUG] Removing indicator:', indicator.id);
+                indicator.remove();
+            });
+
+            // Show the camera modal first
+            console.log('[DEBUG] Displaying fullScreenCameraModal');
+            const cameraModal = document.getElementById('fullScreenCameraModal');
+            if (!cameraModal) {
+                console.error('[DEBUG] Camera modal element not found');
+                return;
+            }
+
+            cameraModal.style.display = 'block';
+
+            // Add loading indicator directly to the modal with a unique ID
+            console.log('[DEBUG] Adding initial loading indicator');
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'initialCameraLoadingIndicator';
+            loadingIndicator.style.position = 'absolute';
+            loadingIndicator.style.top = '50%';
+            loadingIndicator.style.left = '50%';
+            loadingIndicator.style.transform = 'translate(-50%, -50%)';
+            loadingIndicator.style.color = 'white';
+            loadingIndicator.style.textAlign = 'center';
+            loadingIndicator.style.zIndex = '3002';
+            loadingIndicator.innerHTML = `
+                <div class="spinner-border text-light" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-2">Initializing camera...</div>
+            `;
+            cameraModal.appendChild(loadingIndicator);
+
+            // Start the camera after a short delay to ensure modal is visible
+            console.log('[DEBUG] Setting timeout to start camera');
+            setTimeout(() => {
+                startFullScreenCamera();
+            }, 300);
+        }
+
+        // Close Full-Screen Camera Modal with debugging
+        function closeFullScreenCameraModal() {
+            console.log('[DEBUG] closeFullScreenCameraModal called');
+
+            try {
+                // Stop camera stream if active
+                if (fullScreenCameraStream) {
+                    console.log('[DEBUG] Stopping camera stream tracks');
+
+                    try {
+                        fullScreenCameraStream.getTracks().forEach(track => {
+                            console.log('[DEBUG] Stopping track:', track.kind);
+                            track.stop();
+                        });
+                        console.log('[DEBUG] All tracks stopped');
+                    } catch (trackError) {
+                        console.error('[DEBUG] Error stopping tracks:', trackError);
+                    }
+
+                    fullScreenCameraStream = null;
+                    console.log('[DEBUG] Camera stream reference cleared');
+                } else {
+                    console.log('[DEBUG] No camera stream to stop');
+                }
+
+                // Clear video source
+                const videoElement = document.getElementById('fullScreenCameraView');
+                if (videoElement) {
+                    console.log('[DEBUG] Clearing video srcObject');
+                    videoElement.srcObject = null;
+                } else {
+                    console.warn('[DEBUG] Video element not found');
+                }
+
+                // Hide the modal explicitly
+                const modal = document.getElementById('fullScreenCameraModal');
+                if (modal) {
+                    console.log('[DEBUG] Setting camera modal display to none');
+                    modal.style.display = 'none';
+                    document.body.style.overflow = ''; // Restore scrolling
+                    console.log('[DEBUG] Body scrolling restored');
+                } else {
+                    console.error('[DEBUG] Camera modal element not found');
+                }
+
+                // Reset context
+                console.log('[DEBUG] Resetting currentCameraContext from:', currentCameraContext);
+                currentCameraContext = null;
+
+                console.log('[DEBUG] closeFullScreenCameraModal completed successfully');
+                return true;
+            } catch (error) {
+                console.error('[DEBUG] Error in closeFullScreenCameraModal:', error);
+                console.error('[DEBUG] Error stack:', error.stack);
+
+                // Force modal close as a fallback
+                try {
+                    document.getElementById('fullScreenCameraModal').style.display = 'none';
+                    document.body.style.overflow = '';
+                } catch (e) {
+                    console.error('[DEBUG] Failed even fallback close:', e);
+                }
+                return false;
+            }
+        }
+
+        // Start Full-Screen Camera with optimized performance and debugging
+        function startFullScreenCamera() {
+            console.log('[DEBUG] startFullScreenCamera called');
+
+            // Clean up any existing loading indicators first
+            console.log('[DEBUG] Cleaning up any existing loading indicators');
+            const existingLoadingIndicators = document.querySelectorAll('#cameraLoadingIndicator, #initialCameraLoadingIndicator');
+            existingLoadingIndicators.forEach(indicator => {
+                try {
+                    indicator.remove();
+                    console.log('[DEBUG] Removed indicator:', indicator.id);
+                } catch (e) {
+                    console.error('[DEBUG] Error removing indicator:', e);
+                }
+            });
+
+            // Add new loading indicator
+            console.log('[DEBUG] Adding loading indicator');
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'cameraLoadingIndicator';
+            loadingIndicator.style.position = 'absolute';
+            loadingIndicator.style.top = '50%';
+            loadingIndicator.style.left = '50%';
+            loadingIndicator.style.transform = 'translate(-50%, -50%)';
+            loadingIndicator.style.color = 'white';
+            loadingIndicator.style.textAlign = 'center';
+            loadingIndicator.style.zIndex = '3002';
+            loadingIndicator.innerHTML = `
+                <div class="spinner-border text-light" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-2">Initializing camera...</div>
+            `;
+
+            const modal = document.getElementById('fullScreenCameraModal');
+            if (modal) {
+                modal.appendChild(loadingIndicator);
+            } else {
+                console.error('[DEBUG] Modal element not found for adding loading indicator');
+            }
+
+            // Stop any existing stream
+            if (fullScreenCameraStream) {
+                console.log('[DEBUG] Stopping existing camera stream');
+                try {
+                    fullScreenCameraStream.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                } catch (e) {
+                    console.error('[DEBUG] Error stopping existing tracks:', e);
+                }
+                fullScreenCameraStream = null;
+            }
+
+            // Optimize camera constraints based on facing mode
+            console.log('[DEBUG] Setting up camera with facing mode:', facingMode);
+            const constraints = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            };
+
+            console.log('[DEBUG] Camera constraints:', constraints);
+
+            // Access device camera with timeout to prevent hanging
+            console.log('[DEBUG] Requesting user media');
+            const cameraPromise = navigator.mediaDevices.getUserMedia(constraints);
+
+            // Add a timeout to abort if taking too long
+            console.log('[DEBUG] Setting up camera access timeout');
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    console.error('[DEBUG] Camera access timed out after 8 seconds');
+                    reject(new Error('Camera access timeout'));
+                }, 8000);
+            });
+
+            // Race between camera access and timeout
+            console.log('[DEBUG] Starting race between camera access and timeout');
+            Promise.race([cameraPromise, timeoutPromise])
+                .then(mediaStream => {
+                    console.log('[DEBUG] Got media stream, checking if modal is still visible');
+
+                    const modal = document.getElementById('fullScreenCameraModal');
+                    if (!modal || modal.style.display !== 'block') {
+                        console.log('[DEBUG] Modal no longer visible, stopping stream');
+                        mediaStream.getTracks().forEach(track => track.stop());
+                        return;
+                    }
+
+                    console.log('[DEBUG] Setting up video element with stream');
+                    fullScreenCameraStream = mediaStream;
+
+                    const videoElement = document.getElementById('fullScreenCameraView');
+                    if (!videoElement) {
+                        console.error('[DEBUG] Video element not found');
+                        mediaStream.getTracks().forEach(track => track.stop());
+                        return;
+                    }
+
+                    videoElement.srcObject = mediaStream;
+
+                    // Remove loading indicator when video is playing
+                    videoElement.onloadedmetadata = () => {
+                        console.log('[DEBUG] Video metadata loaded');
+                        videoElement.play()
+                            .then(() => {
+                                console.log('[DEBUG] Video playback started');
+                                // Remove loading indicator
+                                const loadingIndicator = document.getElementById('cameraLoadingIndicator');
+                                if (loadingIndicator) {
+                                    loadingIndicator.remove();
+                                    console.log('[DEBUG] Loading indicator removed');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('[DEBUG] Error starting video playback:', err);
+                                showToast('Error starting camera: ' + err.message, true);
+                            });
+                    };
+                })
+                .catch(err => {
+                    console.error('[DEBUG] Error accessing camera:', err);
+
+                    // Show error in loading indicator
+                    const loadingIndicator = document.getElementById('cameraLoadingIndicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.innerHTML = `
+                            <div class="text-danger">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                <div>Camera error: ${err.message}</div>
+                                <button class="btn btn-sm btn-outline-light mt-3" onclick="closeFullScreenCameraModal()">
+                                    Close
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    showToast('Camera error: ' + err.message, true);
+                });
+        }
+
+        // Capture Image from Full-Screen Camera with responsive animation and debugging
+        async function captureFullScreenImage() {
+            console.log('[DEBUG] captureFullScreenImage started');
+            console.log('[DEBUG] Camera stream status:', fullScreenCameraStream ? 'active' : 'inactive');
+            console.log('[DEBUG] Current camera context:', currentCameraContext);
+
+            if (!fullScreenCameraStream) {
+                console.error('[DEBUG] Error: Camera stream not available');
+                showToast('Camera is not active or initialized', true);
+                return;
+            }
+
+            // Store the context locally so it doesn't get lost when we close the camera
+            const captureContext = currentCameraContext;
+            console.log('[DEBUG] Saved local copy of context:', captureContext);
+
+            try {
+                // Show a quick notification that we're capturing the image
+                console.log('[DEBUG] Showing capture notification');
+                showToast('Capturing image...', false);
+
+                // Set canvas dimensions to match video
+                const canvas = document.getElementById('fullScreenCaptureCanvas');
+                const videoElement = document.getElementById('fullScreenCameraView');
+
+                console.log('[DEBUG] Video dimensions:', {
+                    videoWidth: videoElement.videoWidth,
+                    videoHeight: videoElement.videoHeight,
+                    readyState: videoElement.readyState
+                });
+
+                if (!videoElement.videoWidth) {
+                    console.error('[DEBUG] Video dimensions not available - video not ready');
+                    showToast('Camera not ready yet. Please try again.', true);
+                    return;
+                }
+
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+
+                // Draw the current video frame to the canvas
+                const ctx = canvas.getContext('2d');
+                console.log('[DEBUG] Canvas context created, clearing canvas');
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous content
+
+                // If using front camera, flip horizontally
+                if (facingMode === 'user') {
+                    console.log('[DEBUG] Front camera detected, applying horizontal flip');
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                console.log('[DEBUG] Drawing video frame to canvas');
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+                // Reset transformation if applied
+                if (facingMode === 'user') {
+                    console.log('[DEBUG] Resetting canvas transformation');
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                }
+
+                // Convert to data URL
+                console.log('[DEBUG] Converting canvas to data URL');
+                const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                console.log('[DEBUG] Data URL generated, length:', imageDataUrl.length);
+
+                // IMPORTANT: Close the camera modal BEFORE any async operations
+                console.log('[DEBUG] About to close camera modal');
+                closeFullScreenCameraModal();
+                console.log('[DEBUG] Camera modal closed');
+
+                // Determine which image preview element and input field to update based on the context
+                let previewElement, imageInputField;
+
+                console.log('[DEBUG] Determining target elements based on context:', captureContext);
+                if (captureContext === 'standard') {
+                    console.log('[DEBUG] Using standard preview element');
+                    previewElement = document.getElementById('imagePreview');
+                    imageInputField = document.getElementById('imageBase64');
+                } else if (captureContext === 'fullFrame') {
+                    console.log('[DEBUG] Using fullFrame preview element');
+                    previewElement = document.getElementById('fullFrameImagePreview');
+                    imageInputField = document.getElementById('fullFrameImageBase64');
+                } else {
+                    console.error('[DEBUG] Unknown camera context:', captureContext);
+                    showToast('Unknown camera context', true);
+                    return;
+                }
+
+                if (!previewElement) {
+                    console.error('[DEBUG] Preview element not found for context:', captureContext);
+                    showToast('Preview element not found', true);
+                    return;
+                }
+
+                // Show loading animation in the preview element
+                console.log('[DEBUG] Showing loading animation in preview element');
+                previewElement.innerHTML = `
+                    <div class="loading-animation">
+                        <div class="spinner-border text-primary spinner" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div class="message">Uploading image to cloud storage...</div>
+                    </div>
+                `;
+
+                try {
+                    // Get username from session/local storage
+                    const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+                    console.log('[DEBUG] Using username for Cloudinary:', username);
+
+                    // Convert data URL to blob for upload
+                    console.log('[DEBUG] Converting data URL to blob');
+                    const response = await fetch(imageDataUrl);
+                    const blob = await response.blob();
+                    console.log('[DEBUG] Blob created, size:', blob.size);
+
+                    const file = new File([blob], `menu-item-${Date.now()}.jpg`, { type: "image/jpeg" });
+                    console.log('[DEBUG] File object created:', {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    });
+
+                    // Get Cloudinary credentials
+                    console.log('[DEBUG] Requesting Cloudinary credentials');
+                    const credentials = await getCloudinaryCredentials(username);
+
+                    console.log('[DEBUG] Cloudinary credentials received:', {
+                        hasCloudName: !!credentials?.cloud_name,
+                        hasUploadPreset: !!credentials?.upload_preset
+                    });
+
+                    if (!credentials || !credentials.cloud_name || !credentials.upload_preset) {
+                        console.error('[DEBUG] Invalid Cloudinary credentials:', credentials);
+                        throw new Error('Invalid Cloudinary credentials');
+                    }
+
+                    // Upload to Cloudinary
+                    console.log('[DEBUG] Starting upload to Cloudinary');
+                    const cloudinaryUrl = await uploadToCloudinary(
+                        file,
+                        credentials.cloud_name,
+                        credentials.upload_preset
+                    );
+                    console.log('[DEBUG] Upload successful, URL:', cloudinaryUrl);
+
+                    // Update the preview with the uploaded image
+                    console.log('[DEBUG] Updating image preview with Cloudinary URL');
+                    previewElement.innerHTML = `<img src="${cloudinaryUrl}" alt="Menu Item Image" style="width: 100%; height: 100%; object-fit: cover;">`;
+
+                    // Set the image URL input
+                    if (imageInputField) {
+                        console.log('[DEBUG] Setting image input field value');
+                        imageInputField.value = cloudinaryUrl;
+                    } else {
+                        console.error('[DEBUG] Image input field not found');
+                    }
+
+                    // Show success notification
+                    console.log('[DEBUG] Showing success notification');
+                    showToast('Image successfully uploaded to cloud storage!', false);
+
+                } catch (error) {
+                    console.error('[DEBUG] Error during image processing/upload:', error);
+                    console.error('[DEBUG] Error details:', {
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack
+                    });
+
+                    // Fallback to using the local image data URL
+                    console.log('[DEBUG] Falling back to local image');
+                    previewElement.innerHTML = `<img src="${imageDataUrl}" alt="Menu Item Image (Local)" style="width: 100%; height: 100%; object-fit: cover;">`;
+
+                    if (imageInputField) {
+                        imageInputField.value = imageDataUrl;
+                    }
+
+                    showToast('Cloud upload failed. Using local image instead.', true);
+                }
+
+            } catch (error) {
+                console.error('[DEBUG] Fatal error in captureFullScreenImage:', error);
+                console.error('[DEBUG] Error stack:', error.stack);
+                showToast('Error capturing image: ' + error.message, true);
+                closeFullScreenCameraModal();
+            }
+        }
+    </script>
+
+    <!-- Add these floating buttons right before the closing </body> tag -->
+    <!-- Circular back button -->
+    <button class="floating-btn floating-btn-back" onclick="window.location.href='../index.html'"
+        title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Circular add item button -->
+    <button class="floating-btn floating-btn-add" onclick="openFullFrameModal()" title="Add New Menu Item">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Category Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalLabel">Manage Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryIdField">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">Category Name</label>
+                            <input type="text" class="form-control" id="categoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoryDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="displayOrder" class="form-label">Display Order</label>
+                            <input type="number" class="form-control" id="displayOrder" value="0">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">
+                                Active
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveCategoryBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

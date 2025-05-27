@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Table Management - FoodBao</title>
+    
+    <!-- Load QR Code library early to ensure it's available -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Load our enhanced QR code library -->
+    <script src="../js/enhanced-qrcode.js"></script>
+    <script>
+        // Ensure QRCode library loads properly with robust fallback
+        (function() {
+            // Check if library is properly loaded
+            if (typeof QRCode === 'undefined') {
+                console.warn('QRCode library not loaded from primary CDN, trying alternative source');
+                var qrScript = document.createElement('script');
+                qrScript.src = "https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js";
+                document.head.appendChild(qrScript);
+                
+                // If that fails, try another source
+                qrScript.onerror = function() {
+                    console.error('Second QRCode source failed, trying final fallback');
+                    var lastAttempt = document.createElement('script');
+                    lastAttempt.src = "https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js";
+                    document.head.appendChild(lastAttempt);
+                };
+            }
+        })();
+    </script>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+    
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --primary-light: #a4d0f5;
+            --accent-color: #2ecc71;
+            --secondary-color: #f39c12;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+            --success-color: #27ae60;
+            --inactive-color: #95a5a6;
+            --text-on-primary: white;
+            --text-dark: #333;
+            --bg-light: #f5f9ff;
+            --transition-speed: 0.3s;
+            --header-height: 44px; /* Match the header height in header.js */
+        }
+
+        /* App header styling */
+        app-header {
+            display: block;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            height: var(--header-height);
+        }
+        
+        app-header .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            min-height: var(--header-height);
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            padding-top: var(--header-height);
+        }        .page-title {
+            font-size: 1.1rem;
+            margin: 0.4rem 0;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.4rem;
+        }
+
+        .container {
+            padding: 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }        /* Flat design section instead of card with shadow */
+        .config-section {
+            background: white;
+            padding: 0.3rem;
+            margin-bottom: 0.3rem;
+            border-radius: 0;
+            box-shadow: none;
+        }.tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }        .table-card {
+            position: relative;
+            background: var(--inactive-color); /* Default gray background */
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            aspect-ratio: 1;
+            overflow: hidden;
+            color: white;
+            font-weight: bold;
+            font-size: 4rem; /* Much larger font size to fill 80% of card */
+            width: 100%;
+            height: 100%;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }        .table-card.has-orders {
+            background-color: var(--success-color); /* Green for tables with orders */
+            animation: pulse 1.5s infinite; /* Add subtle pulse animation for tables with orders */
+        }
+
+        /* No longer using table-icon class as we're showing the number directly in the card */
+
+        /* Status based styling for order status */        /* Remove the status-specific table icon styling that's no longer needed */        .table-number {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Animation for pulsing effect */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Responsive grid adjustments */        .table-status {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: capitalize;
+        }.order-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid white;
+            z-index: 2;
+        }        .modal {
+            max-width: 600px;
+            width: 98%;
+            border-radius: 6px;
+        }
+
+        .modal-content {
+            padding: 0.5rem;
+        }
+
+        .modal-footer {
+            padding: 0.25rem;
+        }        .qr-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0.3rem 0;
+            padding: 0.5rem;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }        .qr-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.2rem;
+            margin-bottom: 0.3rem;
+        }.qr-link {
+            word-break: break-all;
+            margin: 0.3rem 0;
+            font-size: 0.7rem;
+            color: var(--primary-dark);
+        }
+          /* Button styling consistency */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            line-height: 32px;
+            padding: 0 12px;
+        }
+        
+        .btn i {
+            margin-right: 3px;
+            font-size: 16px;
+        }
+        
+        .btn span {
+            font-size: 0.8rem;
+        }        .order-status {
+            padding: 3px 6px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+        
+        .order-status.green {
+            background-color: var(--success-color);
+        }
+        
+        .order-status.orange {
+            background-color: #f39c12;
+        }
+        
+        .order-status.blue {
+            background-color: var(--primary-color);
+        }
+        
+        .order-status.amber {
+            background-color: var(--warning-color);
+        }
+        
+        .order-status.grey {
+            background-color: var(--inactive-color);
+        }        .table-order-list {
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 3px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.3rem;
+            font-size: 1.2rem;
+        }
+
+        .order-number {
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: var(--primary-dark);
+        }
+
+        .order-status {
+            padding: 4px 8px;
+            border-radius: 16px;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }        .tab-button {
+            flex: 1;
+            padding: 0.3rem;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 3px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }.order-item {
+            padding: 0.4rem;
+            margin-bottom: 0.4rem;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            font-size: 0.9rem;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+        }
+
+        .order-number {
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: var(--primary-dark);
+        }        .order-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 0.3rem;
+            color: var(--success-color);
+        }
+
+        .tab-content.active {
+            display: block;
+        }        .order-details {
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 6px;
+            background-color: white;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-message {
+            color: white;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+          @media (max-width: 768px) {
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+                gap: 0.5rem;
+            }
+              .table-card {
+                font-size: 3rem;
+                padding: 0.5rem;
+            }
+
+            .order-badge {
+                width: 20px;
+                height: 20px;
+                font-size: 10px;
+            }
+            
+            .config-section {
+                padding: 0.5rem;
+            }
+        }          @media (max-width: 480px) {
+            .tables-grid {
+                grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+                gap: 0.4rem;
+            }            
+            .table-card {
+                font-size: 2.5rem;
+                padding: 0.4rem;
+            }
+
+            .order-badge {
+                width: 16px;
+                height: 16px;
+                font-size: 9px;
+                top: 2px;
+                right: 2px;
+            }
+            
+            /* QR code button adjustments for small screens */
+            .qr-options {
+                flex-direction: row;
+                flex-wrap: wrap;
+                width: 100%;
+                gap: 6px;
+                justify-content: center;
+            }
+            
+            .qr-options .btn {
+                flex: 1 1 45%;
+                min-width: 100px;
+                justify-content: center;
+                padding: 0 4px;
+                margin: 3px;
+            }
+            
+            .qr-code-container {
+                padding: 0.3rem;
+            }
+            
+            #qr-code {
+                max-width: 85vw !important;
+                width: 85vw !important;
+                height: 85vw !important;
+                margin: 8px auto;
+            }
+            
+            .qr-link {
+                font-size: 0.7rem !important;
+                padding: 4px 6px !important;
+            }
+            
+            .table-label {
+                font-size: 18px !important;
+                padding: 4px 10px !important;
+            }
+            
+            #qr-table-number {
+                font-size: 20px !important;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            /* Extra small device optimizations */
+            #qr-code {
+                max-width: 90vw !important;
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+            
+            .qr-options .btn {
+                flex: 1 1 100%;
+                margin: 2px 0;
+            }
+            
+            .qr-options {
+                flex-direction: column;
+            }
+            
+            .qr-link {
+                font-size: 0.65rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div>
+            <div class="spinner"></div>
+            <div class="loading-message">Loading tables...</div>
+        </div>
+    </div>
+
+    <!-- Navigation Header (will be replaced by the custom element) -->
+    <app-header></app-header>
+
+    <div class="container">
+        <div class="page-title">
+            <span>Table Management</span>
+            <button id="refreshBtn" class="btn-floating waves-effect waves-light blue">
+                <i class="material-icons">refresh</i>
+            </button>
+        </div>
+
+        <div class="config-section">
+            <!-- Removed tab buttons for Tables and Settings -->
+            
+            <div class="tables-grid" id="tables-container">
+                <!-- Tables will be dynamically added here -->
+                <div class="center-align" id="no-tables-message">
+                    <p>No tables configured yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Table Details Modal -->    <div id="table-modal" class="modal" style="width: 98%; max-height: 98%; height: 98%; border-radius: 8px;">
+        <div class="modal-content" style="padding: 0.5rem; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+            <h4 id="modal-table-title" style="font-size: 1.6rem; margin-bottom: 0.5rem; margin-top: 0;">Table</h4>
+            
+            <div class="tab-buttons" style="margin-bottom: 0.5rem; display: flex; justify-content: flex-start; flex-wrap: nowrap;">
+                <button class="tab-button active" data-tab="orders-tab" style="font-size: 0.9rem; padding: 6px; flex: 1; min-width: min-content; text-align: center;">Orders</button>
+                <button class="tab-button" data-tab="qr-tab" style="font-size: 0.9rem; padding: 6px; flex: 1; min-width: min-content; text-align: center;">QR Code</button>
+            </div>              <!-- Floating return button - positioned for better visibility -->
+            <button id="return-to-tables" class="btn-floating waves-effect waves-light blue" style="position: absolute; top: 10px; right: 10px; z-index: 1000; width: 36px; height: 36px;">
+                <i class="material-icons" style="font-size: 18px; line-height: 36px;">arrow_back</i>
+            </button><!-- Rest of the modal content -->
+            <div id="orders-tab" class="tab-content active">
+                <div id="table-orders" class="table-order-list">
+                    <!-- Orders will be dynamically added here -->
+                    <p id="no-orders-message" style="font-size: 1.2rem; text-align: center; padding: 1.5rem; color: #777;">No active orders for this table.</p>
+                </div>
+            </div>            <div id="qr-tab" class="tab-content">
+                <div class="qr-code-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 100%; box-sizing: border-box; padding: 8px;">
+                    <div class="table-label" style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: var(--primary-dark); padding: 6px 12px; background-color: #f0f8ff; border-radius: 6px; display: inline-block; text-align: center;">
+                        TABLE: <span id="qr-table-number" style="font-size: 22px;"></span>
+                    </div>
+                    <div id="qr-code" style="margin: 12px auto; padding: 10px; background-color: white; border-radius: 8px; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; width: 100%; max-width: 320px; height: auto; aspect-ratio: 1/1;"></div>
+                    <p class="qr-link" id="qr-url" style="margin: 10px 0; font-size: 0.75rem; background-color: #f0f0f0; padding: 6px 10px; border-radius: 4px; max-width: 100%; width: 100%; overflow-wrap: break-word; text-align: center; box-sizing: border-box;"></p>                    <div class="qr-options" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0; width: 100%; max-width: 360px;">
+                        <button id="download-qr" class="btn waves-effect waves-light green tooltipped" data-position="bottom" data-tooltip="Download QR Code" style="display: flex; align-items: center; justify-content: center; padding: 0 8px; height: 38px; flex: 1; min-width: 74px; margin: 2px; border-radius: 4px;">
+                            <i class="material-icons" style="margin-right: 4px; font-size: 17px;">file_download</i>
+                            <span style="font-size: 0.78rem;">Download</span>
+                        </button>
+                        <button id="print-qr" class="btn waves-effect waves-light blue tooltipped" data-position="bottom" data-tooltip="Print QR Code" style="display: flex; align-items: center; justify-content: center; padding: 0 8px; height: 38px; flex: 1; min-width: 74px; margin: 2px; border-radius: 4px;">
+                            <i class="material-icons" style="margin-right: 4px; font-size: 17px;">print</i>
+                            <span style="font-size: 0.78rem;">Print</span>
+                        </button>
+                        <button id="share-qr" class="btn waves-effect waves-light purple tooltipped" data-position="bottom" data-tooltip="Share QR Code" style="display: flex; align-items: center; justify-content: center; padding: 0 8px; height: 38px; flex: 1; min-width: 74px; margin: 2px; border-radius: 4px;">
+                            <i class="material-icons" style="margin-right: 4px; font-size: 17px;">share</i>
+                            <span style="font-size: 0.78rem;">Share</span>
+                        </button>
+                        <button id="high-res-qr" class="btn waves-effect waves-light amber tooltipped" data-position="bottom" data-tooltip="High Resolution QR" style="display: flex; align-items: center; justify-content: center; padding: 0 8px; height: 38px; flex: 1; min-width: 74px; margin: 2px; border-radius: 4px;">
+                            <i class="material-icons" style="margin-right: 4px; font-size: 17px;">hd</i>
+                            <span style="font-size: 0.78rem;">HD QR</span>
+                        </button>
+                    </div>                    <div id="qr-tips" style="font-size: 0.8rem; color: #666; margin-top: 16px; padding: 12px; background: #f8f8f8; border-radius: 8px; border: 1px solid #eaeaea; display: none; width: 100%; max-width: 360px; box-sizing: border-box;">
+                        <p style="margin: 0 0 10px 0; text-align: center; font-size: 0.9rem;"><b>Tips for better QR code scanning:</b></p>
+                        <ul style="margin: 0; padding-left: 20px; text-align: left; display: flex; flex-direction: column; gap: 8px; list-style-type: disc;">
+                            <li>Print QR codes at least 3x3 cm in size</li>
+                            <li>Ensure good lighting when scanning</li>
+                            <li>Hold camera steady and 15-20cm from code</li>
+                            <li>Keep QR code flat when scanning</li>
+                            <li>Clean camera lens for better scanning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <!-- Removed the Close button text -->
+        </div>
+    </div>
+
+    <!-- Footer (will be replaced by the custom element) -->
+    <app-footer></app-footer>
+      <!-- Import required libraries -->
+    <!-- MD5 Library for username hashing (optional) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+    <!-- Materialize JS (must be loaded before custom scripts) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Cache Manager -->
+    <script src="../js/cache-manager.js"></script>
+    <!-- Custom component scripts -->
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/footer.js"></script>
+
+    <script>
+        // Check authentication status before page renders
+        (function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            const username = localStorage.getItem('username');
+            
+            if (!token || !username) {
+                console.log('Not authenticated, redirecting to login page');
+                window.location.href = '../login.html';
+            }
+        })();
+
+        // Elements
+        const tableContainer = document.getElementById('tables-container');
+        const noTablesMessage = document.getElementById('no-tables-message');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const tableModal = document.getElementById('table-modal');
+        
+        // Current state
+        let currentUsername = localStorage.getItem('username') || '';
+        let tables = [];
+        let currentTableId = null;
+        let userTableCount = 0; // Store the user's table count from profile
+
+        // Function to show loading overlay
+        function showLoading(message = 'Loading tables...') {
+            document.querySelector('.loading-message').textContent = message;
+            loadingOverlay.classList.add('active');
+        }
+
+        // Function to hide loading overlay
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+
+        // Initialize Materialize components
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize modal
+            const modalElems = document.querySelectorAll('.modal');
+            M.Modal.init(modalElems, {
+                dismissible: true,
+                opacity: 0.5,
+                onOpenStart: function() {
+                    // Reset and update modal content when opened
+                    document.querySelectorAll('#table-modal .tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    document.querySelectorAll('#table-modal .tab-button').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    document.querySelector('#table-modal .tab-button[data-tab="orders-tab"]').classList.add('active');
+                    document.querySelector('#table-modal #orders-tab').classList.add('active');
+                }
+            });
+            
+            // Initialize select elements
+            const selectElems = document.querySelectorAll('select');
+            M.FormSelect.init(selectElems);
+            
+            // Initialize tooltips
+            const tooltipElems = document.querySelectorAll('.tooltipped');
+            M.Tooltip.init(tooltipElems);
+            
+            // Tab navigation
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    const parent = this.closest('.tab-buttons').parentElement;
+                    
+                    // Remove active class from all tabs and buttons in this container
+                    parent.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    parent.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Add active class to selected tab and button
+                    this.classList.add('active');
+                    parent.querySelector(`#${tabId}`).classList.add('active');
+                    
+                    // Special handling for QR tab
+                    if (tabId === 'qr-tab' && currentTableId !== null) {
+                        generateQRCode(currentTableId);
+                    }
+                });
+            });
+            
+            // Initialize
+            loadTables();
+        });        // Event Listeners
+        refreshBtn.addEventListener('click', loadTables);
+        document.getElementById('download-qr').addEventListener('click', downloadQRCode);
+        document.getElementById('print-qr').addEventListener('click', printQRCode);
+        document.getElementById('share-qr').addEventListener('click', shareQRCode);        document.getElementById('high-res-qr').addEventListener('click', function() {
+            const qrTips = document.getElementById('qr-tips');
+            if (qrTips) {
+                qrTips.style.display = qrTips.style.display === 'none' || !qrTips.style.display ? 'block' : 'none';
+                
+                // Only open HD QR if tips are now visible
+                if (qrTips.style.display === 'block') {
+                    // Get the URL for high resolution QR code
+                    const qrUrl = document.getElementById('qr-url').textContent;
+                    if (qrUrl) {
+                        // Generate HD QR code using QRServer API - more reliable than the library
+                        const encodedUrl = encodeURIComponent(qrUrl);
+                        // Set larger size and increased error correction
+                        const hdUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodedUrl}&size=800x800&margin=20&qzone=10&format=png&ecc=H`;
+                        
+                        // Open HD QR code in new window
+                        const hdWindow = window.open(hdUrl, '_blank');
+                        if (!hdWindow) {
+                            M.toast({html: 'Please allow popups to view HD QR code', classes: 'red'});
+                        } else {
+                            M.toast({html: 'High-resolution QR code opened in new tab', classes: 'green'});
+                        }
+                    } else {
+                        M.toast({html: 'QR URL not available', classes: 'red'});
+                    }
+                }
+            }
+        });
+        
+        // Return to tables button
+        document.getElementById('return-to-tables').addEventListener('click', function() {
+            const modal = M.Modal.getInstance(tableModal);
+            modal.close();
+        });
+
+        // Function to load tables from database
+        async function loadTables() {
+            try {
+                showLoading();
+                
+                // Get the current username and auth token
+                const username = localStorage.getItem('username');
+                const authToken = localStorage.getItem('auth_token');
+                
+                if (!username || !authToken) {
+                    console.error('Missing username or auth token');
+                    throw new Error('Authentication details missing');
+                }
+                
+                console.log(`Loading tables for user: ${username}`);
+                
+                // First, get the client profile to check table count
+                const clientProfileResponse = await fetch(`../api/clients/by-username/${encodeURIComponent(username)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!clientProfileResponse.ok) {
+                    throw new Error('Failed to fetch client profile');
+                }
+                
+                const clientData = await clientProfileResponse.json();
+                console.log('Client data loaded:', clientData);
+                
+                // Check if the client has tables configured in their profile
+                const configuredTableCount = clientData?.data?.table || 0;
+
+                // Try to get orders data for mapping to tables
+                let ordersData = [];
+                try {
+                    // Fetch orders from API
+                    const ordersResponse = await fetch(`../api/orders?username=${encodeURIComponent(username)}`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (ordersResponse.ok) {
+                        const result = await ordersResponse.json();
+                        if (result.success) {
+                            ordersData = result.data || [];
+                            console.log(`Retrieved ${ordersData.length} orders for tables`);
+                            // Log order statuses to debug
+                            const orderStatuses = ordersData.map(order => order.status);
+                            console.log('Order statuses in response:', orderStatuses);
+                        }
+                    }
+                } catch (orderError) {
+                    console.warn("Couldn't load orders data:", orderError);
+                }
+                
+                // Create tables array directly from configured count
+                tables = [];
+                if (configuredTableCount > 0) {
+                    for (let i = 1; i <= configuredTableCount; i++) {
+                        const tableNum = i.toString();
+                        // Create a simple table object with just the necessary properties
+                        const table = {
+                            TABLE_ID: `local-${i}`,
+                            TABLE_NUMBER: tableNum,
+                            USERNAME: username,
+                            STATUS: 'AVAILABLE',                            // Filter orders for this table with status PENDING only and matching username
+                            orders: ordersData.filter(order => {
+                                const orderStatus = order.status?.toUpperCase() || '';
+                                const orderTableNum = String(order.table_number);
+                                const thisTableNum = String(tableNum);
+                                
+                                // Only include PENDING orders for this specific table
+                                return orderTableNum === thisTableNum && 
+                                       ['PENDING'].includes(orderStatus) &&
+                                       order.username === username;
+                            })
+                        };
+                        tables.push(table);
+                    }
+                    console.log(`Created ${tables.length} table objects from configured count`);
+                } else {
+                    console.log(`No tables configured for this user.`);
+                }
+                
+                // Render tables
+                renderTables();
+            } catch (error) {
+                console.error('Error loading tables:', error);
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+                
+                // Show empty state when tables couldn't be loaded
+                tables = [];
+                renderTables();
+                M.toast({html: 'No tables found. Please contact support to configure tables', classes: 'orange'});
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Function to render tables in the grid
+        function renderTables() {
+            tableContainer.innerHTML = '';
+            
+            if (tables.length === 0) {
+                noTablesMessage.style.display = 'block';
+                return;
+            }
+            
+            noTablesMessage.style.display = 'none';
+            
+            // Sort tables by number
+            tables.sort((a, b) => {
+                const aNum = parseInt(a.TABLE_NUMBER);
+                const bNum = parseInt(b.TABLE_NUMBER);
+                return aNum - bNum;
+            });
+            
+            // Create table cards 
+            tables.forEach(table => {                const tableCard = document.createElement('div');
+                tableCard.className = 'table-card';
+                
+                // Check if table has orders and what status they are
+                let hasOrders = false;
+                
+                // Check if table has orders
+                if (table.orders && table.orders.length > 0) {
+                    hasOrders = true;
+                    tableCard.classList.add('has-orders');
+                }
+                
+                tableCard.setAttribute('data-table-id', table.TABLE_ID);
+                tableCard.setAttribute('data-table-number', table.TABLE_NUMBER);
+                tableCard.setAttribute('data-table-status', table.STATUS);                        const formattedNumber = table.TABLE_NUMBER.toString().padStart(3, '0');
+                        tableCard.textContent = formattedNumber;
+                        
+                        // Add order badge if there are orders
+                        const ordersCount = getOrdersCount(table);
+                        if (ordersCount > 0) {
+                            const badge = document.createElement('div');
+                            badge.className = 'order-badge';
+                            badge.textContent = ordersCount;
+                            tableCard.appendChild(badge);
+                        }
+                  // Add click event to open modal
+                tableCard.addEventListener('click', () => openTableModal(table));
+                
+                tableContainer.appendChild(tableCard);
+            });
+        }        // Function to open table modal with details
+        function openTableModal(table) {
+            currentTableId = table.TABLE_ID;
+            
+            // Update modal title with table number (formatted with padding)
+            const formattedNumber = table.TABLE_NUMBER.toString().padStart(3, '0');
+            document.getElementById('modal-table-title').textContent = `Table ${formattedNumber}`;
+            
+            // Load orders for this table
+            loadTableOrders(table);
+            
+            // Open the modal
+            const modal = M.Modal.getInstance(tableModal);
+            modal.open();
+        }        // Function to load orders for a table
+        async function loadTableOrders(table) {
+            try {
+                const ordersContainer = document.getElementById('table-orders');
+                const noOrdersMessage = document.getElementById('no-orders-message');
+                
+                // Clear previous content first
+                ordersContainer.innerHTML = '';
+                
+                // Get authentication token and username
+                const username = localStorage.getItem('username');
+                const authToken = localStorage.getItem('auth_token');
+                
+                if (!username || !authToken) {
+                    throw new Error('Authentication details missing');
+                }
+                
+                // Show loading indicator
+                ordersContainer.innerHTML = `
+                    <div class="center-align" style="padding: 20px;">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-blue-only">
+                                <div class="circle-clipper left"><div class="circle"></div></div>
+                                <div class="gap-patch"><div class="circle"></div></div>
+                                <div class="circle-clipper right"><div class="circle"></div></div>
+                            </div>
+                        </div>
+                        <p>Loading orders...</p>
+                    </div>
+                `;
+                
+                // Fetch orders from API - use the username to get all orders for this business
+                const response = await fetch(`../api/orders?username=${encodeURIComponent(username)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch orders: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to load orders');
+                }
+                
+                // Get the current username from localStorage for filtering
+                const currentUsername = localStorage.getItem('username');                // Filter orders for this specific table, with the relevant statuses, and matching username
+                // Log the data we're working with for debugging
+                console.log(`Filtering orders for table ${table.TABLE_NUMBER} with username ${currentUsername}`);
+                console.log(`Total orders before filtering: ${result.data.length}`);
+                
+                // Log a sample order to see its structure
+                if (result.data.length > 0) {
+                    console.log('Sample order data structure:', result.data[0]);
+                    // If there are order items, log those too
+                    if (result.data[0].order_items && result.data[0].order_items.length > 0) {
+                        console.log('Sample order item:', result.data[0].order_items[0]);
+                    }
+                }
+                  // More lenient filtering to include PENDING status and handle case sensitivity
+                const tableOrders = result.data.filter(order => {
+                    // Convert status to uppercase if it exists
+                    const orderStatus = order.status?.toUpperCase() || '';
+                    // Convert table number to string for comparison (API might return numbers)
+                    const orderTableNum = String(order.table_number);
+                    const tableNum = String(table.TABLE_NUMBER);
+                    
+                    // Debug individual order matching
+                    console.log(`Order: #${order.id || order.order_number}, Table: ${orderTableNum}, Status: ${orderStatus}, Username: ${order.username}`);
+                    
+                    // Only include PENDING orders for this specific table
+                    const validStatus = ['PENDING'].includes(orderStatus);
+                    const tableMatch = orderTableNum === tableNum;
+                    const usernameMatch = order.username === currentUsername;
+                    
+                    return tableMatch && validStatus && usernameMatch;
+                });
+                
+                // Update our table data with the filtered orders
+                table.orders = tableOrders;
+                
+                // Clear the container
+                ordersContainer.innerHTML = '';
+                
+                if (tableOrders.length === 0) {
+                    // Show the no orders message if there are no orders
+                    if (!noOrdersMessage) {
+                        const message = document.createElement('p');
+                        message.id = 'no-orders-message';
+                        message.style.fontSize = '1.5rem';
+                        message.style.padding = '1rem';
+                        message.style.textAlign = 'center';
+                        message.textContent = 'No active orders for this table.';
+                        ordersContainer.appendChild(message);
+                    } else {
+                        noOrdersMessage.style.display = 'block';
+                        noOrdersMessage.style.fontSize = '1.5rem';
+                        noOrdersMessage.style.padding = '1rem';
+                        noOrdersMessage.style.textAlign = 'center';
+                    }
+                    return;
+                }
+                
+                // Hide no orders message if we have orders
+                if (noOrdersMessage) {
+                    noOrdersMessage.style.display = 'none';
+                }
+                
+                // Display each order with simplified and larger UI
+                tableOrders.forEach(order => {
+                    const orderItem = document.createElement('div');
+                    orderItem.className = 'order-item';
+                    
+                    // Calculate total items in the order
+                    const totalItems = order.order_items ? order.order_items.length : 0;
+                    
+                    // Format the timestamp
+                    const orderTime = new Date(order.created_at);
+                    const formattedTime = orderTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const formattedDate = orderTime.toLocaleDateString();
+                      // Calculate the total amount if not provided
+                    const orderTotal = order.total_amount || 
+                        (order.order_items ? order.order_items.reduce((sum, item) => sum + (parseFloat(item.total_price || item.price || 0)), 0) : 0);
+                      // Create status class based on the order status
+                    let statusClass = '';
+                    let statusText = order.status || 'pending';
+                    switch(order.status?.toUpperCase()) {
+                        case 'PENDING':
+                            statusClass = 'orange';
+                            break;
+                        case 'READY':
+                            statusClass = 'green';
+                            break;
+                        case 'NEW':
+                            statusClass = 'blue';
+                            break;
+                        case 'PREPARING':
+                            statusClass = 'amber';
+                            break;
+                        case 'COMPLETED':
+                            statusClass = 'green';
+                            break;
+                        case 'CANCELLED':
+                            statusClass = 'red';
+                            break;
+                        default:
+                            statusClass = 'grey';
+                    }
+                      // Create the order header with order number and status
+                    const orderHeader = document.createElement('div');
+                    orderHeader.className = 'order-header';
+                    orderHeader.innerHTML = `
+                        <div class="order-number">#${order.order_number || order.id}</div>
+                        <div class="order-status ${statusClass}">${statusText}</div>
+                    `;
+                    
+                    // Create the main order content with simplified info
+                    const orderContent = document.createElement('div');
+                    orderContent.style.fontSize = '0.9rem';
+                    orderContent.style.margin = '0.3rem 0';
+                    orderContent.innerHTML = `
+                        <div style="margin: 2px 0;"><strong>${totalItems}</strong> item${totalItems !== 1 ? 's' : ''}</div>
+                        <div style="margin: 2px 0;">${formattedTime} - ${formattedDate}</div>
+                        <div style="margin: 2px 0; color: var(--success-color); font-size: 1.1rem; font-weight: bold;">
+                            RM ${parseFloat(orderTotal).toFixed(2)}
+                        </div>                    `;
+                    
+                    // Add simple order items list if available
+                    if (order.order_items && order.order_items.length > 0) {
+                        const itemsList = document.createElement('div');
+                        itemsList.className = 'order-details';
+                        itemsList.style.fontSize = '0.8rem';
+                        itemsList.style.backgroundColor = '#f9fff9';
+                        itemsList.style.border = '1px solid #e0f0e0';
+                        itemsList.style.borderRadius = '4px';
+                        itemsList.style.padding = '6px';
+                        
+                        // Debug order items data to console
+                        console.log('Order items data:', order.order_items);
+                        
+                        let itemsHTML = '<h5 style="margin-top: 0; font-size: 1rem; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 6px;">Order Items</h5>';
+                        itemsHTML += '<ul style="margin: 0; padding-left: 2px; list-style-type: none;">';
+                        
+                        order.order_items.forEach((item, index) => {
+                            // Handle different property names by providing fallbacks
+                            const itemQuantity = parseInt(item.quantity) || 1;
+                            const itemName = item.name || item.item_name || item.menu_item_name || 'Item';
+                            const itemPrice = parseFloat(item.total_price || item.price || 0);
+                            
+                            // Access variation details if available (might be nested differently)
+                            let variationDetails = '';
+                            if (item.variations || item.selected_variations) {
+                                const variations = item.variations || item.selected_variations;
+                                if (Array.isArray(variations)) {
+                                    variationDetails = variations.map(v => v.name || v.variation_name).join(', ');
+                                } else if (typeof variations === 'string') {
+                                    variationDetails = variations;
+                                }
+                            }
+                            
+                            // Format selected options from either string or object
+                            let optionsText = '';
+                            if (item.selected_options) {
+                                if (typeof item.selected_options === 'string') {
+                                    optionsText = item.selected_options;
+                                } else if (typeof item.selected_options === 'object') {
+                                    optionsText = Object.entries(item.selected_options)
+                                        .map(([key, value]) => `${key}: ${value}`)
+                                        .join(', ');
+                                }
+                            }                              itemsHTML += `                                <li style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed #eee;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span><strong>${itemQuantity}x</strong> ${itemName}</span>
+                                        <span style="font-weight: bold;">RM ${itemPrice.toFixed(2)}</span>
+                                    </div>
+                                    ${variationDetails ? `<div style="margin-left: 12px; font-size: 0.75rem; color: #666;">Variations: ${variationDetails}</div>` : ''}
+                                    ${optionsText ? `<div style="margin-left: 12px; font-size: 0.75rem; color: #666;">${optionsText}</div>` : ''}
+                                    ${item.special_instructions ? `<div style="margin-left: 12px; font-style: italic; font-size: 0.75rem; color: #e74c3c;">${item.special_instructions}</div>` : ''}
+                                </li>
+                            `;
+                        });
+                        
+                        itemsHTML += '</ul>';
+                        
+                        itemsList.innerHTML = itemsHTML;
+                        
+                        // Append all elements
+                        orderItem.appendChild(orderHeader);
+                        orderItem.appendChild(orderContent);
+                        orderItem.appendChild(itemsList);
+                    } else {
+                        // If no order items, just append header and content
+                        orderItem.appendChild(orderHeader);
+                        orderItem.appendChild(orderContent);
+                    }
+                    
+                    // Append the complete order item to the container
+                    ordersContainer.appendChild(orderItem);
+                });
+                
+            } catch (error) {
+                console.error('Error loading table orders:', error);
+                const ordersContainer = document.getElementById('table-orders');
+                ordersContainer.innerHTML = `
+                    <div style="padding: 1rem; text-align: center; color: var(--danger-color); font-size: 1.2rem;">
+                        <i class="material-icons" style="font-size: 2rem;">error</i>
+                        <p>Error loading orders: ${error.message}</p>
+                    </div>
+                `;                M.toast({html: `Error loading orders: ${error.message}`, classes: 'red'});
+            }
+        }
+        
+        // Function to generate QR code for a table
+        async function generateQRCode(tableId) {
+            const table = tables.find(t => t.TABLE_ID === tableId);
+            if (!table) return;
+            
+            const qrContainer = document.getElementById('qr-code');
+            qrContainer.innerHTML = '';
+              // Enhance the QR container styling for better scanning with responsive design
+            qrContainer.style.backgroundColor = "#ffffff";
+            qrContainer.style.padding = "15px";
+            qrContainer.style.borderRadius = "8px";
+            qrContainer.style.border = "2px solid #ddd";
+            qrContainer.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+            qrContainer.style.margin = "0 auto";
+            qrContainer.style.maxWidth = "100%";
+            qrContainer.style.width = "auto";
+            qrContainer.style.height = "auto";
+            qrContainer.style.display = "flex";
+            qrContainer.style.justifyContent = "center";
+            qrContainer.style.alignItems = "center";
+              // Calculate ideal size based on viewport with responsive sizing
+            const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+            const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            
+            // More responsive size calculation based on device size
+            let idealSize;
+            if (viewportWidth < 360) {
+                // Extra small devices
+                idealSize = Math.min(viewportWidth * 0.9, 280);
+            } else if (viewportWidth < 480) {
+                // Small devices
+                idealSize = Math.min(viewportWidth * 0.85, 300);
+            } else if (viewportWidth < 768) {
+                // Medium devices
+                idealSize = Math.min(viewportWidth * 0.7, 320);
+            } else {
+                // Larger devices
+                idealSize = 320; // Maximum size for optimal scanning
+            }
+            
+            // Apply size to container
+            qrContainer.style.maxWidth = idealSize + "px";
+            qrContainer.style.width = idealSize + "px";
+            qrContainer.style.height = idealSize + "px";
+            
+            // Update the table number in the label - padded with zeroes
+            document.getElementById('qr-table-number').textContent = table.TABLE_NUMBER.toString().padStart(3, '0');
+            
+            try {
+                // Get the username_hash from the client profile
+                let usernameHash = '';
+                try {
+                    const authToken = localStorage.getItem('auth_token');
+                    const username = localStorage.getItem('username');
+                    
+                    if (!username || !authToken) {
+                        throw new Error('Authentication details missing');
+                    }
+                    
+                    const clientProfileResponse = await fetch(`../api/clients/by-username/${encodeURIComponent(username)}`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!clientProfileResponse.ok) {
+                        throw new Error('Failed to fetch client profile');
+                    }
+                    
+                    const clientData = await clientProfileResponse.json();
+                    console.log('Client data loaded for QR code:', clientData);
+                      // Get the client ID from client data
+                    const clientId = clientData?.data?.id || '';
+                    
+                    if (!clientId) {
+                        console.warn('Client ID not found in client data, falling back to username hash');
+                        usernameHash = md5(username); // Generate a hash if ID not available
+                    } else {
+                        usernameHash = clientId; // Use the client ID for the parameter
+                    }                } catch (error) {
+                    console.error('Error fetching client profile for client ID:', error);
+                    usernameHash = md5(currentUsername); // Fallback to generating a hash when client ID is not available
+                }
+                
+                // Use a hardcoded production URL if we're on the production site
+                let baseUrl;
+                if (window.location.hostname === 'foodbaoclient.pages.dev' || window.location.hostname === 'foodbao.pages.dev') {
+                    baseUrl = new URL('https://foodbao.pages.dev'); // Changed domain to foodbao.pages.dev
+                } else {
+                    baseUrl = new URL(window.location.origin);
+                }
+                baseUrl.pathname = '/index.html';
+                  // Create URL params
+                const params = new URLSearchParams();
+                  // Add client ID instead of username_hash
+                params.set('id', usernameHash);
+                  // Add table number - ensure it's properly converted to string and passed
+                params.set('table', String(table.TABLE_NUMBER));
+                
+                // Add parameter to open in Chrome browser if available
+                params.set('browser', 'chrome');
+                
+                // Create the full URL properly with URLSearchParams
+                const fullUrl = `${baseUrl.toString().replace(/\/$/, '')}?${params.toString()}`;                  // Log the parameters for debugging
+                console.log('QR Code URL Parameters:', {
+                    baseUrl: baseUrl.toString(),
+                    clientId: usernameHash,
+                    tableNumber: String(table.TABLE_NUMBER),
+                    fullUrl,
+                    rawTableNumber: table.TABLE_NUMBER,
+                    tableType: typeof table.TABLE_NUMBER
+                });// Display the URL
+                document.getElementById('qr-url').textContent = fullUrl;
+                
+                // Generate QR code with enhanced settings for better readability and scanning
+                qrContainer.innerHTML = ''; // Clear existing content
+                
+                // Helper function to check if an image is valid
+                const checkImageValid = (img) => {
+                    if (img.width === 0 || img.height === 0) {
+                        return false;
+                    }
+                    return true;
+                };                // Try with optimal settings first
+                try {                    // Calculate responsive QR code size based on viewport
+                    const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+                    const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+                    const qrSize = Math.min(Math.min(viewportWidth * 0.85, viewportHeight * 0.4), 320); // Responsive sizing
+                      // Use our enhanced QR Code library if available
+                    if (typeof window.enhancedQRCode !== 'undefined') {
+                        // Clear previous content to ensure proper rendering
+                        qrContainer.innerHTML = '';
+                        
+                        // Add a loading indicator
+                        const loadingIndicator = document.createElement('div');
+                        loadingIndicator.innerHTML = '<div style="padding: 20px; text-align: center;">Generating QR code...</div>';
+                        qrContainer.appendChild(loadingIndicator);
+                        
+                        // Slight delay to let the DOM update
+                        setTimeout(() => {
+                            // Remove loading indicator
+                            qrContainer.innerHTML = '';
+                            
+                            // Create enhanced QR code with optimized settings for mobile
+                            window.enhancedQRCode.create(qrContainer, {
+                                text: fullUrl,
+                                width: qrSize,
+                                height: qrSize,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                margin: 4
+                            });
+                        }, 100);
+                    } 
+                    // Fall back to standard library if enhanced version isn't available
+                    else if (typeof QRCode !== 'undefined') {
+                        // Clear previous content
+                        qrContainer.innerHTML = '';
+                        
+                        // Create a new QR code with simple, reliable settings
+                        new QRCode(qrContainer, {
+                            text: fullUrl,
+                            width: qrSize,
+                            height: qrSize,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            margin: 4,
+                            correctLevel: QRCode.CorrectLevel.H  // Use highest error correction
+                        });
+                        
+                        // After creation, check if canvas or images are rendered properly
+                        setTimeout(() => {
+                            const qrImg = qrContainer.querySelector('img');
+                            const qrCanvas = qrContainer.querySelector('canvas');
+                            
+                            if ((qrImg && !checkImageValid(qrImg)) || 
+                                (!qrImg && (!qrCanvas || qrCanvas.width === 0))) {
+                                // If rendering failed, try with fallback service
+                                useExternalQRService(fullUrl, qrContainer);
+                            }
+                        }, 500);
+                    } else {
+                        // QRCode library not available, use external service
+                        console.error('QRCode library not available');
+                        useExternalQRService(fullUrl, qrContainer);
+                    }
+                } catch (qrError) {
+                    console.error('QR generation library error:', qrError);
+                    useExternalQRService(fullUrl, qrContainer);
+                }            } catch (error) {
+                console.error('Error in QR code generation:', error);
+                qrContainer.innerHTML = `
+                    <p class="red-text">Error generating QR code: ${error.message}</p>
+                    <button id="use-external-qr" class="btn waves-effect waves-light orange">
+                        <i class="material-icons left">refresh</i>
+                        Try External QR Service
+                    </button>
+                `;
+                
+                // Add event listener for external QR service button
+                document.getElementById('use-external-qr')?.addEventListener('click', function() {
+                    const qrUrl = document.getElementById('qr-url').textContent;
+                    if (qrUrl) {
+                        useExternalQRService(qrUrl, qrContainer);
+                    } else {
+                        M.toast({html: 'QR code URL not available', classes: 'red'});
+                    }
+                });
+            }
+        }          // Function to use external QR service as fallback
+        function useExternalQRService(url, container) {
+            console.log('Using external QR service as fallback');
+            const encodedUrl = encodeURIComponent(url);
+            const qrImg = document.createElement('img');
+            
+            // Calculate the optimal size based on device viewport
+            const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+            const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            const isSmallDevice = viewportWidth < 480;
+            const isMediumDevice = viewportWidth >= 480 && viewportWidth < 768;
+            
+            // Determine optimal QR size based on device
+            let qrSize = 300;
+            if (isSmallDevice) {
+                qrSize = Math.min(viewportWidth * 0.8, viewportHeight * 0.5);
+            } else if (isMediumDevice) {
+                qrSize = Math.min(viewportWidth * 0.7, viewportHeight * 0.45);
+            }
+            
+            // Round to nearest integer
+            qrSize = Math.floor(qrSize);
+            
+            // Use QRServer.com with improved settings for better scanning
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?data=${encodedUrl}&size=${qrSize}x${qrSize}&margin=10&qzone=4&format=png`;
+            qrImg.alt = 'Table QR Code';
+            qrImg.style.maxWidth = '100%';
+            qrImg.style.width = '100%';
+            qrImg.style.height = 'auto';
+            qrImg.style.objectFit = 'contain';
+            qrImg.style.border = '1px solid #eee';
+            qrImg.style.padding = '6px';
+            qrImg.style.backgroundColor = '#fff';
+            qrImg.style.boxSizing = 'border-box';
+            qrImg.style.borderRadius = '4px';
+            
+            // Show loading state
+            container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading QR code...</div>';
+            
+            // When image loads, add it to container
+            qrImg.onload = function() {
+                container.innerHTML = '';
+                container.appendChild(qrImg);
+                
+                // Make sure QR fits mobile screens and is properly centered
+                const containerRect = container.getBoundingClientRect();
+                const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+                const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+                
+                // Optimize display for various screen sizes
+                if (containerRect.width > viewportWidth * 0.9) {
+                    // For very small screens
+                    qrImg.style.width = (viewportWidth * 0.85) + 'px';
+                    qrImg.style.maxWidth = (viewportWidth * 0.85) + 'px';
+                    container.style.display = 'flex';
+                    container.style.justifyContent = 'center';
+                }
+            };
+            
+            // Handle errors loading the image
+            qrImg.onerror = function() {
+                container.innerHTML = `
+                    <p class="red-text">QR code generation failed. Please try again.</p>
+                    <button id="retry-qr" class="btn waves-effect waves-light red">
+                        <i class="material-icons left">refresh</i>
+                        Retry
+                    </button>
+                `;
+                
+                // Add retry button functionality
+                document.getElementById('retry-qr')?.addEventListener('click', function() {
+                    generateQRCode(currentTableId);
+                });
+            };
+        }
+        // Function to download QR code as image
+        function downloadQRCode() {
+            try {
+                // Try to get either img or canvas element
+                const qrImage = document.querySelector('#qr-code img');
+                const canvas = document.querySelector('#qr-code canvas');
+                let imageUrl;
+                
+                if (qrImage && qrImage.src) {
+                    // Use the image source directly
+                    imageUrl = qrImage.src;
+                } else if (canvas) {
+                    // Convert canvas to data URL
+                    try {
+                        imageUrl = canvas.toDataURL('image/png');
+                    } catch (canvasError) {
+                        console.error('Canvas conversion error:', canvasError);
+                        throw new Error('Could not convert QR code to image');
+                    }
+                } else {
+                    throw new Error('QR code element not found');
+                }
+                
+                const table = tables.find(t => t.TABLE_ID === currentTableId);
+                if (!table) throw new Error('Table information not found');
+            
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.download = `table-${table.TABLE_NUMBER}-qr.png`;
+                link.href = imageUrl;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error downloading QR code:', error);
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            }
+        }        // Function to print QR code
+        function printQRCode() {
+            try {
+                // Try to get either img or canvas element
+                const qrImage = document.querySelector('#qr-code img');
+                const canvas = document.querySelector('#qr-code canvas');
+                let imageUrl;
+                
+                if (qrImage && qrImage.src) {
+                    imageUrl = qrImage.src;
+                } else if (canvas) {
+                    // Try to get a higher quality version from canvas 
+                    imageUrl = canvas.toDataURL('image/png', 1.0);
+                } else {
+                    throw new Error('QR code element not found');
+                }
+                
+                const table = tables.find(t => t.TABLE_ID === currentTableId);
+                if (!table) throw new Error('Table information not found');
+                
+                // Get table information and validate it
+                const tableNumber = table.TABLE_NUMBER.toString().padStart(3, '0');
+                const qrUrl = document.getElementById('qr-url').textContent;
+                
+                // Create a print window
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    M.toast({html: 'Please allow popups to print', classes: 'red'});
+                    return;
+                }
+                
+                // Create enhanced print content with better styling for printing
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Table ${tableNumber} QR Code</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                text-align: center;
+                                padding: 10px;
+                                margin: 0;
+                            }
+                            .qr-container {
+                                margin: 0 auto;
+                                max-width: 260px;
+                                padding: 15px;
+                                border: 2px solid #333;
+                                border-radius: 8px;
+                                background-color: white;
+                            }
+                            .restaurant-name {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                color: #2980b9;
+                            }
+                            .table-number {
+                                font-size: 32px;
+                                font-weight: bold;
+                                margin: 8px 0;
+                                color: #333;
+                            }
+                            .instructions {
+                                font-size: 14px;
+                                margin: 10px 0 5px;
+                                color: #555;
+                            }
+                            .chrome-note {
+                                font-size: 12px;
+                                margin: 5px 0;
+                                color: #666;
+                            }
+                            .qr-image {
+                                display: block;
+                                width: 220px;
+                                height: 220px;
+                                margin: 0 auto;
+                                padding: 10px;
+                                border: 1px solid #ddd;
+                                background-color: white;
+                            }
+                            @media print {
+                                @page {
+                                    size: 80mm 80mm;
+                                    margin: 0;
+                                }
+                                body {
+                                    margin: 0;
+                                    padding: 0;
+                                }
+                                .qr-container {
+                                    border: none;
+                                    padding: 5px;
+                                    width: 100%;
+                                    max-width: none;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="qr-container">
+                            <div class="restaurant-name">${currentUsername || 'Restaurant'}</div>
+                            <div class="table-number">Table ${tableNumber}</div>
+                            <img src="${imageUrl}" class="qr-image" alt="QR Code">
+                            <div class="instructions">Scan to order online</div>
+                            <div class="chrome-note">Best viewed in Chrome browser</div>
+                        </div>
+                        <script>
+                            // Auto print and close
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                    setTimeout(function() {
+                                        window.close();
+                                    }, 500);
+                                }, 500);
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+            } catch (error) {
+                console.error('Error printing QR code:', error);                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            }
+        }        // Function to share QR code
+        function shareQRCode() {
+            try {
+                const qrUrl = document.getElementById('qr-url').textContent;
+                const table = tables.find(t => t.TABLE_ID === currentTableId);
+                
+                if (!qrUrl || !table) {
+                    throw new Error('QR code or table information not available');
+                }
+                
+                // Validate that the URL contains the table parameter
+                if (!qrUrl.includes('table=')) {
+                    console.error('Table parameter missing from QR URL!');
+                    throw new Error('QR code URL is incomplete');
+                }
+                
+                // Prepare the data to share
+                const tableNumber = table.TABLE_NUMBER.toString().padStart(3, '0');
+                const shareTitle = `Table ${tableNumber} QR Code`;
+                const shareText = 'Scan this QR code to place your order. For best experience, open in Chrome browser.';
+                
+                // Check if Web Share API is supported
+                if (navigator.share) {
+                    const shareData = {
+                        title: shareTitle,
+                        text: shareText,
+                        url: qrUrl
+                    };
+                    
+                    // Try to use native Web Share API
+                    navigator.share(shareData)
+                        .then(() => {
+                            console.log('QR Code shared successfully');
+                            M.toast({html: 'QR Code shared successfully', classes: 'green'});
+                        })
+                        .catch((error) => {
+                            console.error('Error sharing QR Code:', error);
+                            // Fall back to clipboard if sharing fails
+                            fallbackToCopyToClipboard(qrUrl);
+                        });
+                } else {
+                    // Fallback for browsers without Web Share API
+                    fallbackToCopyToClipboard(qrUrl);
+                }
+            } catch (error) {
+                console.error('Error in share function:', error);
+                M.toast({html: `Error sharing: ${error.message}`, classes: 'red'});
+            }
+            
+            // Helper function for clipboard fallback
+            function fallbackToCopyToClipboard(url) {
+                try {
+                    // First try the modern clipboard API
+                    navigator.clipboard.writeText(url).then(() => {
+                        M.toast({html: 'QR Code URL copied to clipboard', classes: 'green'});
+                    }).catch(err => {
+                        console.error('Clipboard API failed:', err);
+                        // Fall back to the older execCommand method
+                        fallbackExecCommand(url);
+                    });
+                } catch (e) {
+                    fallbackExecCommand(url);
+                }
+            }
+            
+            // Oldest fallback method using execCommand
+            function fallbackExecCommand(url) {
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = url;
+                    textarea.style.position = 'fixed';  // Prevent scrolling to bottom
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    if (successful) {
+                        M.toast({html: 'QR Code URL copied to clipboard', classes: 'green'});
+                    } else {
+                        throw new Error('Copy command failed');
+                    }
+                } catch (err) {
+                    console.error('execCommand error:', err);
+                    // Last resort: show a modal with the URL to manually copy
+                    M.toast({html: 'Please manually copy the URL shown below the QR code', classes: 'orange'});
+                    // Highlight the URL text for easier copying
+                    const urlElement = document.getElementById('qr-url');
+                    if (urlElement) {
+                        urlElement.style.backgroundColor = '#ffffcc';
+                        urlElement.style.padding = '10px';
+                        urlElement.style.border = '1px dashed #aaa';
+                    }
+                }
+            }
+        }
+
+        // Function to update table status
+        function updateTableStatus() {
+            if (!currentTableId) return;
+            
+            const newStatus = document.getElementById('table-status').value;
+            const tableIndex = tables.findIndex(t => t.TABLE_ID === currentTableId);
+            
+            if (tableIndex === -1) return;
+            
+            // Update local table status
+            tables[tableIndex].STATUS = newStatus;
+            
+            // In a real app, update the database
+            try {
+                // Mock API call for now
+                setTimeout(() => {
+                    M.toast({html: 'Table status updated', classes: 'green'});
+                    renderTables();
+                    
+                    // Close the modal
+                    const modal = M.Modal.getInstance(tableModal);
+                    modal.close();
+                }, 500);
+                
+                // For real implementation:
+                /*
+                const response = await fetch(`../api/tables/${currentTableId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        STATUS: newStatus
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to update table: ${response.statusText}`);
+                }
+                
+                // Update UI
+                renderTables();
+                
+                // Close the modal
+                const modal = M.Modal.getInstance(tableModal);
+                modal.close();
+                */
+            } catch (error) {
+                console.error('Error updating table status:', error);
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            }
+        }
+
+        // Function to generate tables
+        async function generateTables() {
+            const count = parseInt(tableCountInput.value);
+            
+            if (isNaN(count) || count < 1 || count > 100) {
+                M.toast({html: 'Please enter a valid number between 1 and 100', classes: 'red'});
+                return;
+            }
+            
+            try {
+                showLoading('Generating tables...');
+                
+                const username = localStorage.getItem('username');
+                const authToken = localStorage.getItem('auth_token');
+                
+                if (!username || !authToken) {
+                    console.error('Missing username or auth token');
+                    throw new Error('Authentication details missing');
+                }
+                
+                // Make an API call to generate tables
+                const response = await fetch('../api/tables/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        count: count,
+                        username: username
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.warn('API returned error:', errorData);
+                    throw new Error(errorData.message || 'API error');
+                }
+                
+                const data = await response.json();
+                console.log('Tables generated:', data);
+                
+                // Load the newly created tables
+                await loadTables();
+                
+                // Switch to tables tab
+                document.querySelector('.tab-button[data-tab="tables-tab"]').click();
+                
+                M.toast({html: `${count} tables generated successfully`, classes: 'green'});
+            } catch (error) {
+                console.error('Error generating tables:', error);
+                M.toast({html: `Error: ${error.message}`, classes: 'red'});
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Helper function to check if a table has active orders
+        function hasActiveOrders(table) {
+            return getOrdersCount(table) > 0;
+        }
+
+        // Helper function to get orders count for a table
+        function getOrdersCount(table) {
+            return table._orders || (table.orders ? table.orders.length : 0);
+        }
+    </script>
+</body>
+</html>

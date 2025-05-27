@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodBao Ultra-Compact UI Test</title>
+    
+    <!-- Import Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Import base styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Import the advanced compact UI CSS -->
+    <link rel="stylesheet" href="css/compact-ui-advanced.css">
+    
+    <style>
+        /* Test page styling */
+        .test-section {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        
+        .test-section h5 {
+            margin: 0 0 5px;
+        }
+        
+        .test-buttons {
+            margin: 5px 0;
+        }
+        
+        /* Modal test styling */
+        #testOrderDetailsModal {
+            width: 95%;
+            max-width: 95%;
+            max-height: 95%;
+            height: 95%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h4 class="center-align">FoodBao Ultra-Compact UI Testing</h4>
+        
+        <div class="row">
+            <div class="col s12">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title">Compact UI Test Suite</span>
+                        <p>This page tests the ultra-compact UI implementation for FoodBao client application.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal UI Testing -->
+        <div class="test-section">
+            <h5>Modal UI Testing</h5>
+            <div class="test-buttons">
+                <button class="btn blue modal-trigger" data-target="testStandardModal">Standard Modal</button>
+                <button class="btn orange modal-trigger" data-target="testOrderDetailsModal">Order Details Modal</button>
+                <button class="btn green" onclick="toggleCompactMode()">Toggle Compact Mode</button>
+            </div>
+        </div>
+        
+        <!-- General UI Testing -->
+        <div class="test-section">
+            <h5>General UI Components</h5>
+            <div class="row">
+                <div class="col s12 m6">
+                    <div class="input-field">
+                        <input type="text" id="testInput" placeholder="Test Input">
+                        <label for="testInput">Test Input</label>
+                    </div>
+                    
+                    <div class="input-field">
+                        <select id="testSelect">
+                            <option value="" disabled selected>Choose an option</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                        </select>
+                        <label>Test Select</label>
+                    </div>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" />
+                            <span>Test Checkbox</span>
+                        </label>
+                    </p>
+                </div>
+                
+                <div class="col s12 m6">
+                    <ul class="collection">
+                        <li class="collection-item">Item 1</li>
+                        <li class="collection-item">Item 2</li>
+                        <li class="collection-item">Item 3</li>
+                    </ul>
+                    
+                    <div class="card-panel">
+                        <span>This is a card panel with some text</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Button Sizes Testing -->
+        <div class="test-section">
+            <h5>Button Sizes</h5>
+            <button class="btn">Standard Button</button>
+            <button class="btn-small">Small Button</button>
+            <button class="btn-large">Large Button</button>
+            <a class="btn-floating"><i class="material-icons">add</i></a>
+        </div>
+        
+        <!-- Order Card Testing -->
+        <div class="test-section">
+            <h5>Order Cards</h5>
+            <div class="row">
+                <div class="col s12 m6 l4">
+                    <div class="card order-card">
+                        <div class="card-content">
+                            <span class="card-title">Order #12345</span>
+                            <div class="status-badge status-pending">Pending</div>
+                            <p class="order-time">10:30 AM</p>
+                            <div class="order-items">
+                                <div class="order-item-row">
+                                    <span class="item-quantity">2x</span>
+                                    <span class="item-name">Chicken Rice</span>
+                                </div>
+                                <div class="order-item-row">
+                                    <span class="item-quantity">1x</span>
+                                    <span class="item-name">Wonton Soup</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-action">
+                            <button class="btn-small blue">View</button>
+                            <button class="btn-small green">Accept</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col s12 m6 l4">
+                    <div class="card order-card">
+                        <div class="card-content">
+                            <span class="card-title">Order #67890</span>
+                            <div class="status-badge status-preparing">Preparing</div>
+                            <p class="order-time">11:15 AM</p>
+                            <div class="order-items">
+                                <div class="order-item-row">
+                                    <span class="item-quantity">3x</span>
+                                    <span class="item-name">Beef Noodles</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-action">
+                            <button class="btn-small blue">View</button>
+                            <button class="btn-small orange">Ready</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Standard Modal -->
+    <div id="testStandardModal" class="modal">
+        <div class="modal-content">
+            <h4>Standard Modal Test</h4>
+            <p>This is a standard modal dialog with default styling that should be adjusted by the compact UI.</p>
+            <div class="input-field">
+                <input type="text" id="modalInput" placeholder="Test Input">
+                <label for="modalInput">Modal Input</label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            <a href="#!" class="modal-close waves-effect waves-green btn">OK</a>
+        </div>
+    </div>
+    
+    <!-- Test Order Details Modal -->
+    <div id="testOrderDetailsModal" class="modal order-details-modal">
+        <div class="modal-header">
+            <h4 class="modal-title">
+                <span id="modalOrderTitle">Order #12345</span>
+                <span id="modalOrderStatus" class="modal-status-badge status-preparing">Preparing</span>
+            </h4>
+            <i class="material-icons modal-close-btn modal-close">close</i>
+        </div>
+        <div class="modal-content">
+            <div class="order-body" id="modalOrderBody">
+                <!-- Order meta information -->
+                <div class="modal-order-meta">
+                    <div class="modal-order-meta-item">
+                        <div class="modal-order-meta-label">Date & Time</div>
+                        <div class="modal-order-meta-value">May 12, 2023 10:30 AM</div>
+                    </div>
+                    <div class="modal-order-meta-item">
+                        <div class="modal-order-meta-label">Table</div>
+                        <div class="modal-order-meta-value"><span class="modal-table-badge">5</span></div>
+                    </div>
+                    <div class="modal-order-meta-item">
+                        <div class="modal-order-meta-label">Customer</div>
+                        <div class="modal-order-meta-value">John Smith</div>
+                    </div>
+                    <div class="modal-order-meta-item">
+                        <div class="modal-order-meta-label">Phone</div>
+                        <div class="modal-order-meta-value">+1 555-123-4567</div>
+                    </div>
+                </div>
+                
+                <!-- Kitchen-friendly flat list of items -->
+                <div class="kitchen-items-list">
+                    <div class="kitchen-item-row">
+                        <div class="kitchen-item-quantity">2×</div>
+                        <div class="kitchen-item-details">
+                            <div class="kitchen-item-name">Chicken Rice</div>
+                            <div class="kitchen-variations-list">
+                                <div class="kitchen-variation-group">
+                                    <div class="kitchen-variation-group-name">Rice Type</div>
+                                    <span class="kitchen-variation-option">Jasmine</span>
+                                </div>
+                                <div class="kitchen-variation-group">
+                                    <div class="kitchen-variation-group-name">Spice Level</div>
+                                    <span class="kitchen-variation-option">Medium</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="kitchen-item-row">
+                        <div class="kitchen-item-quantity">1×</div>
+                        <div class="kitchen-item-details">
+                            <div class="kitchen-item-name">Wonton Soup</div>
+                            <div class="kitchen-variations-list">
+                                <div class="kitchen-variation-group">
+                                    <div class="kitchen-variation-group-name">Size</div>
+                                    <span class="kitchen-variation-option">Large</span>
+                                </div>
+                                <div class="kitchen-variation-group">
+                                    <div class="kitchen-variation-group-name">Options</div>
+                                    <span class="kitchen-variation-option">Extra Wontons</span>
+                                    <span class="kitchen-variation-option">No Green Onions</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order notes -->
+                <div class="kitchen-order-notes">
+                    <strong>Notes:</strong> Please make sure the soup is hot. No cilantro on the chicken rice.
+                </div>
+                
+                <!-- Action buttons -->
+                <div class="modal-actions-container">
+                    <button class="btn waves-effect waves-light orange">
+                        <i class="material-icons left">done</i> Mark as Ready
+                    </button>
+                    <button class="btn waves-effect waves-light red">
+                        <i class="material-icons left">cancel</i> Cancel Order
+                    </button>
+                    <button class="btn waves-effect waves-light blue">
+                        <i class="material-icons left">print</i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    
+    <!-- Load the ultra-compact UI script for maximum space efficiency -->
+    <script src="js/ultra-compact-ui.js"></script>
+    
+    <!-- Validation script -->
+    <script src="js/compact-ui-validator.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Materialize components
+            M.AutoInit();
+            
+            // Run compact UI optimizations
+            setTimeout(function() {
+                // If we have a global function to apply compact UI, call it
+                if (typeof applyCompactSpacingAdjustments === 'function') {
+                    applyCompactSpacingAdjustments();
+                }
+                
+                // If we have a specific function for modals, call it
+                if (typeof optimizeOrderDetailsModal === 'function') {
+                    optimizeOrderDetailsModal();
+                }
+            }, 500);
+        });
+        
+        // Function to toggle compact mode for testing
+        function toggleCompactMode() {
+            document.body.classList.toggle('compact-ui-mode');
+            
+            // Reapply compact styling
+            if (typeof applyCompactSpacingAdjustments === 'function') {
+                setTimeout(applyCompactSpacingAdjustments, 300);
+            }
+            
+            if (typeof optimizeOrderDetailsModal === 'function') {
+                setTimeout(optimizeOrderDetailsModal, 300);
+            }
+        }
+    </script>
+</body>
+</html>

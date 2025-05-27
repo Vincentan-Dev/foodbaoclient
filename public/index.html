@@ -1,425 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Order App</title>
-    <!-- Materialize CSS -->
-    <link rel="stylesheet" href="src/css/materialize.min.css">
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Your custom CSS (after Materialize) -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1976d2">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FoodBao">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="img/FBLogo.jpg">
-    <link rel="apple-touch-icon" sizes="152x152" href="img/FBLogo.jpg">
-    <link rel="apple-touch-icon" sizes="180x180" href="img/FBLogo.jpg">
-    <link rel="apple-touch-icon" sizes="167x167" href="img/FBLogo.jpg">
-    
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            height: 100%;
-        }
-        
-        body {
-            padding-top: 64px; /* Match the height of your navbar (56px mobile, 64px desktop) */
-            background-color: #f5f5f5; /* Fallback color */
-        }
-        
-        /* Adjust padding for mobile */
-        @media only screen and (max-width: 600px) {
-            body {
-                padding-top: 56px; /* Mobile navbar height */
-            }
-        }
-        
-        /* Ensure navbar is at top level */
-        .navbar-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 999;
-        }
-        
-        /* Make sure the sidenav has higher z-index than the fixed navbar */
-        .sidenav {
-            z-index: 1000;
-        }
-        
-        /* Properly position content below fixed navbar */
-        main.container {
-            position: relative;
-            z-index: 1;
-            margin-top: 20px;
-        }
-        
-        /* Enhanced background image styling - Updated with Cloudinary URL */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: url('https://res.cloudinary.com/foodbaoimg/image/upload/v1741439240/ote6ufv7qeywl2t3tzgh.jpg') no-repeat center center;
-            background-size: cover;
-            opacity: 0.45; /* Keeping your existing opacity */
-            filter: brightness(1.05) saturate(1.2) contrast(1.05); /* Keeping your existing filters */
-        }
-        
-        /* More transparent card styling with glass effect */
-        .card-panel {
-            background-color: rgba(255, 255, 255, 0.8); /* More transparent */
-            backdrop-filter: blur(8px); /* Increased blur for glass effect */
-            -webkit-backdrop-filter: blur(8px); /* For Safari */
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        }
-        
-        .card-panel:hover {
-            transform: translateY(-3px);
-            background-color: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
-        }
-        
-        /* Special styles for app content section */
-        #app-content {
-            background-color: rgba(255, 255, 255, 0.75); /* More transparent */
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        
-        /* Better readable text against transparent backgrounds */
-        #app-content h3 {
-            text-shadow: 0px 1px 2px rgba(0,0,0,0.1);
-        }
-        
-        /* Card on dashboard with higher transparency */
-        #app-content .card {
-            background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        #app-content .card:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Fancy input fields with transparency */
-        .input-field input:focus + label {
-            color: #00897b !important;
-        }
-        
-        .input-field input:focus {
-            border-bottom: 1px solid #00897b !important;
-            box-shadow: 0 1px 0 0 #00897b !important;
-        }
-        
-        /* Mobile optimizations */
-        @media only screen and (max-width: 600px) {
-            body::before {
-                opacity: 0.25; /* Slightly less opacity on mobile for readability */
-            }
-            
-            #app-content {
-                background-color: rgba(255, 255, 255, 0.85); /* Less transparent on mobile */
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodBao Client Info</title>
+  <link rel="stylesheet" href="css/compact-ui.css">
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; }
+    .container { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; padding: 32px; }
+    h2 { margin-top: 0; color: #2d3748; }
+    .info { margin: 16px 0; }
+    .error { color: #e53e3e; }
+    .success { color: #38a169; }
+    .label { font-weight: bold; color: #4a5568; }
+    .value { color: #2d3748; }
+  </style>
 </head>
 <body>
-    <script>
-        // Check Oracle ORDS authentication
-        (function checkAuthentication() {
-            const authToken = localStorage.getItem('auth_token');
-            const username = localStorage.getItem('username');
-            
-            if (!authToken || !username) {
-                console.log('Not authenticated, redirecting to login page');
-                window.location.href = 'login.html';
-            } else {
-                console.log('Authentication verified, loading page for user:', username);
-            }
-        })();
-    </script>
-    <script>
-  // Enhanced auth debugging for Firebase deployment
-  (function debugAuthStatus() {
-    const authToken = localStorage.getItem('auth_token');
-    const username = localStorage.getItem('username');
-    
-    console.log('Current environment:', window.location.hostname);
-    console.log('Auth token exists:', !!authToken);
-    console.log('Username exists:', !!username);
-    
-    // Check if we're on Firebase hosting
-    const isFirebaseHosting = window.location.hostname.includes('firebaseapp.com') || 
-                             window.location.hostname.includes('web.app');
-    
-    if (isFirebaseHosting) {
-      console.log('Running on Firebase hosting - checking auth status');
-      
-      // Force re-login if token is suspicious
-      if (authToken && (authToken.length < 20 || authToken.includes('undefined'))) {
-        console.warn('Invalid token detected, clearing auth data');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
-        window.location.href = 'login.html';
-        return;
-      }
-
-      // Add timestamp to track token age
-      const tokenTimestamp = localStorage.getItem('token_timestamp');
-      const currentTime = new Date().getTime();
-      
-      if (!tokenTimestamp) {
-        // Store current timestamp for token age tracking
-        localStorage.setItem('token_timestamp', currentTime);
-      } else if ((currentTime - parseInt(tokenTimestamp)) > 3600000) {
-        // Token older than 1 hour, refresh
-        console.warn('Token expired, redirecting to login');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
-        window.location.href = 'login.html';
-        return;
-      }
+  <div class="container">
+    <h2>Client Info</h2>
+    <div id="status">Loading...</div>
+    <div id="userinfo" style="display:none">
+      <div class="info"><span class="label">ID:</span> <span class="value" id="user-id"></span></div>
+      <div class="info"><span class="label">Email:</span> <span class="value" id="user-email"></span></div>
+      <div class="info"><span class="label">Username:</span> <span class="value" id="user-username"></span></div>
+      <div class="info"><span class="label">Role:</span> <span class="value" id="user-role"></span></div>
+    </div>
+  </div>
+  <script>
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
     }
-  })();
-</script>
-    <!-- Header Component -->
-    <app-header></app-header>
 
-    <!-- Main Content -->
-    <main class="container">
-        <!-- App Content (no longer hidden) -->
-        <section id="app-content">
-            <h5 class="center-align teal-text">FoodBao Dashboard</h5>
-            
-            <!-- Welcome message with username -->
-            <div class="card-panel">
-                <h6>Welcome, <span id="user-name">User</span>!</h6>
-                <p>You are now logged into the FoodBao admin dashboard.</p>
-                <p>Explore the features and manage your tasks efficiently.</p> <!-- Added additional welcome message -->
-                <p>For further assistance, please contact support.</p> <!-- Added support message -->
-            </div>
-            <!-- Add this right after the welcome card-panel -->
-            <div class="row">
-                <div class="col s12">
-                    <h6 class="teal-text">Popular Food Items</h6>
-                </div>
-                <div id="food-items-container" class="row"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer Component -->
-    <app-footer></app-footer>
-
-    <!-- Load Materialize JS from CDN for reliability -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    
-    <!-- Load Components -->
-    <script src="js/components/header.js"></script>
-    <script src="js/components/footer.js"></script>
-    
-    <!-- Load Services - MOVED AFTER FIREBASE -->
-    <script src="js/services/authService.js"></script>
-    
-    <!-- Load App Logic -->
-    <script src="js/app.js"></script>
-    
-    <!-- Load CORS Helper -->
-    <script src="js/services/corsHelper.js"></script>
-    
-    <!-- Initialize Materialize components with proper check -->
-    <script>
-        // Check if Materialize is loaded before initializing components
-        document.addEventListener('DOMContentLoaded', function() {
-            // Make sure Materialize is loaded
-            if (typeof M !== 'undefined') {
-                console.log('Materialize loaded successfully');
-                
-                // Display the username in the welcome message
-                const userNameElement = document.getElementById('user-name');
-                if (userNameElement) {
-                    const username = localStorage.getItem('username');
-                    if (username) {
-                        userNameElement.textContent = username;
-                    }
-                }
-            } else {
-                console.error('Materialize JS not loaded. Check the path to materialize.min.js');
-                // Retry initialization after a delay
-                setTimeout(initMaterialize, 500);
-            }
-        });
-        
-        // Function to retry initialization
-        function initMaterialize() {
-            if (typeof M !== 'undefined') {
-                console.log('Materialize components initialized');
-            } else {
-                console.error('Materialize JS still not loaded after delay');
-            }
+    async function fetchClientData(username) {
+      // Try the direct authkey endpoint first
+      try {
+        const endpoint = `/api/authkey?username=${encodeURIComponent(username)}`;
+        const res = await fetch(endpoint);
+        if (res.ok) {
+          const data = await res.json();
+          return data;
         }
-    </script>
-    <script>
-      // Register service worker for PWA support
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js')
-            .then(registration => {
-              console.log('ServiceWorker registered with scope:', registration.scope);
-            })
-            .catch(error => {
-              console.error('ServiceWorker registration failed:', error);
-            });
-        });
+      } catch (e) {
+        console.log('Direct authkey failed, trying RPC:', e.message);
       }
-    </script>
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing Materialize components');
-    
-    // Check if Materialize is loaded
-    if (typeof M === 'undefined') {
-        console.error('Materialize JS not loaded!');
+      
+      // Fallback to RPC endpoint
+      const endpoint = `/api/supabase-rpc`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          function_name: 'authkey',
+          params: { p_username: username }
+        })
+      });
+      if (!res.ok) throw new Error('Both endpoints failed');
+      const data = await res.json();
+      return data;
+    }
+
+    (async function() {
+      const username = getQueryParam('username');
+      const status = document.getElementById('status');
+      const userinfo = document.getElementById('userinfo');
+      if (!username) {
+        status.textContent = 'No username provided in URL.';
+        status.className = 'error';
         return;
-    }
-    
-    // Initialize sidenav
-    const sidenavElems = document.querySelectorAll('.sidenav');
-    if (sidenavElems.length) {
-        const sidenavInstances = M.Sidenav.init(sidenavElems);
-        console.log('Sidenav initialized');
-        
-        // If using sidenav-trigger class, no need for manual click handler
-        // But let's add one for any logo that might not have the class
-        const logoElements = document.querySelectorAll('.brand-logo:not(.sidenav-trigger)');
-        logoElements.forEach(logo => {
-            logo.addEventListener('click', function(e) {
-                e.preventDefault();
-                const sidenavInstance = M.Sidenav.getInstance(document.querySelector('.sidenav'));
-                if (sidenavInstance) {
-                    sidenavInstance.open();
-                }
-            });
-        });
-    } else {
-        console.warn('No sidenav elements found');
-    }
-    
-    // Initialize dropdowns
-    const dropdowns = document.querySelectorAll('.dropdown-trigger');
-    if (dropdowns.length) {
-        M.Dropdown.init(dropdowns, {
-            coverTrigger: false,
-            constrainWidth: false
-        });
-        console.log('Dropdowns initialized');
-    }
-    
-    // Update username display
-    const username = localStorage.getItem('username');
-    if (username) {
-        const usernameElements = [
-            document.getElementById('user-name'),
-            document.getElementById('nav-username'),
-            document.getElementById('sidenav-username')
-        ];
-        
-        usernameElements.forEach(element => {
-            if (element) element.textContent = username;
-        });
-    }
-
-    // Add this code to your existing DOMContentLoaded event handler
-
-    // After user is authenticated, fetch their details if not already available
-    if (authService.isAuthenticated() && !localStorage.getItem('user_role')) {
-        authService.getUserDetails().then(userDetails => {
-            console.log('User details fetched after authentication');
-            
-            // Update header component if it exists
-            const headerComp = document.querySelector('app-header');
-            if (headerComp && typeof headerComp.updateUserInfo === 'function') {
-                headerComp.updateUserInfo();
-            }
-            
-            // Update welcome message with user details
-            const userNameElement = document.getElementById('user-name');
-            if (userNameElement && userDetails) {
-                userNameElement.textContent = userDetails.username;
-            }
-        });
-    }
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Check if components loaded correctly
-  setTimeout(function() {
-    const header = document.querySelector('app-header');
-    const footer = document.querySelector('app-footer');
-    
-    if (!header || header.childElementCount === 0) {
-      console.error('Header component failed to load properly');
-    }
-    
-    if (!footer || footer.childElementCount === 0) {
-      console.error('Footer component failed to load properly');
-      // Try to re-create the footer
-      const newFooter = document.createElement('app-footer');
-      if (footer) {
-        footer.parentNode.replaceChild(newFooter, footer);
-      } else {
-        document.body.appendChild(newFooter);
       }
-    }
-  }, 500);
-});
-</script>
-<script>
-  // Set token timestamp on login success
-  document.addEventListener('DOMContentLoaded', function() {
-    const authToken = localStorage.getItem('auth_token');
-    if (authToken && !localStorage.getItem('token_timestamp')) {
-      localStorage.setItem('token_timestamp', new Date().getTime());
-      console.log('Set initial token timestamp');
-    }
-  });
-</script>
-<!-- CORS Help Modal -->
-<div id="cors-help-modal" class="modal">
-  <div class="modal-content">
-    <h4>CORS Protection Active</h4>
-    <p>Your browser is blocking direct access to our API due to security protection.</p>
-    <p>To use all features, please install a CORS-unblocking browser extension:</p>
-    <ul>
-      <li><strong>Chrome:</strong> <a href="https://chrome.google.com/webstore/detail/cors-unblock/lfhmikememgdcahcdlaciloancbhjino" target="_blank">CORS Unblock</a></li>
-      <li><strong>Firefox:</strong> <a href="https://addons.mozilla.org/en-US/firefox/addon/cors-everywhere/" target="_blank">CORS Everywhere</a></li>
-    </ul>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" class="modal-close waves-effect waves-green btn-flat">I understand</a>
-  </div>
-</div>
+      status.textContent = 'Fetching user info...';
+      try {
+        const data = await fetchClientData(username);
+        // Store in localStorage
+        localStorage.setItem('foodbao_authkey_result', JSON.stringify(data));        // Parse and display - handle both direct authkey response and RPC response
+        let user = null;
+        let message = '';
+        
+        if (data.success && data.user) {
+          // Direct authkey response format
+          user = data.user;
+          message = data.message || 'Authentication successful';
+        } else if (data.success && data.result && data.result[0]?.result?.user) {
+          // RPC response format
+          user = data.result[0].result.user;
+          message = data.result[0].result.message || 'Authentication successful';
+        }
+        
+        if (user) {
+          document.getElementById('user-id').textContent = user.ID || user.id;
+          document.getElementById('user-email').textContent = user.EMAIL || user.email;
+          document.getElementById('user-username').textContent = user.USERNAME || user.username;
+          document.getElementById('user-role').textContent = user.USER_ROLE || user.role;
+          status.textContent = message;
+          status.className = 'success';
+          userinfo.style.display = '';
+        } else {
+          status.textContent = (data.result && data.result[0]?.result?.message) || data.message || 'Authentication failed.';
+          status.className = 'error';
+        }
+      } catch (e) {
+        status.textContent = 'Error: ' + e.message;
+        status.className = 'error';
+      }
+    })();
+  </script>
 </body>
 </html>

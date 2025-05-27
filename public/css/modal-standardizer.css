@@ -1,0 +1,81 @@
+/**
+ * FoodBao Modal Standardizer CSS
+ * This stylesheet enforces a 95% frame size for all modals across the application
+ */
+
+/* Standard modal sizing (95% frame) */
+.modal {
+  width: 95% !important;
+  max-width: 95% !important;
+  height: 95% !important;
+  max-height: 95% !important;
+  top: 2.5% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+/* Modal content adjustments */
+.modal .modal-content {
+  padding: 3px 5px !important;
+  max-height: calc(100% - 56px) !important; /* Account for footer */
+  overflow-y: auto !important;
+}
+
+/* Modal header compact styling */
+.modal .modal-header {
+  padding: 3px 5px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Modal footer compact styling */
+.modal .modal-footer {
+  padding: 2px 5px !important;
+  height: auto !important;
+  min-height: 36px !important;
+}
+
+/* Compact buttons in modal footer */
+.modal .modal-footer .btn,
+.modal .modal-footer .btn-flat {
+  height: 30px !important;
+  line-height: 30px !important;
+  padding: 0 6px !important;
+  margin: 1px !important;
+  font-size: 0.8rem !important;
+}
+
+/* Handle special modal types */
+.modal.modal-fixed-footer {
+  height: 95% !important;
+  max-height: 95% !important;
+}
+
+.modal.modal-fixed-footer .modal-content {
+  max-height: calc(95vh - 56px) !important;
+}
+
+.modal.bottom-sheet {
+  height: 85% !important;
+  bottom: 0 !important;
+  top: auto !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Small-screen adjustments */
+@media only screen and (max-width: 600px) {
+  .modal {
+    width: 98% !important;
+    height: 98% !important;
+    top: 1% !important;
+  }
+}
+
+/* Handle specific exceptions */
+.modal.special-sizing {
+  /* Add special handling for specific modals that need different sizing */
+}

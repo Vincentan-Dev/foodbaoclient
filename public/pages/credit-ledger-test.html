@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Credit Ledger RPC Test | FoodBao</title>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+    
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .test-card {
+            padding: 20px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        #responseContainer {
+            display: none;
+            margin-top: 20px;
+        }
+        .helper-text {
+            color: #757575;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Component -->
+    <div class="navbar-fixed">
+        <nav class="teal">
+            <div class="nav-wrapper">
+                <a href="../index.html" class="brand-logo center">Credit RPC Test</a>
+                <ul class="left">
+                    <li><a href="../index.html"><i class="material-icons">arrow_back</i></a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+   
+    <!-- Main Content -->
+    <main class="container">
+        <div class="row">
+            <div class="col s12">
+                <div class="card test-card">
+                    <h5>Test Credit Ledger RPC Function</h5>
+                    <p>This page allows you to test the add_credit_ledger RPC function directly without going through the full credit top-up flow.</p>
+                    
+                    <form id="testForm">
+                        <div class="row">
+                            <div class="input-field col s12 m6">
+                                <input id="username" type="text" class="validate" required>
+                                <label for="username">Username</label>
+                                <span class="helper-text">Client username to update</span>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="amount" type="number" step="0.01" min="0.01" class="validate" required>
+                                <label for="amount">Amount</label>
+                                <span class="helper-text">Credit amount to add</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="input-field col s12 m6">
+                                <select id="payment_method">
+                                    <option value="B">Bank Transfer (B)</option>
+                                    <option value="C">Credit Card (C)</option>
+                                    <option value="E">E-Wallet (E)</option>
+                                    <option value="M">Cash (M)</option>
+                                    <option value="O">Other (O)</option>
+                                </select>
+                                <label>Payment Method</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <select id="transaction_type">
+                                    <option value="T">Top-Up (T)</option>
+                                    <option value="P">Purchase (P)</option>
+                                    <option value="A">Adjustment (A)</option>
+                                </select>
+                                <label>Transaction Type</label>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="description" type="text">
+                                <label for="description">Description</label>
+                                <span class="helper-text">Optional transaction description</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col s12">
+                                <button class="btn waves-effect waves-light" type="submit">
+                                    Test RPC Call
+                                    <i class="material-icons right">send</i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="responseContainer" class="card test-card">
+                    <h5>Response</h5>
+                    <div id="statusContainer">
+                        <span>Status: </span>
+                        <span id="statusValue"></span>
+                    </div>
+                    <pre id="responseContent"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize select inputs
+            const selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+            
+            // Get form elements
+            const testForm = document.getElementById('testForm');
+            const usernameInput = document.getElementById('username');
+            const responseContainer = document.getElementById('responseContainer');
+            const statusValue = document.getElementById('statusValue');
+            const responseContent = document.getElementById('responseContent');
+            
+            // Set username from localStorage if available
+            const username = localStorage.getItem('username');
+            if (username) {
+                usernameInput.value = username;
+                M.updateTextFields();
+            }
+            
+            // Handle form submission
+            testForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const username = document.getElementById('username').value;
+                const amount = document.getElementById('amount').value;
+                const payment_method = document.getElementById('payment_method').value;
+                const transaction_type = document.getElementById('transaction_type').value;
+                const description = document.getElementById('description').value;
+                
+                // Show loader
+                const btn = testForm.querySelector('button[type="submit"]');
+                const originalBtnText = btn.innerHTML;
+                btn.innerHTML = '<i class="material-icons right">loop</i>Testing...';
+                btn.disabled = true;
+                
+                try {
+                    // Make API call to test endpoint
+                    const response = await fetch('../api/client/test-credit-ledger', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                        },
+                        body: JSON.stringify({
+                            username,
+                            amount: parseFloat(amount),
+                            payment_method,
+                            transaction_type,
+                            description: description || `Test credit transaction for ${username}`
+                        })
+                    });
+                    
+                    // Get response as text first for debugging
+                    const responseText = await response.text();
+                    console.log('Raw test response:', responseText);
+                    
+                    // Try to parse as JSON
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (error) {
+                        console.error('Error parsing response:', error);
+                        throw new Error(`Invalid response format: ${responseText}`);
+                    }
+                    
+                    // Display results
+                    responseContainer.style.display = 'block';
+                    statusValue.textContent = data.success ? 'Success' : 'Error';
+                    statusValue.className = data.success ? 'green-text' : 'red-text';
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                    
+                    // Display toast message
+                    M.toast({
+                        html: data.success 
+                            ? '<i class="material-icons">check_circle</i> Test completed successfully!'
+                            : `<i class="material-icons">error</i> ${data.message || 'Test failed'}`,
+                        classes: data.success ? 'green' : 'red'
+                    });
+                } catch (error) {
+                    console.error('Error during test:', error);
+                    
+                    // Display error
+                    responseContainer.style.display = 'block';
+                    statusValue.textContent = 'Error';
+                    statusValue.className = 'red-text';
+                    responseContent.textContent = error.toString();
+                    
+                    // Show error toast
+                    M.toast({
+                        html: `<i class="material-icons">error</i> ${error.message}`,
+                        classes: 'red'
+                    });
+                } finally {
+                    // Reset button
+                    btn.innerHTML = originalBtnText;
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Credit Balance | FoodBao</title>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+    
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/custom.css">
+    <link rel="stylesheet" href="../css/fullframe-modal.css">
+    <link rel="stylesheet" href="../css/compact-credit.css">
+    <link rel="manifest" href="../manifest.json">
+    <style>        .credit-card {
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 8px;
+        }
+        
+        .credit-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        }
+        
+        .credit-header {
+            background: linear-gradient(135deg, #4caf50, #8bc34a); /* Default green */
+            color: white;
+            padding: 12px 15px;
+            position: relative;
+        }
+        
+        .credit-header.expiring-soon {
+            background: linear-gradient(135deg, #ff9800, #ffb74d); /* Warning orange */
+        }
+        
+        .credit-header.expired {
+            background: linear-gradient(135deg, #f44336, #e57373); /* Danger red */
+        }
+          .credit-balance-container {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .coin-icon {
+            font-size: 1.8rem;
+            margin-right: 8px;
+            color: #ffc107;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .credit-balance {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+          .expiry-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .credit-expiry {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .days-remaining {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .days-remaining.warning {
+            background-color: rgba(255, 152, 0, 0.3);
+        }
+        
+        .days-remaining.danger {
+            background-color: rgba(244, 67, 54, 0.3);
+        }
+          .credit-body {
+            padding: 12px 15px;
+            background-color: #fff;
+        }
+        
+        /* Flat style modal */
+        .fullframe-modal {
+            width: 92% !important;
+            max-height: 90% !important;
+            border-radius: 4px !important;
+        }
+        
+        .fullframe-modal .modal-content {
+            padding: 15px;
+        }
+          .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        /* Smaller button text */
+        .btn {
+            font-size: 0.8rem;
+            padding: 0 12px;
+            height: 32px;
+            line-height: 32px;
+        }
+        
+        .history-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+          .credit-history-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .credit-history-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .transaction-type {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .transaction-amount.positive {
+            color: #4CAF50;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .transaction-amount.negative {
+            color: #F44336;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+          .transaction-date {
+            color: #757575;
+            font-size: 0.8rem;
+        }
+        
+        .transaction-desc {
+            font-size: 0.8rem;
+            color: #616161;
+            margin-top: 3px;
+        }
+          .top-up-btn {
+            border-radius: 25px;
+            text-transform: none;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+            transition: all 0.2s ease;
+            padding: 0 15px;
+            height: 32px;
+            line-height: 32px;
+        }
+        
+        .top-up-btn:hover {
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .top-up-btn i {
+            margin-right: 5px;
+            font-size: 18px;
+        }
+          .credit-package {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .credit-package.selected {
+            border-color: #2196f3;
+            background-color: rgba(33, 150, 243, 0.05);
+            transform: scale(1.01);
+        }
+        
+        .credit-package:hover {
+            border-color: #bbdefb;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+        
+        .package-amount {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1976d2;
+        }
+        
+        .package-days {
+            font-size: 0.9rem;
+            color: #616161;
+        }
+        
+        .package-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .package-description {
+            font-size: 0.9rem;
+            color: #757575;
+        }
+          .payment-method-option {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin: 6px 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .payment-method-option:hover {
+            border-color: #bbdefb;
+            background-color: #f5f5f5;
+        }
+        
+        .payment-method-option.selected {
+            border-color: #2196f3;
+            background-color: rgba(33, 150, 243, 0.05);
+        }
+        
+        .payment-method-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #1976d2;
+        }
+        
+        .payment-method-name {
+            font-weight: 500;
+        }
+        
+        .credit-warning {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+          .steps-container {
+            margin: 10px 0;
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #2196f3;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            margin-right: 10px;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+          .step-content {
+            flex-grow: 1;
+        }
+        
+        .step-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+        
+        .step-description {
+            color: #757575;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        
+        .modal-content h4 {
+            margin-top: 0;
+        }
+          #topUpConfirmModal .collection {
+            border: none;
+            margin: 6px 0;
+        }
+        
+        #topUpConfirmModal .collection-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 8px 10px;
+            min-height: auto;
+        }
+        
+        #topUpConfirmModal .collection-item .title {
+            font-weight: 500;
+            color: #757575;
+            font-size: 0.85rem;
+        }
+        
+        #topUpConfirmModal .collection-item .value {
+            font-weight: 500;
+            color: #212121;
+            float: right;
+            font-size: 0.85rem;
+        }
+          .circle-loader {
+            margin: 0 auto;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-left-color: #2196f3;
+            animation: loader-spin 1.2s infinite linear;
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        
+        .circle-loader,
+        .checkmark {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .load-complete {
+            -webkit-animation: none;
+            animation: none;
+            border-color: #2196f3;
+            transition: border 500ms ease-out;
+        }
+        
+        .checkmark {
+            display: none;
+        }
+        
+        .checkmark.draw:after {
+            animation-duration: 800ms;
+            animation-timing-function: ease;
+            animation-name: checkmark;
+            transform: scaleX(-1) rotate(135deg);
+        }
+          .checkmark:after {
+            opacity: 1;
+            height: 25px;
+            width: 12px;
+            transform-origin: left top;
+            border-right: 2px solid #2196f3;
+            border-top: 2px solid #2196f3;
+            content: '';
+            left: 14px;
+            top: 25px;
+            position: absolute;
+        }
+        
+        @keyframes loader-spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes checkmark {
+            0% {
+                height: 0;
+                width: 0;
+                opacity: 1;
+            }
+            20% {
+                height: 0;
+                width: 15px;
+                opacity: 1;
+            }
+            40% {
+                height: 30px;
+                width: 15px;
+                opacity: 1;
+            }
+            100% {
+                height: 30px;
+                width: 15px;
+                opacity: 1;
+            }
+        }
+          .low-credit-alert {
+            background-color: #ffebee;
+            border-left: 3px solid #f44336;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .low-credit-alert i {
+            margin-right: 10px;
+            color: #f44336;
+            font-size: 20px;
+        }
+        
+        .low-credit-msg {
+            flex-grow: 1;
+        }
+        
+        .low-credit-msg p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+          .expiring-alert {
+            background-color: #fff8e1;
+            border-left: 3px solid #ffc107;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .expiring-alert i {
+            margin-right: 10px;
+            color: #ffc107;
+            font-size: 20px;
+        }
+        
+        .date-highlight {
+            font-weight: 600;        }
+        
+        @media only screen and (max-width: 600px) {
+            .credit-balance {
+                font-size: 2rem;
+            }
+        }
+        
+        /* New Transaction History Card Styles */
+        .credit-history-item {
+            margin-bottom: 12px;
+        }
+        
+        .transaction-card {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            transition: transform 0.2s ease;
+            background: white;
+            border-left: 4px solid #e0e0e0;
+        }
+        
+        .credit-transaction {
+            border-left-color: #4caf50;
+        }
+        
+        .debit-transaction {
+            border-left-color: #f44336;
+        }
+        
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+        }
+          .transaction-header {
+            padding: 10px 12px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #eeeeee;
+        }
+        
+        .transaction-type-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .credit-pill {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #2e7d32;
+        }
+        
+        .debit-pill {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #c62828;
+        }
+        
+        .transaction-date {
+            color: #757575;
+            font-size: 0.75rem;
+        }
+        
+        .transaction-body {
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .transaction-amount {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .transaction-amount.positive {
+            color: #4caf50;
+        }
+          .transaction-amount.negative {
+            color: #f44336;
+        }
+          .transaction-description {
+            padding: 0 12px 12px;
+            color: #757575;
+            font-size: 0.85rem;
+            border-top: 1px dashed #eeeeee;
+            padding-top: 8px;            
+            margin-top: -4px;
+        }
+          .transaction-payment {
+            padding: 0 12px 8px;
+            color: #757575;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .transaction-payment i {
+            font-size: 1rem;
+            margin-right: 4px;
+            color: #2196f3;
+        }        .transaction-expiry {
+            color: #757575;
+            font-style: italic;
+            font-weight: 500;
+            padding: 0 12px 8px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .transaction-expiry i {
+            font-size: 1.1rem;
+            margin-right: 8px;
+            margin-top: 2px;
+            color: #757575;
+        }
+        
+        .transaction-expiry.expired {
+            color: #f44336;
+        }
+        
+        .transaction-expiry.expired i {
+            color: #f44336;
+        }
+        
+        .transaction-expiry.expiring-soon {
+            color: #ff9800;
+        }
+        
+        .transaction-expiry.expiring-soon i {
+            color: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .days-to-expiry {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        
+        .transaction-expiry.expired .days-to-expiry {
+            color: #f44336;
+        }
+        
+        .transaction-expiry.expiring-soon .days-to-expiry {
+            color: #ff9800;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .transaction-card.expired {
+            border-left-color: #f44336;
+            box-shadow: 0 2px 5px rgba(244, 67, 54, 0.2);
+        }
+        
+        .transaction-card.expiring-soon {
+            border-left-color: #ff9800;
+            box-shadow: 0 2px 5px rgba(255, 152, 0, 0.2);
+        }
+        
+        .expiry-indicator {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 3px;
+            white-space: nowrap;
+        }
+        
+        .expiry-indicator i {
+            font-size: 0.8rem !important;
+            margin-right: 3px;
+        }
+        
+        .expiry-indicator.expired {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #c62828;
+        }
+        
+        .expiry-indicator.expiring-soon {
+            background-color: rgba(255, 152, 0, 0.15);
+            color: #ef6c00;
+        }
+          /* Empty state styling */
+        .empty-state {
+            padding: 20px 15px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .empty-icon {
+            font-size: 36px;
+            color: #bdbdbd;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .error-state .empty-icon {
+            color: #f44336;
+        }
+        
+        .empty-state h5 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #424242;
+        }
+        
+        .empty-text {
+            color: #757575;
+            margin-bottom: 16px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <app-header></app-header>
+
+    <div class="container compact-ui">        <div id="credit-alert-container">
+            <!-- Alerts will be injected here -->
+        </div>
+
+        <div class="card credit-card" style="margin-top: 8px;">
+            <div id="creditHeader" class="credit-header">
+                <h4 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 5px;">Credit Balance</h4>
+                <div class="credit-balance-container">
+                    <i class="material-icons coin-icon">monetization_on</i>
+                    <div id="currentBalance" class="credit-balance">0</div>
+                </div>
+                <div class="expiry-info">
+                    <div class="credit-expiry">Expiry: <span id="expiryDate">Loading...</span></div>
+                    <div id="daysRemaining" class="days-remaining">0 days left</div>
+                </div>
+            </div>            <div class="credit-body" style="padding: 8px 12px;">
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12 center-align">
+                        <button id="topUpBtn" class="btn waves-effect waves-light blue top-up-btn">
+                            <i class="material-icons left">add_circle</i> Top Up
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 10px;">
+            <div class="card-content" style="padding: 10px 15px;">
+                <span class="card-title" style="font-size: 1.1rem; margin-bottom: 8px;">Credit History</span>
+                <div id="creditHistoryContainer">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                    <p class="center-align">Loading transaction history...</p>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Top Up Modal -->
+    <div id="topUpModal" class="modal fullframe-modal">
+        <div class="modal-content" style="padding: 10px 12px;">
+            <div class="modal-header" style="padding-bottom: 8px; margin-bottom: 8px;">
+                <h5 style="margin: 0; font-size: 1.2rem;">Top Up Credit</h5>
+                <button class="modal-close btn-flat" style="padding: 0 6px;"><i class="material-icons">close</i></button>
+            </div>
+            <div id="topUpStep1" class="section active-step">
+                <p style="margin: 5px 0; font-size: 0.9rem;">Choose a credit package to top up your account. The more credits you purchase, the longer your expiry date will be extended.</p>
+                
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Choose Credit Package</div>
+                            <div class="step-description">Select how many credits you'd like to purchase</div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Select Payment Method</div>
+                            <div class="step-description">Choose your preferred way to pay</div>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Confirm and Pay</div>
+                            <div class="step-description">Review your order and complete payment</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="credit-packages-container">
+                    <div class="credit-package" data-amount="50" data-days="30">
+                        <div class="package-name">Basic</div>
+                        <div class="package-amount">50 credits</div>
+                        <div class="package-days">30 days validity</div>
+                        <div class="package-description">Good for occasional use</div>
+                    </div>
+                    
+                    <div class="credit-package" data-amount="100" data-days="60">
+                        <div class="package-name">Standard</div>
+                        <div class="package-amount">100 credits</div>
+                        <div class="package-days">60 days validity</div>
+                        <div class="package-description">Perfect for regular users</div>
+                    </div>
+                    
+                    <div class="credit-package" data-amount="200" data-days="120">
+                        <div class="package-name">Premium</div>
+                        <div class="package-amount">200 credits</div>
+                        <div class="package-days">120 days validity</div>
+                        <div class="package-description">Best value for active clients</div>
+                    </div>
+                    
+                    <div class="credit-package" data-amount="500" data-days="365">
+                        <div class="package-name">Business</div>
+                        <div class="package-amount">500 credits</div>
+                        <div class="package-days">365 days validity</div>
+                        <div class="package-description">Full year of service</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col s12 center-align">
+                        <button id="nextToPaymentBtn" class="btn waves-effect waves-light blue" disabled>
+                            Continue to Payment
+                            <i class="material-icons right">arrow_forward</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="topUpStep2" class="section" style="display: none;">
+                <p>Select your preferred payment method:</p>
+                
+                <div class="payment-methods-container">
+                    <div class="payment-method-option" data-method="bank_transfer">
+                        <div class="row valign-wrapper">
+                            <div class="col s2">
+                                <i class="material-icons payment-method-icon">account_balance</i>
+                            </div>
+                            <div class="col s10">
+                                <div class="payment-method-name">Bank Transfer</div>
+                                <div class="payment-description">Transfer funds directly to our bank account</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method-option" data-method="credit_card">
+                        <div class="row valign-wrapper">
+                            <div class="col s2">
+                                <i class="material-icons payment-method-icon">credit_card</i>
+                            </div>
+                            <div class="col s10">
+                                <div class="payment-method-name">Credit/Debit Card</div>
+                                <div class="payment-description">Pay with Visa, Mastercard, or other cards</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method-option" data-method="e_wallet">
+                        <div class="row valign-wrapper">
+                            <div class="col s2">
+                                <i class="material-icons payment-method-icon">account_balance_wallet</i>
+                            </div>
+                            <div class="col s10">
+                                <div class="payment-method-name">E-Wallet</div>
+                                <div class="payment-description">Pay with your electronic wallet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col s6">
+                        <button id="backToPackagesBtn" class="btn waves-effect waves-light grey">
+                            <i class="material-icons left">arrow_back</i> Back
+                        </button>
+                    </div>
+                    <div class="col s6 right-align">
+                        <button id="nextToConfirmBtn" class="btn waves-effect waves-light blue" disabled>
+                            Review Order <i class="material-icons right">arrow_forward</i>
+                        </button>
+                    </div>
+                </div>
+            </div>            <div id="topUpStep3" class="section" style="display: none;">
+                <h5 style="margin: 5px 0 8px; font-size: 1.1rem;">Order Summary</h5>
+                <div class="row" style="margin-bottom: 10px;">
+                    <div class="col s12">
+                        <ul class="collection" style="margin: 0;">
+                            <li class="collection-item">
+                                <span class="title">Package</span>
+                                <span id="summaryPackage" class="value">Standard</span>
+                            </li>
+                            <li class="collection-item">
+                                <span class="title">Amount</span>
+                                <span id="summaryAmount" class="value">$100.00</span>
+                            </li>
+                            <li class="collection-item">
+                                <span class="title">Validity Extension</span>
+                                <span id="summaryDays" class="value">60 days</span>
+                            </li>
+                            <li class="collection-item">
+                                <span class="title">Payment Method</span>
+                                <span id="summaryPayment" class="value">Bank Transfer</span>
+                            </li>
+                            <li class="collection-item">
+                                <span class="title">Current Expiry</span>
+                                <span id="summaryCurrentExpiry" class="value">-</span>
+                            </li>
+                            <li class="collection-item">
+                                <span class="title">New Expiry</span>
+                                <span id="summaryNewExpiry" class="value">-</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s6">
+                        <button id="backToMethodsBtn" class="btn waves-effect waves-light grey" style="height: 30px; line-height: 30px; padding: 0 10px;">
+                            <i class="material-icons left" style="font-size: 16px; margin-right: 5px;">arrow_back</i> Back
+                        </button>
+                    </div>
+                    <div class="col s6 right-align">
+                        <button id="confirmTopUpBtn" class="btn waves-effect waves-light green" style="height: 30px; line-height: 30px; padding: 0 10px;">
+                            Confirm <i class="material-icons right" style="font-size: 16px; margin-left: 5px;">check</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Confirmation Modal -->
+    <div id="topUpConfirmModal" class="modal">
+        <div class="modal-content center-align" style="padding: 12px 15px;">
+            <div id="processingPayment">
+                <h5 style="margin-top: 5px; margin-bottom: 10px;">Processing Payment</h5>
+                <p style="margin: 5px 0 15px;">Please wait while we process your payment...</p>
+                <div class="circle-loader"></div>
+            </div>
+            <div id="paymentSuccess" style="display: none;">
+                <h5 style="margin-top: 5px; margin-bottom: 10px;">Payment Successful</h5>
+                <div class="circle-loader load-complete">
+                    <div class="checkmark draw"></div>
+                </div>
+                <p style="margin: 10px 0 5px;">Your credit has been successfully topped up!</p>
+                <div style="margin-bottom: 10px;">
+                    <p style="margin: 5px 0;">New Balance: <strong id="newBalanceValue">$0.00</strong></p>
+                    <p style="margin: 5px 0;">New Expiry Date: <strong id="newExpiryValue">-</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" id="successFooter" style="display: none; padding: 8px 10px; height: auto;">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/materialize.min.js"></script>
+    <script src="../utils/toast.js"></script>
+    <script src="../js/api-handler.js"></script>
+    <script src="../js/components/header.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize modals
+            $('.modal').modal();
+            
+            // Variables to store selected options
+            let selectedPackage = null;
+            let selectedPaymentMethod = null;
+            let currentBalance = 0;
+            let currentExpiry = null;
+            let username = localStorage.getItem('username') || '';
+            
+            // Fetch current credit balance and expiry
+            fetchUserCreditInfo();
+            
+            // Fetch credit history
+            fetchCreditHistory();
+            
+            // Add event listener to top up button
+            document.getElementById('topUpBtn').addEventListener('click', function() {
+                M.Modal.getInstance(document.getElementById('topUpModal')).open();
+            });
+            
+            // Package selection
+            document.querySelectorAll('.credit-package').forEach(function(pkg) {
+                pkg.addEventListener('click', function() {
+                    // Remove selected class from all packages
+                    document.querySelectorAll('.credit-package').forEach(p => p.classList.remove('selected'));
+                    
+                    // Add selected class to clicked package
+                    this.classList.add('selected');
+                    
+                    // Store selected package data
+                    selectedPackage = {
+                        name: this.querySelector('.package-name').textContent,
+                        amount: parseFloat(this.getAttribute('data-amount')),
+                        days: parseInt(this.getAttribute('data-days'))
+                    };
+                    
+                    // Enable next button
+                    document.getElementById('nextToPaymentBtn').removeAttribute('disabled');
+                });
+            });
+            
+            // Payment method selection
+            document.querySelectorAll('.payment-method-option').forEach(function(method) {
+                method.addEventListener('click', function() {
+                    // Remove selected class from all methods
+                    document.querySelectorAll('.payment-method-option').forEach(m => m.classList.remove('selected'));
+                    
+                    // Add selected class to clicked method
+                    this.classList.add('selected');
+                    
+                    // Store selected method data
+                    selectedPaymentMethod = {
+                        method: this.getAttribute('data-method'),
+                        name: this.querySelector('.payment-method-name').textContent
+                    };
+                    
+                    // Enable next button
+                    document.getElementById('nextToConfirmBtn').removeAttribute('disabled');
+                });
+            });
+            
+            // Navigation between steps
+            document.getElementById('nextToPaymentBtn').addEventListener('click', function() {
+                document.getElementById('topUpStep1').style.display = 'none';
+                document.getElementById('topUpStep2').style.display = 'block';
+            });
+            
+            document.getElementById('backToPackagesBtn').addEventListener('click', function() {
+                document.getElementById('topUpStep2').style.display = 'none';
+                document.getElementById('topUpStep1').style.display = 'block';
+            });
+            
+            document.getElementById('nextToConfirmBtn').addEventListener('click', function() {
+                updateOrderSummary();
+                document.getElementById('topUpStep2').style.display = 'none';
+                document.getElementById('topUpStep3').style.display = 'block';
+            });
+            
+            document.getElementById('backToMethodsBtn').addEventListener('click', function() {
+                document.getElementById('topUpStep3').style.display = 'none';
+                document.getElementById('topUpStep2').style.display = 'block';
+            });
+            
+            // Process confirmation
+            document.getElementById('confirmTopUpBtn').addEventListener('click', function() {
+                // Close the top up modal
+                M.Modal.getInstance(document.getElementById('topUpModal')).close();
+                
+                // Open the confirmation modal
+                M.Modal.getInstance(document.getElementById('topUpConfirmModal')).open();
+                
+                // Process the payment
+                processPayment();
+            });
+            
+            // Function to update order summary
+            function updateOrderSummary() {
+                if (!selectedPackage || !selectedPaymentMethod) return;
+                
+                document.getElementById('summaryPackage').textContent = selectedPackage.name;
+                document.getElementById('summaryAmount').textContent = `${selectedPackage.amount} credits`;
+                document.getElementById('summaryDays').textContent = `${selectedPackage.days} days`;
+                document.getElementById('summaryPayment').textContent = selectedPaymentMethod.name;
+                
+                // Display current expiry date
+                if (currentExpiry) {
+                    document.getElementById('summaryCurrentExpiry').textContent = formatDate(currentExpiry);
+                    
+                    // Calculate new expiry date
+                    const newExpiryDate = calculateNewExpiryDate(currentExpiry, selectedPackage.days);
+                    document.getElementById('summaryNewExpiry').textContent = formatDate(newExpiryDate);
+                }
+            }
+            
+            // Function to fetch user credit info
+            function fetchUserCreditInfo() {
+                if (!username) {
+                    showToast('User not logged in', 'error');
+                    return;
+                }
+                
+                console.log('Fetching credit info for username:', username);
+                
+                // First try to fetch from clients endpoint which seems to be working
+                fetch(`../api/clients/by-username/${encodeURIComponent(username)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user profile');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Client data loaded:", data);
+                    
+                    // Check if we have a success response with data property
+                    if (data && data.success && data.data) {
+                        // Access the data object directly from the returned response
+                        const clientData = data.data;
+                        
+                        // Update UI with credit balance from data.creditBalance
+                        currentBalance = parseFloat(clientData.creditBalance) || 0;
+                        document.getElementById('currentBalance').textContent = currentBalance.toString();
+                        
+                        // Store credit information in localStorage for offline access
+                        localStorage.setItem('creditBalance', currentBalance.toString());
+                        
+                        // Update expiry date if available - should be in data.expDate
+                        if (clientData.expDate) {
+                            currentExpiry = new Date(clientData.expDate);
+                            document.getElementById('expiryDate').textContent = formatDate(currentExpiry);
+                            
+                            // Store expiry date in localStorage
+                            localStorage.setItem('creditExpiry', clientData.expDate);
+                            
+                            // Calculate and update days remaining
+                            updateDaysRemaining(currentExpiry);
+                            
+                            // Check if expiry date is approaching and update card color
+                            updateExpiryStatusUI(currentExpiry);
+                        } else {
+                            document.getElementById('expiryDate').textContent = 'Not set';
+                            document.getElementById('daysRemaining').textContent = 'No expiry';
+                            localStorage.removeItem('creditExpiry');
+                        }
+                        
+                        // Check if credit balance is low
+                        checkCreditStatus(currentBalance);
+                    } else {
+                        // Fall back to other property access methods
+                        handleFallbackDataAccess(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user profile from clients endpoint:', error);
+                    
+                    // Check if we have cached credit info in localStorage
+                    const cachedBalance = localStorage.getItem('creditBalance');
+                    const cachedExpiry = localStorage.getItem('creditExpiry');
+                    
+                    if (cachedBalance) {
+                        console.log('Using cached credit balance from localStorage');
+                        currentBalance = parseFloat(cachedBalance);
+                        document.getElementById('currentBalance').textContent = currentBalance.toString();
+                        
+                        if (cachedExpiry) {
+                            currentExpiry = new Date(cachedExpiry);
+                            document.getElementById('expiryDate').textContent = formatDate(currentExpiry);
+                            updateDaysRemaining(currentExpiry);
+                            updateExpiryStatusUI(currentExpiry);
+                        } else {
+                            document.getElementById('expiryDate').textContent = 'Not available';
+                            document.getElementById('daysRemaining').textContent = 'No expiry';
+                        }
+                        
+                        checkCreditStatus(currentBalance);
+                    } else {
+                        // Fallback to the client-profile endpoint
+                        tryClientProfileEndpoint();
+                    }
+                });
+            }
+            
+            // Helper function to handle fallback data access patterns
+            function handleFallbackDataAccess(data) {
+                // Try direct property access
+                if (data && data.creditBalance !== undefined) {
+                    currentBalance = parseFloat(data.creditBalance) || 0;
+                    document.getElementById('currentBalance').textContent = currentBalance.toString();
+                    localStorage.setItem('creditBalance', currentBalance.toString());
+                    
+                    if (data.expDate) {
+                        currentExpiry = new Date(data.expDate);
+                        document.getElementById('expiryDate').textContent = formatDate(currentExpiry);
+                        localStorage.setItem('creditExpiry', data.expDate);
+                        updateDaysRemaining(currentExpiry);
+                        updateExpiryStatusUI(currentExpiry);
+                    }
+                    
+                    checkCreditStatus(currentBalance);
+                } else {
+                    // Try using the CREDIT_BALANCE and EXP_DATE fields (uppercase)
+                    if (data && data.data && data.data.CREDIT_BALANCE !== undefined) {
+                        currentBalance = parseFloat(data.data.CREDIT_BALANCE) || 0;
+                        document.getElementById('currentBalance').textContent = currentBalance.toString();
+                        localStorage.setItem('creditBalance', currentBalance.toString());
+                        
+                        if (data.data.EXP_DATE) {
+                            currentExpiry = new Date(data.data.EXP_DATE);
+                            document.getElementById('expiryDate').textContent = formatDate(currentExpiry);
+                            localStorage.setItem('creditExpiry', data.data.EXP_DATE);
+                            updateDaysRemaining(currentExpiry);
+                            updateExpiryStatusUI(currentExpiry);
+                        }
+                        
+                        checkCreditStatus(currentBalance);
+                    } else {
+                        showToast('Could not load credit information', 'error');
+                    }
+                }
+            }
+            
+            // Try to fetch from client-profile endpoint
+            function tryClientProfileEndpoint() {
+                fetch(`../api/client-profile?username=${encodeURIComponent(username)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user profile');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Client profile data:", data);
+                    if (data && data.success && data.data && data.data.client) {
+                        const client = data.data.client;
+                        
+                        // Update UI with credit balance
+                        currentBalance = parseFloat(client.CREDIT_BALANCE) || 0;
+                        document.getElementById('currentBalance').textContent = currentBalance.toString();
+                        
+                        // Store credit information in localStorage for offline access
+                        localStorage.setItem('creditBalance', currentBalance.toString());
+                        
+                        // Update expiry date if available
+                        if (client.EXP_DATE) {
+                            currentExpiry = new Date(client.EXP_DATE);
+                            document.getElementById('expiryDate').textContent = formatDate(currentExpiry);
+                            
+                            // Store expiry date in localStorage
+                            localStorage.setItem('creditExpiry', client.EXP_DATE);
+                            
+                            // Update days remaining
+                            updateDaysRemaining(currentExpiry);
+                            
+                            // Update card color based on expiry status
+                            updateExpiryStatusUI(currentExpiry);
+                        } else {
+                            document.getElementById('expiryDate').textContent = 'Not set';
+                            document.getElementById('daysRemaining').textContent = 'No expiry';
+                            localStorage.removeItem('creditExpiry');
+                        }
+                        
+                        // Check if credit balance is low
+                        checkCreditStatus(currentBalance);
+                    } else {
+                        showToast('Could not load credit information', 'error');
+                        document.getElementById('currentBalance').textContent = '0';
+                        document.getElementById('expiryDate').textContent = 'Not available';
+                        document.getElementById('daysRemaining').textContent = 'No expiry';
+                    }
+                })
+                .catch(finalError => {
+                    console.error('All attempts to fetch user credit info failed:', finalError);
+                    showToast('Error loading credit information', 'error');
+                    document.getElementById('currentBalance').textContent = '0';
+                    document.getElementById('expiryDate').textContent = 'Not available';
+                    document.getElementById('daysRemaining').textContent = 'No expiry';
+                });
+            }
+            
+            // Calculate and update days remaining until expiry
+            function updateDaysRemaining(expiryDate) {
+                if (!expiryDate) return;
+                
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                const daysEl = document.getElementById('daysRemaining');
+                
+                // Update the days remaining text
+                if (daysUntilExpiry <= 0) {
+                    daysEl.textContent = 'Expired';
+                    daysEl.classList.add('danger');
+                } else {
+                    daysEl.textContent = `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''} left`;
+                    
+                    // Add warning class if less than 7 days
+                    if (daysUntilExpiry <= 7) {
+                        daysEl.classList.add('warning');
+                    } else {
+                        daysEl.classList.remove('warning', 'danger');
+                    }
+                }
+            }
+            
+            // Update UI based on expiry status (change card color)
+            function updateExpiryStatusUI(expiryDate) {
+                if (!expiryDate) return;
+                
+                const creditHeader = document.getElementById('creditHeader');
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                
+                // Reset classes first
+                creditHeader.classList.remove('expired', 'expiring-soon');
+                
+                // Apply appropriate class based on days until expiry
+                if (daysUntilExpiry <= 0) {
+                    creditHeader.classList.add('expired');
+                } else if (daysUntilExpiry <= 7) {
+                    creditHeader.classList.add('expiring-soon');
+                }
+                // Default is green (no class needed)
+            }
+              // Function to fetch credit history using Supabase RPC
+            function fetchCreditHistory() {
+                if (!username) {
+                    return;
+                }
+                
+                // Display loading state
+                document.getElementById('creditHistoryContainer').innerHTML = `
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>
+                    <p class="center-align">Loading transaction history...</p>
+                `;
+                
+                // Get auth token
+                const auth_token = localStorage.getItem('auth_token') || '';
+                
+                // Call Supabase RPC endpoint via our API proxy
+                fetch('../api/supabase-rpc', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${auth_token}`
+                    },
+                    body: JSON.stringify({
+                        function_name: 'get_credit_ledgers_by_username',
+                        params: {
+                            p_username: username
+                        }
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.log('Credit history response:', response.status, response.statusText);
+                        return response.text().then(text => {
+                            console.log('Error response text:', text);
+                            throw new Error(`Failed to fetch credit history: ${response.status} ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })                .then(result => {
+                    console.log("Credit history RPC result:", result);
+                    
+                    // Clear loading indicator
+                    document.getElementById('creditHistoryContainer').innerHTML = '';
+                    
+                    // Extract data from the RPC result based on the structure
+                    // Note: Supabase RPC typically returns data in result.result
+                    let transactions = [];
+                    
+                    if (result.success && result.result) {
+                        // If result is directly an array
+                        if (Array.isArray(result.result)) {
+                            transactions = result.result;
+                        } 
+                        // If result has a data property that's an array
+                        else if (result.result.data && Array.isArray(result.result.data)) {
+                            transactions = result.result.data;
+                        }
+                        // If result is an object with nested results
+                        else if (typeof result.result === 'object') {
+                            // Try to find an array property
+                            const arrayProp = Object.keys(result.result).find(key => 
+                                Array.isArray(result.result[key])
+                            );
+                            if (arrayProp) {
+                                transactions = result.result[arrayProp];
+                            }
+                        }
+                    } else if (Array.isArray(result)) {
+                        // Sometimes RPC returns direct array without wrapper
+                        transactions = result;
+                    }
+                    
+                    console.log("Processed transactions:", transactions);
+                      if (transactions && transactions.length > 0) {
+                        // Sort by transaction date (newest first)
+                        // Note: The date format may be MM/DD/YY so we need to parse it carefully
+                        transactions.sort((a, b) => {
+                            // Try different properties that might contain the date
+                            const dateA = a.transaction_date || a.Date;
+                            const dateB = b.transaction_date || b.Date;
+                            
+                            if (dateA && dateB) {
+                                return new Date(dateB) - new Date(dateA);
+                            }
+                            return 0;
+                        });
+                        
+                        // Create a flat card-based UI for the history
+                        const historyContainer = document.getElementById('creditHistoryContainer');
+                        
+                        // Display the history in a more user-friendly format
+                        transactions.forEach(transaction => {
+                            // Determine if this is a credit transaction
+                            // First try standard fields, then custom fields from the RPC
+                            const transactionType = transaction.transaction_type || 
+                                                   (transaction.Credit > 0 ? 'CREDIT' : 'DEBIT');
+                            
+                            const isCredit = transactionType === 'CREDIT' || 
+                                           transactionType === 'TOP_UP' ||
+                                           transaction.Credit > 0;
+                            
+                            // Get the amount, date, and description from various possible fields
+                            const amount = transaction.amount || transaction.Amount || transaction.Credit || 0;
+                            const transactionDate = transaction.transaction_date || transaction.Date;
+                            const description = transaction.description || transaction.Ref || '';
+                              // Check if transaction has expiry and if it's soon or already expired
+                            let expiryClass = '';
+                            let daysToExpiry;
+                            if (transaction.Expiry) {
+                                const expiryDate = new Date(transaction.Expiry);
+                                const today = new Date();
+                                daysToExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                                
+                                if (daysToExpiry <= 0) {
+                                    expiryClass = 'expired';
+                                } else if (daysToExpiry <= 7) {
+                                    expiryClass = 'expiring-soon';
+                                }
+                            }
+                            
+                            const transactionItem = document.createElement('div');
+                            transactionItem.className = 'credit-history-item';                            transactionItem.innerHTML = `
+                                <div class="transaction-card ${isCredit ? 'credit-transaction' : 'debit-transaction'} ${expiryClass}">
+                                    <div class="transaction-header">
+                                        <span class="transaction-type-pill ${isCredit ? 'credit-pill' : 'debit-pill'}">
+                                            ${formatTransactionType(transactionType || (isCredit ? 'CREDIT' : 'DEBIT'))}
+                                        </span>
+                                        <div>
+                                            <span class="transaction-date">${transactionDate || 'Unknown Date'}</span>
+                                            ${(expiryClass === 'expired') ? 
+                                                '<span class="expiry-indicator expired"><i class="material-icons tiny">warning</i>EXPIRED</span>' : 
+                                                (expiryClass === 'expiring-soon' ? 
+                                                    '<span class="expiry-indicator expiring-soon"><i class="material-icons tiny">schedule</i>SOON</span>' : 
+                                                    '')}
+                                        </div>
+                                    </div>
+                                    <div class="transaction-body">
+                                        <div class="transaction-amount ${isCredit ? 'positive' : 'negative'}">
+                                            ${isCredit ? '+' : '-'}${parseFloat(amount).toFixed(2)}
+                                        </div>
+                                    </div>
+                                    ${description ? 
+                                        `<div class="transaction-description">${description}</div>` 
+                                        : ''}
+                                    ${transaction.Expiry ? 
+                                        `<div class="transaction-expiry ${expiryClass}">
+                                            <i class="material-icons tiny">${expiryClass === 'expired' ? 'event_busy' : (expiryClass === 'expiring-soon' ? 'event_available' : 'event')}</i>
+                                            <span>Exp: ${transaction.Expiry}</span>
+                                            ${daysToExpiry !== undefined ? 
+                                                `<span class="days-to-expiry">${daysToExpiry <= 0 ? 
+                                                    `${Math.abs(daysToExpiry)}d ago` : 
+                                                    `${daysToExpiry}d left`}</span>` : 
+                                                ''}
+                                        </div>` 
+                                        : ''}
+                                    ${transaction.Payment ? 
+                                        `<div class="transaction-payment">
+                                            <i class="material-icons tiny">payment</i>
+                                            <span>${transaction.Payment}</span>
+                                        </div>` 
+                                        : ''}
+                                </div>
+                            `;
+                            
+                            document.getElementById('creditHistoryContainer').appendChild(transactionItem);
+                        });
+                    } else {                        // No transaction history
+                        document.getElementById('creditHistoryContainer').innerHTML = `
+                            <div class="empty-state">
+                                <i class="material-icons empty-icon">history</i>
+                                <h5>No Transaction History</h5>
+                                <p class="empty-text">No credit transactions found for your account.</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching credit history:', error);
+                    document.getElementById('creditHistoryContainer').innerHTML = `
+                        <div class="empty-state error-state">
+                            <i class="material-icons empty-icon">error_outline</i>
+                            <h5>Couldn't Load Transactions</h5>
+                            <p class="empty-text">${error.message || 'An unknown error occurred while fetching your transaction history.'}</p>
+                            <button id="retryHistoryBtn" class="btn-small blue waves-effect waves-light">
+                                <i class="material-icons left">refresh</i> Retry
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add retry button event listener
+                    document.getElementById('retryHistoryBtn').addEventListener('click', function() {
+                        fetchCreditHistory();
+                    });
+                });
+            }
+            
+            // Process payment and update credit
+            function processPayment() {
+                if (!selectedPackage || !selectedPaymentMethod || !username) {
+                    showToast('Missing information for payment', 'error');
+                    return;
+                }
+                
+                // Show processing state
+                document.getElementById('processingPayment').style.display = 'block';
+                document.getElementById('paymentSuccess').style.display = 'none';
+                document.getElementById('successFooter').style.display = 'none';
+                
+                const paymentData = {
+                    username: username,
+                    amount: selectedPackage.amount,
+                    days: selectedPackage.days,
+                    payment_method: selectedPaymentMethod.method,
+                    transaction_type: 'TOP_UP',
+                    description: `Credit top-up - ${selectedPackage.name} package`
+                };
+                
+                console.log('Sending payment data:', JSON.stringify(paymentData));
+                
+                // Simulate API call with setTimeout to show processing animation
+                setTimeout(() => {
+                    console.log('Sending request with headers:', {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                    });
+                    
+                    // Make the actual API call
+                    fetch('../api/client/credit-topup', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                        },
+                        body: JSON.stringify(paymentData)
+                    })
+                    .then(response => {
+                        console.log('Credit top-up response status:', response.status);
+                        
+                        // First check if response has content
+                        return response.text().then(text => {
+                            if (!text) {
+                                console.error('Empty response received');
+                                throw new Error('Server returned an empty response');
+                            }
+                            
+                            // Try to parse as JSON
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                console.error('Failed to parse response as JSON:', text);
+                                throw new Error(`Invalid response format: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
+                            }
+                        });
+                    })
+                    .then(data => {
+                        console.log('Credit top-up response data:', data);
+                        
+                        if (!data.success) {
+                            throw new Error(data.message || 'Top-up failed without specific error message');
+                        }
+                        
+                        // Show success state
+                        document.getElementById('processingPayment').style.display = 'none';
+                        document.getElementById('paymentSuccess').style.display = 'block';
+                        document.getElementById('successFooter').style.display = 'block';
+                        
+                        // Update displayed values
+                        const newBalance = data.data.new_balance;
+                        document.getElementById('newBalanceValue').textContent = `${newBalance}`;
+                        
+                        const newExpiryDate = new Date(data.data.new_expiry);
+                        document.getElementById('newExpiryValue').textContent = formatDate(newExpiryDate);
+                        
+                        // Display checkmark
+                        document.querySelector('.checkmark').classList.add('draw');
+                        
+                        // Update the main page right away
+                        currentBalance = newBalance;
+                        currentExpiry = newExpiryDate;
+                        document.getElementById('currentBalance').textContent = newBalance.toString();
+                        document.getElementById('expiryDate').textContent = formatDate(newExpiryDate);
+                        updateDaysRemaining(newExpiryDate);
+                        updateExpiryStatusUI(newExpiryDate);
+                        
+                        // Check if profile update was successful
+                        if (data.data.profile_update_status === 'warning') {
+                            console.warn('Profile update warning: Balance updated in ledger but profile update may be incomplete');
+                            showToast('Credit added but profile update may be delayed. Please refresh later.', 'warning');
+                        }
+                        
+                        // Save the updated credit information to localStorage
+                        localStorage.setItem('creditBalance', newBalance.toString());
+                        localStorage.setItem('creditExpiry', newExpiryDate.toISOString());
+                        
+                        // Fetch fresh data from server to ensure everything is in sync
+                        setTimeout(() => {
+                            fetchUserCreditInfo();
+                            fetchCreditHistory();
+                        }, 1000);
+                        
+                        // Add event listener to close button to refresh data again when modal is closed
+                        document.querySelector('#successFooter .modal-close').addEventListener('click', function() {
+                            fetchUserCreditInfo();
+                            fetchCreditHistory();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error processing payment:', error);
+                        document.getElementById('processingPayment').style.display = 'none';
+                        M.Modal.getInstance(document.getElementById('topUpConfirmModal')).close();
+                        
+                        // Show a more descriptive error message
+                        let errorMessage = 'Error processing payment.';
+                        if (error.message) {
+                            errorMessage += ' ' + error.message;
+                        }
+                        
+                        showToast(errorMessage, 'error');
+                        
+                        // Suggest trying again
+                        setTimeout(() => {
+                            showToast('Please try again or contact support if the problem persists.', 'info');
+                        }, 3000);
+                    });
+                }, 1000); // Reduced from 2 seconds to 1 second for better user experience
+            }
+            
+            // Check credit status and show alerts if necessary
+            function checkCreditStatus(balance) {
+                const alertContainer = document.getElementById('credit-alert-container');
+                
+                // Clear previous alerts
+                alertContainer.innerHTML = '';
+                
+                // Check if balance is low (less than $20)
+                if (balance < 20) {
+                    const lowCreditAlert = document.createElement('div');
+                    lowCreditAlert.className = 'low-credit-alert';
+                    lowCreditAlert.innerHTML = `
+                        <i class="material-icons">warning</i>
+                        <div class="low-credit-msg">
+                            <p><strong>Low Credit Balance</strong></p>
+                            <p>Your credit balance is running low. Please top up to continue using services without interruption.</p>
+                        </div>
+                    `;
+                    alertContainer.appendChild(lowCreditAlert);
+                }
+            }
+            
+            // Check expiry status and show alerts if necessary
+            function checkExpiryStatus(expiryDate) {
+                if (!expiryDate) return;
+                
+                const alertContainer = document.getElementById('credit-alert-container');
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                
+                // Show warning if expiry is within 14 days
+                if (daysUntilExpiry <= 14 && daysUntilExpiry > 0) {
+                    const expiringAlert = document.createElement('div');
+                    expiringAlert.className = 'expiring-alert';
+                    expiringAlert.innerHTML = `
+                        <i class="material-icons">schedule</i>
+                        <div class="low-credit-msg">
+                            <p><strong>Credit Expiring Soon</strong></p>
+                            <p>Your credit will expire in <span class="date-highlight">${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}</span>. 
+                            Please top up to extend your expiry date.</p>
+                        </div>
+                    `;
+                    alertContainer.appendChild(expiringAlert);
+                }
+                // Show critical warning if already expired
+                else if (daysUntilExpiry <= 0) {
+                    const expiredAlert = document.createElement('div');
+                    expiredAlert.className = 'low-credit-alert';
+                    expiredAlert.innerHTML = `
+                        <i class="material-icons">error_outline</i>
+                        <div class="low-credit-msg">
+                            <p><strong>Credit Expired</strong></p>
+                            <p>Your credit has expired. Please top up immediately to restore service access.</p>
+                        </div>
+                    `;
+                    alertContainer.appendChild(expiredAlert);
+                }
+            }
+            
+            // Helper function to calculate new expiry date
+            function calculateNewExpiryDate(currentDate, daysToAdd) {
+                if (!currentDate) {
+                    // If no current expiry, start from today
+                    currentDate = new Date();
+                }
+                
+                // Check if current expiry is in the past
+                const today = new Date();
+                if (currentDate < today) {
+                    // If expired, start from today
+                    currentDate = today;
+                }
+                
+                const newDate = new Date(currentDate);
+                newDate.setDate(newDate.getDate() + daysToAdd);
+                return newDate;
+            }
+            
+            // Helper function to format date
+            function formatDate(date) {
+                if (!date) return 'N/A';
+                
+                try {
+                    if (!(date instanceof Date)) {
+                        date = new Date(date);
+                    }
+                    
+                    // Return formatted date
+                    return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                } catch (e) {
+                    console.error('Error formatting date:', e);
+                    return 'Invalid date';
+                }
+            }
+              // Helper function to format date and time
+            function formatDateTime(dateTime) {
+                if (!dateTime) return 'N/A';
+                
+                try {
+                    const date = new Date(dateTime);
+                    
+                    // Check if the date is valid
+                    if (isNaN(date.getTime())) {
+                        return dateTime; // Return the original string if it's not a valid date
+                    }
+                    
+                    // Return formatted date and time
+                    return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (e) {
+                    console.error('Error formatting date time:', e);
+                    return dateTime || 'Invalid date'; // Return original if available
+                }
+            }
+            
+            // Helper function to format transaction type
+            function formatTransactionType(type) {
+                if (!type) return 'Transaction';
+                
+                switch(type.toUpperCase()) {
+                    case 'TOP_UP':
+                        return 'Credit Top Up';
+                    case 'CREDIT':
+                        return 'Credit Added';
+                    case 'DEBIT':
+                        return 'Credit Used';
+                    case 'ADJUSTMENT':
+                        return 'Balance Adjustment';
+                    case 'EXPIRED':
+                        return 'Credit Expired';
+                    default:
+                        return type;
+                }
+            }
+            
+            // Helper function to display toast messages
+            function showToast(message, type = 'info') {
+                if (window.M && M.toast) {
+                    let classes = '';
+                    
+                    switch(type) {
+                        case 'error':
+                            classes = 'red';
+                            break;
+                        case 'success':
+                            classes = 'green';
+                            break;
+                        case 'warning':
+                            classes = 'orange';
+                            break;
+                        default:
+                            classes = 'blue';
+                    }
+                    
+                    M.toast({
+                        html: message,
+                        classes: classes,
+                        displayLength: 3000
+                    });
+                } else if (window.showToast) {
+                    window.showToast(message, type);
+                } else {
+                    alert(message);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

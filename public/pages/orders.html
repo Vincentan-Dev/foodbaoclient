@@ -1,0 +1,3078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Orders - FoodBao</title>
+    <!-- Materialize CSS -->    <link rel="stylesheet" href="../css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Cache Manager -->
+    <script src="../js/cache-manager.js"></script>
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">    <!-- Add the fullframe-modal CSS for the order details modal -->
+    <link rel="stylesheet" href="../css/fullframe-modal.css">
+    <!-- Add the advanced compact UI CSS -->
+    <link rel="stylesheet" href="../css/compact-ui-advanced.css">
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --primary-light: #a4d0f5;
+            --accent-color: #2ecc71;
+            --secondary-color: #f39c12;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+            --success-color: #27ae60;
+            --text-on-primary: white;
+            --text-dark: #333;
+            --bg-light: #f5f9ff;
+            --transition-speed: 0.3s;
+            --header-height: 36px; /* Reduced header height */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* App header styling */
+        app-header {
+            display: block;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            height: var(--header-height);
+        }
+        
+        app-header .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            min-height: var(--header-height);
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            padding-top: var(--header-height);
+        }
+
+        .page-title {
+            font-size: 1.2rem;
+            margin: 0.5rem 0;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.5rem;
+        }
+
+        /* View toggle switch styling */
+        .view-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+            margin: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .view-type-label {
+            font-size: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .container {
+            padding: 0;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Flat design container - no shadows or rounded corners */
+        .order-section {
+            background: white;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tab navigation */
+        .order-tabs {
+            margin-bottom: 0.75rem;
+            display: flex;
+            border-bottom: 1px solid #eee;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+        }
+
+        /* Icon-based tab styling */
+        .order-tab {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            gap: 5px;
+        }
+
+        .order-tab i {
+            font-size: 20px;
+        }
+
+        .order-tab.active {
+            color: var(--primary-color);
+        }
+
+        .order-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        .order-count {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Flat order row instead of card */
+        .data-row {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        
+        .data-row:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Order header styling */
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            margin-bottom: 0.25rem;
+        }
+
+        .order-id {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .order-time {
+            font-size: 0.75rem;
+            color: #777;
+        }
+        
+        /* Status label styling */
+        .order-status-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-status {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 12px;
+            text-transform: capitalize;
+            display: inline-block;
+        }
+
+        /* Status colors */
+        .status-new {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .status-preparing {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .status-ready {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .status-completed {
+            background-color: var (--success-color);
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Order body section */
+        .order-body {
+            padding: 0.25rem 0;
+        }
+
+        /* Table info */
+        .order-table {
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+            color: #666;
+        }
+
+        /* Order items list */
+        .order-items {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+        }
+        
+        .item-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .item-quantity {
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .item-name {
+            font-size: 0.85rem;
+        }
+
+        .item-price {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Order notes */
+        .order-notes {
+            margin-top: 0.3rem;
+            color: #777;
+            font-size: 0.8rem;
+            padding-top: 0.3rem;
+            font-style: italic;
+        }
+
+        /* Order footer */
+        .order-footer {
+            padding: 0.5rem 0;
+            margin-top: 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #eee;
+        }
+
+        .order-total {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            height: 30px;
+            line-height: 30px;
+            font-size: 0.75rem;
+            padding: 0 0.75rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #777;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-message {
+            color: white;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Card view layout */
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+        }        .order-card {
+            background-color: white;
+            border: 1px solid #eee;
+            padding: 0.85rem; /* Increased from 0.75rem to 0.85rem */
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* List view summary styles */        .list-view-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 0.5rem; /* Increased from 0.75rem to 0.9rem */
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .list-view-row:last-child {
+            border-bottom: none;
+        }
+
+        .list-view-row:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .list-view-row.active {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .order-summary-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-summary-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-summary-id {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .order-summary-details {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .order-detail-panel {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+
+        .order-detail-panel.visible {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+            
+            .order-status {
+                align-self: flex-start;
+            }
+            
+            .order-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .order-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .btn-small {
+                flex: none;
+            }
+
+            .orders-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .list-view-row {
+                flex-wrap: wrap;
+            }
+        }
+        
+        /* Additional styles for kitchen-friendly buttons */
+        .kitchen-action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 6px;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .kitchen-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+        
+        .kitchen-action-btn i {
+            font-size: 24px;
+        }
+        
+        .kitchen-actions-container {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            margin-top: 12px;
+            padding: 8px 0;
+            border-top: 1px dashed #eee;
+        }
+        
+        .kitchen-action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        
+        .kitchen-action-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .btn-pending {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-preparing {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-ready {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-completed {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-cancelled {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-print {
+            background-color: #607d8b;
+            color: white;
+        }
+        
+        /* Table number highlighting */
+        .table-number {
+            display: inline-block;
+            background-color: #f0f4c3;
+            color: #33691e;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: 5px;
+        }
+        
+        /* Item variations styling */
+        .item-variations {
+            margin-left: 15px;
+            padding: 5px 0;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 8px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .variation-group {
+            margin-bottom: 3px;
+        }
+        
+        .variation-group-name {
+            font-weight: bold;
+            color: #444;
+        }
+        
+        /* Status indicator */
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-indicator.status-pending, 
+        .status-indicator.status-new {
+            background-color: var(--warning-color);
+        }
+        
+        .status-indicator.status-preparing {
+            background-color: var(--primary-color);
+        }
+        
+        .status-indicator.status-ready {
+            background-color: var(--accent-color);
+        }
+        
+        .status-indicator.status-completed {
+            background-color: var(--success-color);
+        }
+        
+        .status-indicator.status-cancelled {
+            background-color: var(--danger-color);
+        }
+
+        /* Status-based card colors for better kitchen visibility */
+        .order-card, .order-detail-panel {
+            border-left: 5px solid #ccc;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        
+        .order-card.status-new, .order-detail-panel.status-new,
+        .order-card.status-pending, .order-detail-panel.status-pending {
+            border-color: var(--warning-color);
+            background-color: rgba(241, 196, 15, 0.08);
+        }
+        
+        .order-card.status-preparing, .order-detail-panel.status-preparing {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.08);
+        }
+        
+        .order-card.status-ready, .order-detail-panel.status-ready {
+            border-color: var(--accent-color);
+            background-color: rgba(46, 204, 113, 0.08);
+        }
+        
+        .order-card.status-completed, .order-detail-panel.status-completed {
+            border-color: var(--success-color);
+            background-color: rgba(39, 174, 96, 0.08);
+        }
+        
+        .order-card.status-cancelled, .order-detail-panel.status-cancelled {
+            border-color: var(--danger-color);
+            background-color: rgba(231, 76, 60, 0.08);
+        }
+        
+        /* Improve variation display for kitchen */
+        .kitchen-variations {
+            margin-left: 15px;
+            padding: 3px 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 3px;
+            border-left: 2px solid #ddd;
+        }
+        
+        .variation-tag {
+            display: inline-block;
+            background-color: #eee;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #333;
+        }
+        
+        .item-name {
+            font-weight: bold;
+        }
+        
+        /* Kitchen-focused order item styling */        .kitchen-item {
+            padding: 10px 4px; /* Increased from 8px to 10px */
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .kitchen-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .kitchen-item-quantity {
+            font-size: 2.5rem; /* Increased from 2rem */
+            font-weight: bold;
+            color: #333;
+            margin-right: 15px;
+            min-width: 40px; /* Increased from 30px */
+            text-align: center;
+        }
+        
+        .kitchen-item-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .kitchen-item-name {
+            font-size: 2.4rem; /* Increased from 2rem */
+            font-weight: 700; /* Increased from 500 for better visibility */
+            margin-bottom: 10px;
+        }
+        
+        /* Important notes highlighting */
+        .order-notes {
+            background-color: #fff9c4;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 3px solid #fbc02d;
+        }
+        
+        /* Highlight table numbers even more */
+        .table-badge {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 10px;
+            border: 2px solid #81c784;
+        }
+        
+        /* Full-width status indicator at the top of card */
+        .status-bar {
+            height: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar.status-new, .status-bar.status-pending {
+            background-color: var(--warning-color);
+        }
+        
+        .status-bar.status-preparing {
+            background-color: var(--primary-color);
+        }
+        
+        .status-bar.status-ready {
+            background-color: var(--accent-color);
+        }
+        
+        .status-bar.status-completed {
+            background-color: var(--success-color);
+        }
+        
+        .status-bar.status-cancelled {
+            background-color: var(--danger-color);
+        }        /* Order details modal styling - Ultra-compact version */
+        .order-details-modal {
+            width: 98%;
+            max-width: 98%;
+            max-height: 98%;
+            height: 98%;
+            top: 1% !important;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+        }
+        
+        .order-details-modal .modal-content {
+            padding: 0;
+            overflow-y: auto;
+            max-height: calc(100% - 36px); /* Account for reduced modal header height */
+        }
+        
+        .order-details-modal .modal-header {
+            background-color: #f5f5f5;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            height: 36px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .order-details-modal .modal-title {
+            font-size: var(--font-size-lg);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .order-details-modal .modal-close-btn {
+            position: absolute;
+            top: var(--spacing-xs);
+            right: var(--spacing-sm);
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .order-details-modal .order-body {
+            padding: var(--spacing-md);
+        }
+        
+        .modal-status-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 30px;
+            margin-left: 10px;
+            color: white;
+        }
+        
+        .modal-status-badge.status-new, 
+        .modal-status-badge.status-pending {
+            background-color: var(--warning-color);
+        }
+        
+        .modal-status-badge.status-preparing {
+            background-color: var(--primary-color);
+        }
+        
+        .modal-status-badge.status-ready {
+            background-color: var(--accent-color);
+        }
+        
+        .modal-status-badge.status-completed {
+            background-color: var(--success-color);
+        }
+        
+        .modal-status-badge.status-cancelled {
+            background-color: var(--danger-color);
+        }
+        
+        .modal-order-meta {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .modal-order-meta-item {
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .modal-order-meta-label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .modal-order-meta-value {
+            font-size: 1.1rem;
+        }
+        
+        .modal-table-badge {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            display: inline-block;
+            border: 2px solid #81c784;
+        }
+        
+        .modal-items-container {
+            margin: 20px 0;
+        }
+        
+        .modal-item {
+            display: flex;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-item:hover {
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        
+        .modal-item-quantity {
+            font-size: 1.3rem;
+            font-weight: bold;
+            background-color: #333;
+            color: white;
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .modal-item-details {
+            flex-grow: 1;
+        }
+        
+        .modal-item-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .modal-item-price {
+            font-weight: 500;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+        
+        .modal-item-variations {
+            margin-top: 8px;
+        }
+        
+        .modal-variation-group {
+            margin-bottom: 8px;
+            padding-left: 5px;
+            border-left: 3px solid #e0e0e0;
+        }
+        
+        .modal-variation-group-name {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 3px;
+        }
+        
+        .modal-variation-item {
+            display: inline-block;
+            background-color: #f1f1f1;
+            padding: 3px 10px;
+            margin: 2px 5px 2px 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .modal-variation-price {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .modal-order-notes {
+            background-color: #fff9c4;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #fbc02d;
+        }
+        
+        .modal-order-summary {
+            margin-top: 20px;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .modal-price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .modal-total-row {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding-top: 8px;
+            margin-top: 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .modal-actions-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .modal-action-btn {
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-action-btn i {
+            margin-right: 8px;
+        }
+        
+        .modal-btn-pending {
+            background-color: var(--warning-color);
+            color: #fff;
+        }
+        
+        .modal-btn-preparing {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+        
+        .modal-btn-ready {
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+        
+        .modal-btn-completed {
+            background-color: var (--success-color);
+            color: #fff;
+        }
+        
+        .modal-btn-cancelled {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+        
+        .modal-btn-print {
+            background-color: #9e9e9e;
+            color: #fff;
+        }
+
+        /* Kitchen-friendly flat list items */
+        .kitchen-items-list {
+            margin: 20px 0;
+        }        .kitchen-item-row {
+            display: flex;
+            padding: 22px 10px; /* Increased from 18px to 22px */
+            margin-bottom: 10px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.8rem;
+            align-items: flex-start;
+        }
+
+        .kitchen-item-quantity {
+            font-size: 2.5rem; /* Increased from 2rem */
+            font-weight: bold;
+            color: #333;
+            margin-right: 15px;
+            min-width: 40px; /* Increased from 30px */
+            text-align: center;
+        }
+
+        .kitchen-item-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kitchen-item-name {
+            font-size: 2.4rem; /* Increased from 2rem */
+            font-weight: 700; /* Increased from 500 for better visibility */
+            margin-bottom: 10px;
+        }
+
+        .kitchen-variations-list {
+            margin-top: 8px;
+            padding-left: 8px;
+            border-left: 3px solid #e0e0e0;
+        }
+
+        .kitchen-variation-group {
+            margin-bottom: 10px;
+        }
+
+        .kitchen-variation-group-name {
+            font-weight: 500;
+            color: #555;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+
+        .kitchen-variation-option {
+            display: inline-block;
+            background-color: #f1f1f1;
+            padding: 5px 12px;
+            margin: 4px 6px 4px 0;
+            border-radius: 4px;
+            font-size: 1.5rem;
+        }
+
+        .kitchen-order-notes {
+            background-color: #fff9c4;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #fbc02d;
+            font-size: 1.6rem;
+        }
+
+        /* Round icon buttons */
+        .modal-actions-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .modal-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .modal-icon-btn i {
+            font-size: 18px;
+            color: white;
+        }
+
+        .modal-icon-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .modal-icon-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .modal-icon-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .btn-pending {
+            background-color: var(--warning-color);
+        }
+
+        .btn-preparing {
+            background-color: var(--primary-color);
+        }
+
+        .btn-ready {
+            background-color: var(--accent-color);
+        }
+
+        .btn-completed {
+            background-color: var(--success-color);
+        }
+
+        .btn-cancelled {
+            background-color: var(--danger-color);
+        }
+
+        .btn-print {
+            background-color: #607d8b;
+        }
+        
+        /* Additional compact styling for order details content */
+        .order-details-modal .order-items-section {
+            margin-top: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .order-details-modal h5 {
+            font-size: var(--font-size-lg);
+            margin: var(--spacing-sm) 0;
+        }
+        
+        .order-details-modal table {
+            margin: var(--spacing-xs) 0;
+            border-collapse: collapse;
+        }
+        
+        .order-details-modal table th,
+        .order-details-modal table td {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: var(--font-size-md);
+        }
+        
+        .order-details-modal .order-info-row {
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .order-details-modal .order-info-col {
+            padding: var(--spacing-xs);
+            flex: 1 1 180px;
+        }
+        
+        .order-details-modal .divider {
+            margin: var(--spacing-sm) 0;
+        }
+          .modal-status-badge {
+            font-size: var(--font-size-xs);
+            padding: var(--spacing-xxs) var(--spacing-xs);
+            border-radius: var(--border-radius-sm);
+            margin-left: var(--spacing-sm);
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .modal-status-badge.status-pending {
+            background-color: var(--pending-color);
+            color: #fff;
+        }
+        
+        .modal-status-badge.status-preparing {
+            background-color: var(--preparing-color);
+            color: #fff;
+        }
+        
+        .modal-status-badge.status-ready {
+            background-color: var(--ready-color);
+            color: #fff;
+        }
+        
+        .modal-status-badge.status-completed {
+            background-color: var(--completed-color);
+            color: #fff;
+        }
+        
+        .modal-status-badge.status-cancelled {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+
+        /* Ultra-compact styling for modal order meta information */
+        .modal-order-meta {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 calc(-1 * var(--spacing-xs));
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-order-meta-item {
+            flex: 1 1 120px;
+            padding: var(--spacing-xs);
+            min-width: 120px;
+        }
+        
+        .modal-order-meta-label {
+            font-size: var(--font-size-xs);
+            color: #666;
+            margin-bottom: var(--spacing-xxs);
+        }
+        
+        .modal-order-meta-value {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .modal-table-badge {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 0 var(--spacing-xs);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+        }
+        
+        /* Ultra-compact kitchen-friendly item list */
+        .kitchen-items-list {
+            margin: var(--spacing-sm) 0;
+        }
+          .kitchen-item-row {
+            display: flex;
+            padding: var(--spacing-sm) 0; /* Increased from var(--spacing-xs) to var(--spacing-sm) */
+            border-bottom: 1px dashed #eee;
+            align-items: flex-start;
+        }
+        
+        .kitchen-item-quantity {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            width: 30px;
+            flex-shrink: 0;
+            padding-top: var(--spacing-xxs);
+        }
+        
+        .kitchen-item-details {
+            flex: 1;
+        }
+        
+        .kitchen-item-name {
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            margin-bottom: var(--spacing-xxs);
+        }
+        
+        .kitchen-variations-list {
+            margin-left: var(--spacing-sm);
+        }
+        
+        .kitchen-variation-group {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .kitchen-variation-group-name {
+            font-size: var(--font-size-xs);
+            color: #666;
+            margin-bottom: var(--spacing-xxs);
+        }
+        
+        .kitchen-variation-option {
+            display: inline-block;
+            background-color: #f5f5f5;
+            font-size: var(--font-size-xs);
+            padding: 0 var(--spacing-xs);
+            margin-right: var(--spacing-xs);
+            margin-bottom: var(--spacing-xxs);
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .kitchen-order-notes {
+            margin-top: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: #fff9c4;
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-sm);
+        }
+        
+        /* Ultra-compact action buttons */
+        .modal-actions-container {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            margin-top: var(--spacing-md);
+            gap: var(--spacing-xs);
+        }
+        
+        .modal-actions-container button {
+            height: 32px;
+            line-height: 32px;
+            padding: 0 var(--spacing-md);
+            font-size: var(--font-size-sm);
+            margin: var(--spacing-xxs);
+        }
+        
+        .modal-actions-container button i {
+            font-size: 16px;
+            margin-right: var(--spacing-xs);
+        }
+    </style>
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+    // Enhanced session verification - inline for fastest possible execution
+    (function() {
+        try {
+            // Check session storage first (higher priority), then localStorage
+            const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+            const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+            const currentTime = new Date().getTime();
+            
+            // Prevent back navigation after logout by replacing history state
+            history.replaceState(null, document.title, location.href);
+            
+            // Force reload on back button navigation to ensure fresh session check
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // This catches bfcache navigation in all browsers
+                    window.location.reload();
+                }
+            });
+            
+            // Comprehensive session validation logic
+            if (!sessionKey || !authToken || 
+                !sessionTimestamp || 
+                (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                // Hide content immediately to prevent UI flashing
+                document.documentElement.style.display = 'none';
+                // Redirect with cache-busting parameter
+                const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                window.location.replace(redirectUrl);
+                throw new Error('Session invalid or expired');
+            }
+            
+            // Advanced visibility change detection
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    performFullSessionCheck();
+                }
+            });
+            
+            function performFullSessionCheck() {
+                const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const now = new Date().getTime();
+                
+                if (!currentSessionKey || !currentAuthToken || 
+                    !currentTimestamp || 
+                    (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                    document.documentElement.style.display = 'none';
+                    sessionStorage.clear();
+                    localStorage.removeItem('session_key');
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('session_timestamp');
+                    const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                    window.location.replace(redirectUrl);
+                }
+            }
+            
+            // Set initial check point
+            sessionStorage.setItem('last_activity', currentTime.toString());
+            if (localStorage.getItem('session_key')) {
+                localStorage.setItem('session_timestamp', currentTime.toString());
+            }
+        } catch (e) {
+            // Fail safe: redirect to login on any error
+            console.error('Session verification failed:', e);
+            document.documentElement.style.display = 'none';
+            sessionStorage.clear();
+            localStorage.removeItem('session_key');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_timestamp');
+            window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+        }
+    })();
+    </script>
+    
+    <!-- Add this script block before your other scripts but after the early session check -->
+    <script>
+    // Idle timeout and enhanced session management
+    (function() {
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let idleTimer = null;
+        let isIdle = false;
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            sessionStorage.setItem('last_activity', new Date().getTime().toString());
+            
+            if (isIdle) {
+                isIdle = false;
+            }
+            
+            // Set a new timeout
+            idleTimer = setTimeout(doIdle, IDLE_TIMEOUT);
+        }
+        
+        function doIdle() {
+            isIdle = true;
+            
+            // Clear session data
+            sessionStorage.clear();
+            localStorage.removeItem('session_key');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_timestamp');
+            
+            // Redirect to login with idle parameter
+            window.location.replace('/login.html?idle=true&nocache=' + new Date().getTime());
+        }
+        
+        // Set up event listeners for user activity
+        const resetEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+        resetEvents.forEach(function(eventName) {
+            document.addEventListener(eventName, resetIdleTimer, true);
+        });
+        
+        // Initial setup of idle timer
+        resetIdleTimer();
+    })();
+    </script>
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div>
+            <div class="spinner"></div>
+            <div class="loading-message">Loading orders...</div>
+        </div>
+    </div>
+
+    <app-header></app-header>
+
+    <div class="container">
+        <div class="page-title">
+            <span>Orders</span>
+            <div class="view-toggle-container">
+                <span class="view-type-label">List</span>
+                <label class="switch">
+                    <input type="checkbox" id="viewToggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="view-type-label">Grid</span>
+            </div>
+            <button id="refreshBtn" class="btn-floating waves-effect waves-light blue">
+                <i class="material-icons">refresh</i>
+            </button>
+        </div>
+
+        <div class="order-section">
+            <div class="order-tabs">
+                <div class="order-tab active" data-status="pending">
+                    <i class="material-icons">pending</i> <span class="order-count">0</span>
+                </div>
+                <div class="order-tab" data-status="ready">
+                    <i class="material-icons">check_circle</i> <span class="order-count">0</span>
+                </div>
+                <div class="order-tab" data-status="cancelled">
+                    <i class="material-icons">cancel</i> <span class="order-count">0</span>
+                </div>
+            </div>
+
+            <div id="orders-container">
+                <!-- Orders will be dynamically added here -->
+                <div class="empty-state" id="no-orders-message">
+                    <i class="material-icons">receipt_long</i>
+                    <h5>No orders found</h5>
+                    <p>Orders will appear here as they come in.</p>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Order Details Modal -->
+    <div id="orderDetailsModal" class="modal order-details-modal">
+        <div class="modal-header">
+            <h4 class="modal-title">
+                <span id="modalOrderTitle">Order Details</span>
+                <span id="modalOrderStatus" class="modal-status-badge">Status</span>
+            </h4>
+            <i class="material-icons modal-close-btn modal-close">close</i>
+        </div>
+        <div class="modal-content">
+            <div class="order-body" id="modalOrderBody">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <app-footer></app-footer>    <!-- Import Materialize JS for UI components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Custom component scripts -->
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/footer.js"></script>
+    
+    <!-- Load the ultra-compact UI script for maximum space efficiency -->
+    <script src="../js/ultra-compact-ui.js"></script>
+
+    <script>
+        // Check authentication status before page renders
+        (function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            const username = localStorage.getItem('username');
+            
+            if (!token || !username) {
+                console.log('Not authenticated, redirecting to login page');
+                window.location.href = '../login.html';
+            }
+        })();
+
+        // Elements
+        const ordersContainer = document.getElementById('orders-container');
+        const noOrdersMessage = document.getElementById('no-orders-message');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const orderTabs = document.querySelectorAll('.order-tab');
+        const viewToggle = document.getElementById('viewToggle');
+        
+        // Current state
+        let orders = [];
+        let currentFilter = 'pending';  // Changed default filter to 'pending' instead of 'new'
+        let isCardView = false;  // Default is list view
+        let tableCount = 0;  // Store the number of tables for this client
+        
+        // Function to show loading overlay
+        function showLoading(message = 'Loading orders...') {
+            document.querySelector('.loading-message').textContent = message;
+            loadingOverlay.classList.add('active');
+        }
+
+        // Function to hide loading overlay
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize modal for order details
+            const orderDetailsModal = document.getElementById('orderDetailsModal');
+            const modalInstance = M.Modal.init(orderDetailsModal, {
+                dismissible: true,
+                opacity: 0.5,
+                inDuration: 250,
+                outDuration: 200
+            });
+
+            // Close modal on close button click
+            document.querySelector('.modal-close-btn').addEventListener('click', function() {
+                modalInstance.close();
+            });
+            
+            // Load saved view preference if exists
+            const savedViewPreference = localStorage.getItem('orderViewPreference');
+            if (savedViewPreference === 'card') {
+                isCardView = true;
+                viewToggle.checked = true;
+            }
+            
+            // Set up view toggle
+            viewToggle.addEventListener('change', function() {
+                isCardView = this.checked;
+                localStorage.setItem('orderViewPreference', isCardView ? 'card' : 'list');
+                filterOrders(); // Re-render with the new view
+            });
+            
+            // Load client data first to get table count, then load orders
+            loadClientData();
+            
+            // Set up tab switching
+            orderTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    orderTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-status');
+                    filterOrders();
+                });
+            });
+            
+            // Set up refresh
+            refreshBtn.addEventListener('click', loadOrders);
+            
+            // Auto-refresh every minute
+            setInterval(loadOrders, 60000);
+        });
+
+        // Load client data to get table count
+        async function loadClientData() {
+            try {
+                showLoading('Loading client data...');
+                
+                const clientId = localStorage.getItem('client_id');
+                const token = localStorage.getItem('auth_token');
+                
+                if (!clientId) {
+                    console.warn('Client ID not found in local storage, defaulting to 10 tables');
+                    tableCount = 10; // Default fallback
+                    loadOrders();
+                    return;
+                }
+                
+                // Fetch client data from the client-crud.js endpoint
+                const response = await fetch(`../api/clients-crud?id=${encodeURIComponent(clientId)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('API Error:', response.status);
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to fetch client data');
+                }
+                
+                // Get table count from client data - look for TABLE or TABLE_NUMBER field
+                const client = result.client;
+                tableCount = client.TABLE || client.TABLE_NUMBER || 10; // Default to 10 if not specified
+                
+                console.log(`Client loaded with ${tableCount} table(s)`);
+                
+                // Now load orders
+                loadOrders();
+                
+            } catch (err) {
+                console.error('Error loading client data:', err);
+                M.toast({html: `Error: Could not load client data. ${err.message}`, classes: 'red'});
+                
+                // Fallback to default table count
+                tableCount = 10;
+                loadOrders();
+            }
+        }
+
+        // Load orders from API
+        async function loadOrders() {
+            try {
+                showLoading();
+                
+                const username = localStorage.getItem('username');
+                if (!username) {
+                    throw new Error('Username not found in local storage');
+                }
+                
+                // Fetch orders from the Cloudflare Worker endpoint
+                const response = await fetch(`../api/orders?username=${encodeURIComponent(username)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('API Error:', response.status);
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to fetch orders');
+                }
+                
+                // Transform the orders data to match our UI requirements
+                orders = transformOrdersData(result.data);
+                
+                // Update order counts
+                updateOrderCounts();
+                
+                // Filter and render orders
+                filterOrders();
+            } catch (err) {
+                console.error('Error loading orders:', err);
+                M.toast({html: `Error: Could not load orders. ${err.message}`, classes: 'red'});
+                
+                // Fallback to mock data if API fails
+                console.warn('Falling back to mock data');
+                orders = generateMockOrders();
+                updateOrderCounts();
+                filterOrders();
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Transform orders data from API to UI format
+        function transformOrdersData(apiOrders) {
+            return apiOrders.map(order => {
+                // Get order items if available or empty array if not
+                const orderItems = order.order_items || [];
+                
+                return {
+                    id: order.id,
+                    orderNumber: order.order_number,
+                    time: order.created_at,
+                    status: order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase(),
+                    table: order.table_number,
+                    customerName: order.customer_name,
+                    customerPhone: order.customer_phone,
+                    items: orderItems.map(item => ({
+                        id: item.id,
+                        name: item.item_name,
+                        price: parseFloat(item.unit_price),
+                        quantity: parseInt(item.quantity),
+                        itemId: item.item_id,
+                        // Process nested variations from the order_item_variations array
+                        variations: (item.order_item_variations || []).map(variation => ({
+                            id: variation.id,
+                            variation_id: variation.variation_id,
+                            variation_name: variation.variation_name,
+                            variation_price: parseFloat(variation.variation_price),
+                            group_name: variation.group_name || 'Options'
+                        }))
+                    })),
+                    notes: order.notes,
+                    subtotal: parseFloat(order.subtotal),
+                    serviceFee: parseFloat(order.service_fee),
+                    total: parseFloat(order.total_amount),
+                    isPrinted: order.is_printed
+                };
+            });
+        }
+        
+        // Filter orders based on current tab
+        function filterOrders() {
+            const filteredOrders = currentFilter === 'all' 
+                ? orders 
+                : orders.filter(order => order.status.toLowerCase() === currentFilter);
+                
+            renderOrders(filteredOrders);
+        }
+        
+        // Update order counts in tabs
+        function updateOrderCounts() {
+            // Create a count object to store counts for each status
+            const counts = {
+                pending: 0,
+                ready: 0,
+                cancelled: 0
+            };
+            
+            // Count orders by status
+            orders.forEach(order => {
+                const status = order.status.toLowerCase();
+                
+                // Map 'new' status to 'pending' for counting purposes
+                if (status === 'new') {
+                    counts['pending']++;
+                } else if (counts.hasOwnProperty(status)) {
+                    counts[status]++;
+                }
+            });
+            
+            // Update count displays in tabs
+            orderTabs.forEach(tab => {
+                const status = tab.getAttribute('data-status');
+                const countElement = tab.querySelector('.order-count');
+                countElement.textContent = counts[status] || 0;
+            });
+        }
+        
+        // Render orders in the container
+        function renderOrders(ordersToDisplay) {
+            // Clear container
+            ordersContainer.innerHTML = '';
+            
+            if (ordersToDisplay.length === 0) {
+                ordersContainer.appendChild(noOrdersMessage);
+                return;
+            }
+            
+            // Sort orders by time (newest first)
+            ordersToDisplay.sort((a, b) => new Date(b.time) - new Date(a.time));
+            
+            if (isCardView) {
+                // Render card view
+                const ordersGrid = document.createElement('div');
+                ordersGrid.className = 'orders-grid';
+                
+                ordersToDisplay.forEach(order => {
+                    const orderCard = createCardViewOrder(order);
+                    ordersGrid.appendChild(orderCard);
+                });
+                
+                ordersContainer.appendChild(ordersGrid);
+            } else {
+                // Render list view with expandable details
+                renderListView(ordersToDisplay);
+            }
+        }
+        
+        // Function to render list view with expandable details
+        function renderListView(ordersToDisplay) {
+            ordersToDisplay.forEach(order => {
+                const listItemContainer = document.createElement('div');
+                listItemContainer.className = 'list-item-container';
+                
+                // Create the summary row (always visible)
+                const listViewRow = document.createElement('div');
+                listViewRow.className = `list-view-row status-${order.status.toLowerCase()}`;
+                listViewRow.setAttribute('data-order-id', order.id);
+                
+                // Left side with order info
+                const orderSummaryLeft = document.createElement('div');
+                orderSummaryLeft.className = 'order-summary-left';
+                
+                // Status indicator (colored dot)
+                const statusIndicator = document.createElement('span');
+                statusIndicator.className = `status-indicator status-${order.status.toLowerCase()}`;
+                
+                // Show table number prominently if available
+                let tableDisplay = '';
+                if (order.table) {
+                    tableDisplay = `<span class="table-badge">${order.table}</span>`;
+                }
+                
+                // Order info
+                const orderSummaryInfo = document.createElement('div');
+                orderSummaryInfo.className = 'order-summary-info';
+                
+                // Create summary text with order number and time
+                const orderSummaryId = document.createElement('div');
+                orderSummaryId.className = 'order-summary-id';
+                orderSummaryId.innerHTML = `${tableDisplay} Order #${order.orderNumber || order.id.substr(0, 8)}`;
+                
+                // Build summary details text
+                let detailsText = formatOrderTime(order.time);
+                
+                // Show total items count
+                const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                detailsText = `${totalItems} item${totalItems !== 1 ? 's' : ''} · ${detailsText}`;
+                
+                const orderSummaryDetails = document.createElement('div');
+                orderSummaryDetails.className = 'order-summary-details';
+                orderSummaryDetails.textContent = detailsText;
+                
+                orderSummaryInfo.appendChild(orderSummaryId);
+                orderSummaryInfo.appendChild(orderSummaryDetails);
+                
+                orderSummaryLeft.appendChild(statusIndicator);
+                orderSummaryLeft.appendChild(orderSummaryInfo);
+                
+                // Right side with status and action buttons
+                const orderSummaryRight = document.createElement('div');
+                orderSummaryRight.className = 'order-summary-right';
+                
+                // Status badge
+                const orderStatus = document.createElement('span');
+                orderStatus.className = `order-status status-${order.status.toLowerCase()}`;
+                orderStatus.textContent = order.status;
+                
+                // View details icon
+                const viewIcon = document.createElement('i');
+                viewIcon.className = 'material-icons view-details-icon';
+                viewIcon.textContent = 'visibility';
+                
+                orderSummaryRight.appendChild(orderStatus);
+                orderSummaryRight.appendChild(viewIcon);
+                
+                // Assemble the summary row
+                listViewRow.appendChild(orderSummaryLeft);
+                listViewRow.appendChild(orderSummaryRight);
+                
+                // Add click event to open the modal instead of expanding
+                listViewRow.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    showOrderDetailsModal(orderId);
+                });
+                
+                // Add the summary row to the container
+                listItemContainer.appendChild(listViewRow);
+                ordersContainer.appendChild(listItemContainer);
+            });
+        }
+        
+        // Helper function to create kitchen-focused detail content
+        function createKitchenDetailContent(order) {
+            const detailContainer = document.createElement('div');
+            
+            // Add table number prominently if available
+            if (order.table) {
+                const tableInfo = document.createElement('div');
+                tableInfo.className = 'order-table';
+                tableInfo.innerHTML = `<strong>Table: </strong><span class="table-badge">${order.table}</span>`;
+                detailContainer.appendChild(tableInfo);
+            }
+            
+            // Add customer info if available
+            if (order.customerName && order.customerName !== 'Guest Customer') {
+                const customerInfo = document.createElement('div');
+                customerInfo.className = 'customer-info';
+                customerInfo.innerHTML = `
+                    <strong>Customer:</strong> ${order.customerName}
+                    ${order.customerPhone && order.customerPhone !== 'N/A' ? ` <span>(${order.customerPhone})</span>` : ''}
+                `;
+                detailContainer.appendChild(customerInfo);
+            }
+            
+            // Create kitchen-focused order items list
+            const orderItems = document.createElement('div');
+            orderItems.className = 'order-items';
+            
+            order.items.forEach(item => {
+                const kitchenItem = document.createElement('div');
+                kitchenItem.className = 'kitchen-item';
+                
+                const kitchenItemHeader = document.createElement('div');
+                kitchenItemHeader.className = 'kitchen-item-header';
+                
+                const kitchenItemInfo = document.createElement('div');
+                kitchenItemInfo.className = 'kitchen-item-info';
+                
+                // Prominent quantity display
+                const itemQuantity = document.createElement('div');
+                itemQuantity.className = 'kitchen-item-quantity';
+                itemQuantity.textContent = item.quantity;
+                
+                // Item name
+                const itemName = document.createElement('div');
+                itemName.className = 'item-name';
+                itemName.textContent = item.name;
+                
+                kitchenItemInfo.appendChild(itemQuantity);
+                kitchenItemInfo.appendChild(itemName);
+                kitchenItemHeader.appendChild(kitchenItemInfo);
+                kitchenItem.appendChild(kitchenItemHeader);
+                
+                // Display variations with improved styling for kitchen staff
+                if (item.variations && item.variations.length > 0) {
+                    const variationsContainer = document.createElement('div');
+                    variationsContainer.className = 'kitchen-variations';
+                    
+                    // Group variations by group name
+                    const groupedVariations = {};
+                    item.variations.forEach(variation => {
+                        const groupName = variation.group_name || 'Options';
+                        if (!groupedVariations[groupName]) {
+                            groupedVariations[groupName] = [];
+                        }
+                        groupedVariations[groupName].push(variation);
+                    });
+                    
+                    // Create variation groups with tags
+                    Object.keys(groupedVariations).forEach(groupName => {
+                        const groupContainer = document.createElement('div');
+                        groupContainer.innerHTML = `<strong>${groupName}:</strong> `;
+                        
+                        // Add variation tags
+                        const variations = groupedVariations[groupName];
+                        variations.forEach(v => {
+                            const variationTag = document.createElement('span');
+                            variationTag.className = 'variation-tag';
+                            variationTag.textContent = v.variation_name;
+                            groupContainer.appendChild(variationTag);
+                        });
+                        
+                        variationsContainer.appendChild(groupContainer);
+                    });
+                    
+                    kitchenItem.appendChild(variationsContainer);
+                }
+                
+                orderItems.appendChild(kitchenItem);
+            });
+            
+            detailContainer.appendChild(orderItems);
+            
+            // Highlight order notes for kitchen staff
+            if (order.notes && order.notes.trim()) {
+                const orderNotes = document.createElement('div');
+                orderNotes.className = 'order-notes';
+                orderNotes.innerHTML = `<strong>Notes:</strong> ${order.notes}`;
+                detailContainer.appendChild(orderNotes);
+            }
+            
+            // Add kitchen-friendly action buttons
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'kitchen-actions-container';
+            
+            // Create different action buttons based on order status
+            switch (order.status.toLowerCase()) {
+                case 'pending':
+                case 'new':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-ready" data-tooltip="Ready" onclick="updateOrderStatus('${order.id}', 'ready')">
+                            <i class="material-icons">check_circle</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'ready':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Back to Pending" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">undo</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'cancelled':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Reopen" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">replay</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+            }
+            
+            detailContainer.appendChild(actionButtons);
+            
+            return detailContainer;
+        }
+        
+        // Helper function to create order detail content
+        function createOrderDetailContent(order) {
+            const detailContainer = document.createElement('div');
+            
+            // Add table number prominently if available
+            if (order.table) {
+                const tableInfo = document.createElement('div');
+                tableInfo.className = 'order-table';
+                tableInfo.innerHTML = `<strong>Table: </strong><span class="table-number">${order.table}</span>`;
+                detailContainer.appendChild(tableInfo);
+            }
+            
+            // Add customer info if available
+            if (order.customerName && order.customerName !== 'Guest Customer') {
+                const customerInfo = document.createElement('div');
+                customerInfo.className = 'customer-info';
+                customerInfo.innerHTML = `
+                    <strong>Customer:</strong> ${order.customerName}
+                    ${order.customerPhone && order.customerPhone !== 'N/A' ? ` <span>(${order.customerPhone})</span>` : ''}
+                `;
+                detailContainer.appendChild(customerInfo);
+            }
+            
+            // Create order items list
+            const orderItems = document.createElement('div');
+            orderItems.className = 'order-items';
+            
+            order.items.forEach(item => {
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                
+                const itemInfo = document.createElement('div');
+                itemInfo.className = 'item-info';
+                itemInfo.innerHTML = `
+                    <span class="item-quantity">${item.quantity}×</span>
+                    <span class="item-name">${item.name}</span>
+                `;
+                
+                const itemPrice = document.createElement('div');
+                itemPrice.className = 'item-price';
+                itemPrice.textContent = `RM ${(item.price * item.quantity).toFixed(2)}`;
+                
+                orderItem.appendChild(itemInfo);
+                orderItem.appendChild(itemPrice);
+                orderItems.appendChild(orderItem);
+                
+                // Display variations if any
+                if (item.variations && item.variations.length > 0) {
+                    const variationsContainer = document.createElement('div');
+                    variationsContainer.className = 'item-variations';
+                    
+                    // Group variations by group name
+                    const groupedVariations = {};
+                    item.variations.forEach(variation => {
+                        const groupName = variation.group_name || 'Options';
+                        if (!groupedVariations[groupName]) {
+                            groupedVariations[groupName] = [];
+                        }
+                        groupedVariations[groupName].push(variation);
+                    });
+                    
+                    // Create variation groups
+                    Object.keys(groupedVariations).forEach(groupName => {
+                        const variationGroup = document.createElement('div');
+                        variationGroup.className = 'variation-group';
+                        variationGroup.innerHTML = `<span class="variation-group-name">${groupName}:</span> `;
+                        
+                        // Add variation names with prices
+                        const variations = groupedVariations[groupName];
+                        const variationTexts = variations.map(v => {
+                            const priceText = parseFloat(v.variation_price) > 0 ? 
+                                ` (+RM${parseFloat(v.variation_price).toFixed(2)})` : '';
+                            return `${v.variation_name}${priceText}`;
+                        });
+                        
+                        variationGroup.innerHTML += variationTexts.join(', ');
+                        variationsContainer.appendChild(variationGroup);
+                    });
+                    
+                    orderItems.appendChild(variationsContainer);
+                }
+            });
+            
+            detailContainer.appendChild(orderItems);
+            
+            // Add price breakdown
+            const priceBreakdown = document.createElement('div');
+            priceBreakdown.className = 'price-breakdown';
+            priceBreakdown.innerHTML = `
+                <div class="price-row">
+                    <span>Subtotal:</span>
+                    <span>RM ${order.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="price-row">
+                    <span>Service Fee:</span>
+                    <span>RM ${order.serviceFee.toFixed(2)}</span>
+                </div>
+                <div class="price-row total-row">
+                    <span>Total:</span>
+                    <span>RM ${order.total.toFixed(2)}</span>
+                </div>
+            `;
+            detailContainer.appendChild(priceBreakdown);
+            
+            // Add notes if available
+            if (order.notes && order.notes.trim()) {
+                const orderNotes = document.createElement('div');
+                orderNotes.className = 'order-notes';
+                orderNotes.innerHTML = `<strong>Notes:</strong> ${order.notes}`;
+                detailContainer.appendChild(orderNotes);
+            }
+            
+            // Add kitchen-friendly action buttons
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'kitchen-actions-container';
+            
+            // Create different action buttons based on order status
+            switch (order.status.toLowerCase()) {
+                case 'pending':
+                case 'new':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-ready" data-tooltip="Ready" onclick="updateOrderStatus('${order.id}', 'ready')">
+                            <i class="material-icons">check_circle</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'ready':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Back to Pending" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">undo</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'cancelled':
+                    actionButtons.innerHTML = `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Reopen" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">replay</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+            }
+            
+            detailContainer.appendChild(actionButtons);
+            
+            return detailContainer;
+        }
+        
+        // Helper function to create kitchen-friendly order card view
+        function createCardViewOrder(order) {
+            const orderCard = document.createElement('div');
+            orderCard.className = `order-card status-${order.status.toLowerCase()}`;
+            orderCard.setAttribute('data-order-id', order.id);
+            
+            // Add status bar at the top of card for easy visual identification
+            const statusBar = document.createElement('div');
+            statusBar.className = `status-bar status-${order.status.toLowerCase()}`;
+            orderCard.appendChild(statusBar);
+            
+            const orderHeader = document.createElement('div');
+            orderHeader.className = 'order-header';
+            
+            const orderIdTime = document.createElement('div');
+            orderIdTime.innerHTML = `
+                <div class="order-id">Order #${order.orderNumber || order.id.substr(0, 8)}</div>
+                <div class="order-time">${formatOrderTime(order.time)}</div>
+            `;
+            
+            const orderStatusGroup = document.createElement('div');
+            orderStatusGroup.className = 'order-status-group';
+            
+            const orderStatus = document.createElement('span');
+            orderStatus.className = `order-status status-${order.status.toLowerCase()}`;
+            orderStatus.textContent = order.status;
+            
+            // Add printed indicator if needed
+            if (order.isPrinted) {
+                const printedIcon = document.createElement('i');
+                printedIcon.className = 'material-icons tiny';
+                printedIcon.textContent = 'print';
+                printedIcon.title = 'Order printed';
+                orderStatusGroup.appendChild(printedIcon);
+            }
+            
+            orderStatusGroup.appendChild(orderStatus);
+            orderHeader.appendChild(orderIdTime);
+            orderHeader.appendChild(orderStatusGroup);
+            
+            const orderBody = document.createElement('div');
+            orderBody.className = 'order-body';
+            
+            // Add table number prominently with larger, more visible styling
+            if (order.table) {
+                const tableInfo = document.createElement('div');
+                tableInfo.className = 'order-table';
+                tableInfo.innerHTML = `<strong>Table: </strong><span class="table-badge">${order.table}</span>`;
+                orderBody.appendChild(tableInfo);
+            }
+            
+            // Show total items count
+            const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+            const itemsCount = document.createElement('div');
+            itemsCount.className = 'items-count';
+            itemsCount.textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''}`;
+            orderBody.appendChild(itemsCount);
+            
+            // Show total amount
+            const totalAmount = document.createElement('div');
+            totalAmount.className = 'order-total';
+            totalAmount.innerHTML = `<strong>Total:</strong> RM ${order.total.toFixed(2)}`;
+            orderBody.appendChild(totalAmount);
+            
+            // Add kitchen-friendly action buttons in the footer - icon only with tooltips
+            const orderActions = document.createElement('div');
+            orderActions.className = 'kitchen-actions-container';
+            
+            // Add "View Details" button 
+            const viewDetailsBtn = document.createElement('button');
+            viewDetailsBtn.className = 'kitchen-action-btn btn-view-details';
+            viewDetailsBtn.innerHTML = '<i class="material-icons">visibility</i>';
+            viewDetailsBtn.setAttribute('data-tooltip', 'View Details');
+            viewDetailsBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                showOrderDetailsModal(order.id);
+            });
+            orderActions.appendChild(viewDetailsBtn);
+            
+            // Create status-specific action buttons
+            switch (order.status.toLowerCase()) {
+                case 'pending':
+                case 'new':
+                    orderActions.innerHTML += `
+                        <button class="kitchen-action-btn btn-ready" data-tooltip="Ready" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'ready')">
+                            <i class="material-icons">check_circle</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="event.stopPropagation(); printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'ready':
+                    orderActions.innerHTML += `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Back to Pending" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">undo</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-cancelled" data-tooltip="Cancel" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="event.stopPropagation(); printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'cancelled':
+                    orderActions.innerHTML += `
+                        <button class="kitchen-action-btn btn-pending" data-tooltip="Reopen" onclick="event.stopPropagation(); updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">replay</i>
+                        </button>
+                        <button class="kitchen-action-btn btn-print" data-tooltip="Print" onclick="event.stopPropagation(); printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+            }
+            
+            orderCard.appendChild(orderHeader);
+            orderCard.appendChild(orderBody);
+            orderCard.appendChild(orderActions);
+            
+            // Add click event to the card to open modal
+            orderCard.addEventListener('click', function() {
+                showOrderDetailsModal(order.id);
+            });
+            
+            return orderCard;
+        }
+        
+        // Update order status
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                // Only allow updating to our supported statuses
+                if (!['pending', 'ready', 'cancelled'].includes(newStatus.toLowerCase())) {
+                    throw new Error(`Status ${newStatus} is not supported`);
+                }
+                
+                showLoading(`Updating order status to ${newStatus}...`);
+                
+                // Call the API to update order status
+                const response = await fetch(`../api/orders`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ 
+                        id: orderId, 
+                        status: newStatus.toUpperCase() 
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Failed to update status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to update order status');
+                }
+                
+                // Update the order in our local data
+                const orderIndex = orders.findIndex(order => order.id === orderId);
+                if (orderIndex !== -1) {
+                    orders[orderIndex].status = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).toLowerCase();
+                    
+                    // Update UI
+                    updateOrderCounts();
+                    filterOrders();
+                    
+                    M.toast({html: `Order #${orders[orderIndex].orderNumber || orderId.substr(0, 8)} status updated to ${newStatus}`, classes: 'green'});
+                    
+                    // Close the modal if it's open
+                    const orderDetailsModal = document.getElementById('orderDetailsModal');
+                    const modalInstance = M.Modal.getInstance(orderDetailsModal);
+                    if (modalInstance) {
+                        modalInstance.close();
+                    }
+                }
+            } catch (err) {
+                console.error('Error updating order status:', err);
+                M.toast({html: `Error: ${err.message}`, classes: 'red'});
+                
+                // Fallback - update UI anyway for better user experience
+                const orderIndex = orders.findIndex(order => order.id === orderId);
+                if (orderIndex !== -1) {
+                    orders[orderIndex].status = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).toLowerCase();
+                    updateOrderCounts();
+                    filterOrders();
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Print order receipt
+        function printOrderReceipt(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            // Create a print window
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                M.toast({html: 'Please allow popups to print', classes: 'red'});
+                return;
+            }
+            
+            // Get business name from storage
+            const businessName = localStorage.getItem('business_name') || order.business_name || 'FoodBao Restaurant';
+            
+            // Format the order time
+            const orderTime = formatOrderTime(order.time);
+            
+            // Create receipt content
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Order #${order.orderNumber || order.id} Receipt</title>
+                    <style>
+                        body {
+                            font-family: 'Courier New', monospace;
+                            width: 300px;
+                            margin: 0 auto;
+                            padding: 10px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 10px;
+                        }
+                        .title {
+                            font-size: 16px;
+                            font-weight: bold;
+                        }
+                        .subtitle {
+                            font-size: 14px;
+                        }
+                        .info {
+                            margin: 10px 0;
+                            border-top: 1px dashed #000;
+                            border-bottom: 1px dashed #000;
+                            padding: 5px 0;
+                        }
+                        .items {
+                            margin: 10px 0;
+                        }
+                        .item {
+                            display: flex;
+                            justify-content: space-between;
+                            margin: 5px 0;
+                        }
+                        .item-variations {
+                            margin-left: 15px;
+                            font-size: 12px;
+                            color: #555;
+                        }
+                        .total-section {
+                            margin-top: 10px;
+                            border-top: 1px dashed #000;
+                            padding-top: 5px;
+                        }
+                        .price-row {
+                            display: flex;
+                            justify-content: space-between;
+                        }
+                        .total-row {
+                            font-weight: bold;
+                            margin-top: 5px;
+                            border-top: 1px solid #000;
+                            padding-top: 5px;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 20px;
+                            font-size: 12px;
+                        }
+                        @media print {
+                            @page {
+                                size: 80mm 297mm; /* Standard thermal receipt size */
+                                margin: 0;
+                            }
+                            body {
+                                width: 72mm;
+                                padding: 5mm;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="title">${businessName}</div>
+                        <div class="subtitle">Order Receipt</div>
+                    </div>
+                    
+                    <div class="info">
+                        <div>Order #: ${order.orderNumber || order.id}</div>
+                        <div>Date: ${orderTime}</div>
+                        ${order.table ? `<div>Table: ${order.table}</div>` : ''}
+                        ${order.customerName && order.customerName !== 'Guest Customer' ? 
+                          `<div>Customer: ${order.customerName}</div>` : ''}
+                        <div>Status: ${order.status}</div>
+                    </div>
+                    
+                    <div class="items">
+                        ${order.items.map(item => `
+                            <div class="item">
+                                <div>${item.quantity}× ${item.name}</div>
+                                <div>RM ${(item.price * item.quantity).toFixed(2)}</div>
+                            </div>
+                            ${item.variations && item.variations.length > 0 ? 
+                              `<div class="item-variations">
+                                ${item.variations.map(v => 
+                                  `${v.variation_name} ${parseFloat(v.variation_price) > 0 ? 
+                                    `(+RM${parseFloat(v.variation_price).toFixed(2)})` : ''}`
+                                ).join(', ')}
+                              </div>` : ''}
+                        `).join('')}
+                    </div>
+                    
+                    <div class="total-section">
+                        <div class="price-row">
+                            <div>Subtotal:</div>
+                            <div>RM ${order.subtotal.toFixed(2)}</div>
+                        </div>
+                        <div class="price-row">
+                            <div>Service Fee:</div>
+                            <div>RM ${order.serviceFee.toFixed(2)}</div>
+                        </div>
+                        <div class="price-row total-row">
+                            <div>Total:</div>
+                            <div>RM ${order.total.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    
+                    ${order.notes ? `
+                    <div class="notes" style="margin-top: 10px; font-style: italic;">
+                        Notes: ${order.notes}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="footer">
+                        Thank you for your order!
+                    </div>
+                    
+                    <script>
+                        // Auto print and close
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                                setTimeout(function() {
+                                    window.close();
+                                }, 500);
+                            }, 500);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+        
+        // Helper function to format order time
+        function formatOrderTime(timeString) {
+            const orderTime = new Date(timeString);
+            return orderTime.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true
+            });
+        }
+        
+        // Helper function to generate mock orders
+        function generateMockOrders() {
+            const mockOrders = [];
+            const statuses = ['New', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+            const menuItems = [
+                { name: 'Nasi Lemak Ayam', price: 12.50 },
+                { name: 'Kopi O', price: 3.50 },
+                { name: 'Roti Canai', price: 2.00 },
+                { name: 'Mee Goreng', price: 9.00 },
+                { name: 'Teh Tarik', price: 3.00 },
+                { name: 'Chicken Rice', price: 10.50 },
+                { name: 'Char Kuey Teow', price: 11.00 },
+                { name: 'Ais Kacang', price: 7.50 }
+            ];
+            
+            // Generate 5-15 random orders
+            const orderCount = Math.floor(Math.random() * 11) + 5;
+            
+            for (let i = 1; i <= orderCount; i++) {
+                const now = new Date();
+                const orderTime = new Date(now);
+                
+                // Randomize order time within last 24 hours
+                const hoursAgo = Math.random() * 24;
+                orderTime.setHours(orderTime.getHours() - hoursAgo);
+                
+                // Determine status - newer orders are more likely to be in earlier stages
+                let status;
+                const rand = Math.random();
+                if (hoursAgo < 1) {
+                    status = Math.random() < 0.8 ? 'New' : 'Preparing';
+                } else if (hoursAgo < 3) {
+                    status = rand < 0.3 ? 'New' : rand < 0.7 ? 'Preparing' : 'Ready';
+                } else if (hoursAgo < 8) {
+                    status = rand < 0.2 ? 'Preparing' : rand < 0.6 ? 'Ready' : rand < 0.9 ? 'Completed' : 'Cancelled';
+                } else {
+                    status = Math.random() < 0.8 ? 'Completed' : 'Cancelled';
+                }
+                
+                // Generate random order items
+                const itemCount = Math.floor(Math.random() * 6) + 1;
+                const items = [];
+                let subtotal = 0;
+                
+                for (let j = 0; j < itemCount; j++) {
+                    const item = menuItems[Math.floor(Math.random() * menuItems.length)];
+                    const quantity = Math.floor(Math.random() * 3) + 1;
+                    const itemTotal = item.price * quantity;
+                    
+                    items.push({
+                        id: `item-${i}-${j}`,
+                        name: item.name,
+                        price: item.price,
+                        quantity: quantity,
+                        itemId: `menu-${j}`,
+                        variations: []
+                    });
+                    
+                    subtotal += itemTotal;
+                }
+                
+                // Add variations to some items
+                if (Math.random() < 0.5) {
+                    const variationItems = items.filter(() => Math.random() < 0.7); // 70% of items get variations
+                    
+                    variationItems.forEach(item => {
+                        const variationCount = Math.floor(Math.random() * 3) + 1;
+                        const variations = [];
+                        
+                        for (let v = 0; v < variationCount; v++) {
+                            const variationPrice = Math.random() < 0.5 ? Math.round(Math.random() * 300) / 100 : 0;
+                            
+                            variations.push({
+                                id: `var-${i}-${v}`,
+                                variation_id: `var-id-${v}`,
+                                variation_name: ['Extra spicy', 'No onions', 'Extra sauce', 'Less salt', 'Add cheese'][Math.floor(Math.random() * 5)],
+                                variation_price: variationPrice,
+                                group_name: ['Spice level', 'Preferences', 'Add-ons'][Math.floor(Math.random() * 3)]
+                            });
+                        }
+                        
+                        item.variations = variations;
+                    });
+                }
+                
+                // Calculate service fee and total
+                const serviceFee = Math.round(subtotal * 0.1 * 100) / 100; // 10% service fee
+                const total = subtotal + serviceFee;
+                
+                // Assign a table number using the tableCount value
+                // Use tableCount from client data to determine valid table numbers
+                const table = Math.random() < 0.8 ? 
+                    Math.floor(Math.random() * (tableCount > 0 ? tableCount : 10)) + 1 : 
+                    null;
+                
+                // Generate the order
+                mockOrders.push({
+                    id: `${Date.now()}-${i}`, // Unique ID
+                    orderNumber: `ORD-${i.toString().padStart(4, '0')}`,
+                    time: orderTime.toISOString(),
+                    status: status,
+                    table: table,
+                    customerName: Math.random() < 0.5 ? ['John', 'Mary', 'David', 'Sarah', 'Michael'][Math.floor(Math.random() * 5)] : 'Guest Customer',
+                    customerPhone: Math.random() < 0.3 ? `+601${Math.floor(Math.random() * 90000000) + 10000000}` : 'N/A',
+                    items: items,
+                    notes: Math.random() < 0.3 ? 'Please make it spicy' : '',
+                    subtotal: subtotal,
+                    serviceFee: serviceFee,
+                    total: total,
+                    isPrinted: Math.random() < 0.7
+                });
+            }
+            
+            return mockOrders;
+        }
+        
+        // Show order details in the modal
+        function showOrderDetailsModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            // Set modal title
+            document.getElementById('modalOrderTitle').textContent = `Order #${order.orderNumber || order.id.substring(0, 8)}`;
+            
+            // Set status badge
+            const statusBadge = document.getElementById('modalOrderStatus');
+            statusBadge.textContent = order.status;
+            statusBadge.className = `modal-status-badge status-${order.status.toLowerCase()}`;
+            
+            // Generate modal content
+            const modalBody = document.getElementById('modalOrderBody');
+            modalBody.innerHTML = '';
+            
+            // Order meta information
+            const orderMeta = document.createElement('div');
+            orderMeta.className = 'modal-order-meta';
+            
+            // Order time
+            const timeItem = document.createElement('div');
+            timeItem.className = 'modal-order-meta-item';
+            timeItem.innerHTML = `
+                <div class="modal-order-meta-label">Date & Time</div>
+                <div class="modal-order-meta-value">${formatOrderTime(order.time)}</div>
+            `;
+            orderMeta.appendChild(timeItem);
+            
+            // Table number
+            if (order.table) {
+                const tableItem = document.createElement('div');
+                tableItem.className = 'modal-order-meta-item';
+                tableItem.innerHTML = `
+                    <div class="modal-order-meta-label">Table</div>
+                    <div class="modal-order-meta-value"><span class="modal-table-badge">${order.table}</span></div>
+                `;
+                orderMeta.appendChild(tableItem);
+            }
+            
+            // Customer info
+            if (order.customerName && order.customerName !== 'Guest Customer') {
+                const customerItem = document.createElement('div');
+                customerItem.className = 'modal-order-meta-item';
+                customerItem.innerHTML = `
+                    <div class="modal-order-meta-label">Customer</div>
+                    <div class="modal-order-meta-value">${order.customerName}</div>
+                `;
+                orderMeta.appendChild(customerItem);
+                
+                if (order.customerPhone && order.customerPhone !== 'N/A') {
+                    const phoneItem = document.createElement('div');
+                    phoneItem.className = 'modal-order-meta-item';
+                    phoneItem.innerHTML = `
+                        <div class="modal-order-meta-label">Phone</div>
+                        <div class="modal-order-meta-value">${order.customerPhone}</div>
+                    `;
+                    orderMeta.appendChild(phoneItem);
+                }
+            }
+            
+            modalBody.appendChild(orderMeta);
+            
+            // Kitchen-friendly flat list of items
+            const kitchenItemsList = document.createElement('div');
+            kitchenItemsList.className = 'kitchen-items-list';
+            
+            order.items.forEach(item => {
+                const itemRow = document.createElement('div');
+                itemRow.className = 'kitchen-item-row';
+                
+                // Quantity as plain text with larger font
+                const quantityElement = document.createElement('div');
+                quantityElement.className = 'kitchen-item-quantity';
+                quantityElement.textContent = `${item.quantity}×`;
+                
+                // Item details
+                const detailsElement = document.createElement('div');
+                detailsElement.className = 'kitchen-item-details';
+                
+                // Item name in large font
+                const nameElement = document.createElement('div');
+                nameElement.className = 'kitchen-item-name';
+                nameElement.textContent = item.name;
+                
+                detailsElement.appendChild(nameElement);
+                
+                // Variations
+                if (item.variations && item.variations.length > 0) {
+                    const variationsList = document.createElement('div');
+                    variationsList.className = 'kitchen-variations-list';
+                    
+                    // Group variations by group name
+                    const groupedVariations = {};
+                    item.variations.forEach(variation => {
+                        const groupName = variation.group_name || 'Options';
+                        if (!groupedVariations[groupName]) {
+                            groupedVariations[groupName] = [];
+                        }
+                        groupedVariations[groupName].push(variation);
+                    });
+                    
+                    // Create variation groups
+                    Object.keys(groupedVariations).forEach(groupName => {
+                        const groupElement = document.createElement('div');
+                        groupElement.className = 'kitchen-variation-group';
+                        
+                        const groupNameElement = document.createElement('div');
+                        groupNameElement.className = 'kitchen-variation-group-name';
+                        groupNameElement.textContent = groupName;
+                        groupElement.appendChild(groupNameElement);
+                        
+                        // Add variation options
+                        const variations = groupedVariations[groupName];
+                        variations.forEach(variation => {
+                            const variationOption = document.createElement('span');
+                            variationOption.className = 'kitchen-variation-option';
+                            variationOption.textContent = variation.variation_name;
+                            groupElement.appendChild(variationOption);
+                        });
+                        
+                        variationsList.appendChild(groupElement);
+                    });
+                    
+                    detailsElement.appendChild(variationsList);
+                }
+                
+                itemRow.appendChild(quantityElement);
+                itemRow.appendChild(detailsElement);
+                
+                kitchenItemsList.appendChild(itemRow);
+            });
+            
+            modalBody.appendChild(kitchenItemsList);
+            
+            // Order notes if available (in large font)
+            if (order.notes && order.notes.trim()) {
+                const notesElement = document.createElement('div');
+                notesElement.className = 'kitchen-order-notes';
+                notesElement.innerHTML = `<strong>Notes:</strong> ${order.notes}`;
+                modalBody.appendChild(notesElement);
+            }
+            
+            // Action buttons based on order status - now using smaller icon buttons
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'modal-actions-container';
+            
+            // Create different action buttons based on order status
+            switch (order.status.toLowerCase()) {
+                case 'pending':
+                case 'new':
+                    actionsContainer.innerHTML = `
+                        <button class="modal-icon-btn btn-ready" data-tooltip="Ready" onclick="updateOrderStatus('${order.id}', 'ready')">
+                            <i class="material-icons">check_circle</i>
+                        </button>
+                        <button class="modal-icon-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="modal-icon-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'ready':
+                    actionsContainer.innerHTML = `
+                        <button class="modal-icon-btn btn-pending" data-tooltip="Back to Pending" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">undo</i>
+                        </button>
+                        <button class="modal-icon-btn btn-cancelled" data-tooltip="Cancel" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                            <i class="material-icons">cancel</i>
+                        </button>
+                        <button class="modal-icon-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+                    
+                case 'cancelled':
+                    actionsContainer.innerHTML = `
+                        <button class="modal-icon-btn btn-pending" data-tooltip="Reopen" onclick="updateOrderStatus('${order.id}', 'pending')">
+                            <i class="material-icons">replay</i>
+                        </button>
+                        <button class="modal-icon-btn btn-print" data-tooltip="Print" onclick="printOrderReceipt('${order.id}')">
+                            <i class="material-icons">print</i>
+                        </button>
+                    `;
+                    break;
+            }
+            
+            modalBody.appendChild(actionsContainer);
+            
+            // Open the modal
+            const modalInstance = M.Modal.getInstance(orderDetailsModal);
+            modalInstance.open();
+        }
+        
+        // Apply ultra-compact styles to order details modal dynamically
+        function applyCompactStylesToOrderModal() {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Ensure this runs after modal initialization
+                setTimeout(() => {
+                    const modal = document.getElementById('orderDetailsModal');
+                    if (!modal) return;
+                    
+                    // Apply compact styles to modal content elements
+                    const modalContent = modal.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.style.padding = '0';
+                    }
+                    
+                    // Adjust modal size for different screen sizes
+                    function adjustModalSize() {
+                        const windowWidth = window.innerWidth;
+                        if (windowWidth < 600) {
+                            // Extra compact for mobile
+                            modal.style.width = '99%';
+                            modal.style.height = '99%';
+                            modal.style.top = '0.5%';
+                        } else {
+                            // Standard compact for desktop
+                            modal.style.width = '98%';
+                            modal.style.height = '98%';
+                            modal.style.top = '1%';
+                        }
+                    }
+                    
+                    // Initial adjustment
+                    adjustModalSize();
+                    
+                    // Adjust on resize
+                    window.addEventListener('resize', adjustModalSize);
+                    
+                    // When order items are rendered, apply compact styles
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                                // Apply compact styles to any newly added kitchen item rows
+                                const kitchenItems = modal.querySelectorAll('.kitchen-item-row');
+                                kitchenItems.forEach(item => {
+                                    item.style.padding = `${getComputedStyle(document.documentElement).getPropertyValue('--spacing-xs')} 0`;
+                                });
+                                
+                                // Apply compact styles to variation options
+                                const variationOptions = modal.querySelectorAll('.kitchen-variation-option');
+                                variationOptions.forEach(option => {
+                                    option.style.fontSize = `${getComputedStyle(document.documentElement).getPropertyValue('--font-size-xs')}`;
+                                    option.style.padding = `0 ${getComputedStyle(document.documentElement).getPropertyValue('--spacing-xs')}`;
+                                });
+                            }
+                        });
+                    });
+                    
+                    // Observe changes to the modal body
+                    observer.observe(document.getElementById('modalOrderBody'), { 
+                        childList: true,
+                        subtree: true
+                    });
+                }, 500);
+            });
+        }
+        
+        // Initialize the compact modal styling
+        applyCompactStylesToOrderModal();
+    </script>
+</body>
+</html>

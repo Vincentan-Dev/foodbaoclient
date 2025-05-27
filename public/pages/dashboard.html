@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Dashboard - FoodBao Admin</title>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+    // Enhanced session verification - inline for fastest possible execution
+    (function() {
+        try {
+            // Check session storage first (higher priority), then localStorage
+            const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+            const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+            const currentTime = new Date().getTime();
+            
+            // Prevent back navigation after logout by replacing history state
+            history.replaceState(null, document.title, location.href);
+            
+            // Force reload on back button navigation to ensure fresh session check
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // This catches bfcache navigation in all browsers
+                    window.location.reload();
+                }
+            });
+            
+            // Comprehensive session validation logic
+            if (!sessionKey || !authToken || 
+                !sessionTimestamp || 
+                (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                // Hide content immediately to prevent UI flashing
+                document.documentElement.style.display = 'none';
+                // Redirect with cache-busting parameter
+                const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                window.location.replace(redirectUrl);
+                throw new Error('Session invalid or expired');
+            }
+            
+            // Advanced visibility change detection
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    performFullSessionCheck();
+                }
+            });
+            
+            function performFullSessionCheck() {
+                const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const now = new Date().getTime();
+                
+                if (!currentSessionKey || !currentAuthToken || 
+                    !currentTimestamp || 
+                    (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                    document.documentElement.style.display = 'none';
+                    sessionStorage.clear();
+                    localStorage.removeItem('session_key');
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('session_timestamp');
+                    const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                    window.location.replace(redirectUrl);
+                }
+            }
+            
+            // Set initial check point
+            sessionStorage.setItem('last_activity', currentTime.toString());
+            if (localStorage.getItem('session_key')) {
+                localStorage.setItem('session_timestamp', currentTime.toString());
+            }
+        } catch (e) {
+            // Fail safe: redirect to login on any error
+            console.error('Session verification failed:', e);
+            document.documentElement.style.display = 'none';
+            sessionStorage.clear();
+            localStorage.removeItem('session_key');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_timestamp');
+            window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+        }
+    })();
+    </script>
+    
+    <!-- Add this script block before your other scripts but after the early session check -->
+    <script>
+    // Idle timeout and enhanced session management
+    (function() {
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let idleTimer = null;
+        let isIdle = false;
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            sessionStorage.setItem('last_activity', new Date().getTime().toString());
+            
+            if (isIdle) {
+                isIdle = false;
+            }
+            
+            // Set a new timeout
+            idleTimer = setTimeout(doIdle, IDLE_TIMEOUT);
+        }
+        
+        function doIdle() {
+            isIdle = true;
+            
+            // Clear session data
+            sessionStorage.clear();
+            localStorage.removeItem('session_key');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_timestamp');
+            
+            // Redirect to login with idle parameter
+            window.location.replace('/login.html?idle=true&nocache=' + new Date().getTime());
+        }
+        
+        // Set up event listeners for user activity
+        const resetEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+        resetEvents.forEach(function(eventName) {
+            document.addEventListener(eventName, resetIdleTimer, true);
+        });
+        
+        // Initial setup of idle timer
+        resetIdleTimer();
+    })();
+    </script>    
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    
+    <!-- Advanced Compact UI styles -->
+    <link rel="stylesheet" href="../css/compact-ui-advanced.css">
+    <!-- Global ultra-compact UI loader script -->
+    <script src="../js/global-compact-ui-loader.js"></script>
+</head>
+<body>
+    <!-- Your HTML content here -->
+</body>
+</html>

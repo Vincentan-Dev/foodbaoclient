@@ -1,0 +1,4259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Food Menu | FoodBao</title>
+
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+        // Enhanced session verification - inline for fastest possible execution
+        (function () {
+            try {
+                // Check session storage first (higher priority), then localStorage
+                const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                const currentTime = new Date().getTime();
+
+                // Prevent back navigation after logout by replacing history state
+                history.replaceState(null, document.title, location.href);
+
+                // Force reload on back button navigation to ensure fresh session check
+                window.addEventListener('pageshow', function (event) {
+                    if (event.persisted) {
+                        // This catches bfcache navigation in all browsers
+                        window.location.reload();
+                    }
+                });
+
+                // Comprehensive session validation logic
+                if (!sessionKey || !authToken ||
+                    !sessionTimestamp ||
+                    (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                    // Redirect with cache-busting parameter
+                    const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                    window.location.replace(redirectUrl);
+                    throw new Error('Session invalid or expired');
+                }
+
+                // Advanced visibility change detection
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible') {
+                        performFullSessionCheck();
+                    }
+                });
+
+                function performFullSessionCheck() {
+                    const currentSessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+                    const currentAuthToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                    const currentTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+                    const now = new Date().getTime();
+
+                    if (!currentSessionKey || !currentAuthToken ||
+                        !currentTimestamp ||
+                        (now - parseInt(currentTimestamp)) > (24 * 60 * 60 * 1000)) {
+                        document.documentElement.style.display = 'none';
+                        sessionStorage.clear();
+                        localStorage.removeItem('session_key');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('session_timestamp');
+                        const redirectUrl = '/login.html?expired=true&nocache=' + now;
+                        window.location.replace(redirectUrl);
+                    }
+                }
+
+                // Set initial check point
+                sessionStorage.setItem('last_activity', currentTime.toString());
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+            } catch (e) {
+                // Fail safe: redirect to login on any error
+                console.error('Session verification failed:', e);
+                document.documentElement.style.display = 'none';
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                window.location.replace('/login.html?error=true&nocache=' + new Date().getTime());
+            }
+        })();
+    </script>
+
+    <!-- Add this script block before your other scripts but after the early session check -->
+    <script>
+        // Idle timeout and enhanced session management
+        (function () {
+            const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+            let idleTimer;
+
+            // Reset the idle timer whenever user activity is detected
+            function resetIdleTimer() {
+                clearTimeout(idleTimer);
+                const currentTime = new Date().getTime();
+                sessionStorage.setItem('last_activity', currentTime.toString());
+
+                // Update session timestamp periodically while active
+                if (localStorage.getItem('session_key')) {
+                    localStorage.setItem('session_timestamp', currentTime.toString());
+                }
+
+                idleTimer = setTimeout(logoutDueToInactivity, IDLE_TIMEOUT);
+            }
+
+            // Handle logout due to user inactivity
+            function logoutDueToInactivity() {
+                console.log("User inactive for too long. Logging out...");
+                showIdleTimeoutMessage();
+                performSecureLogout();
+            }
+
+            // Show a message to the user that they're being logged out due to inactivity
+            function showIdleTimeoutMessage() {
+                // You can implement a modal/toast here if needed
+                alert("You have been logged out due to inactivity for security purposes.");
+            }
+
+            // Secure logout function that clears all auth data and prevents back navigation
+            window.performSecureLogout = function () {
+                // Clear all authentication data
+                sessionStorage.clear();
+                localStorage.removeItem('session_key');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('session_timestamp');
+                localStorage.removeItem('user_data');
+
+                // Add cache-busting parameter and use replace to prevent back button
+                const logoutTime = new Date().getTime();
+
+                // Clear any cookies that might be related to authentication
+                document.cookie.split(";").forEach(function (c) {
+                    document.cookie = c.replace(/^ +/, "")
+                        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+
+                // Use post-logout cleanup and navigation prevention
+                try {
+                    // This helps avoid bfcache issues in various browsers
+                    window.history.replaceState(null, document.title, window.location.href);
+                    window.history.pushState(null, document.title, window.location.href);
+                    window.history.go(1);
+
+                    // Hide content immediately to prevent UI flashing
+                    document.documentElement.style.display = 'none';
+                } catch (e) {
+                    console.error("Error during history manipulation:", e);
+                }
+
+                // Final redirect with cache busting
+                window.location.replace('/login.html?logged_out=true&nocache=' + logoutTime);
+            }
+
+            // Set up event listeners for user activity
+            const activityEvents = [
+                'mousedown', 'mousemove', 'keydown',
+                'scroll', 'touchstart', 'click', 'keypress'
+            ];
+
+            activityEvents.forEach(eventName => {
+                document.addEventListener(eventName, resetIdleTimer, { passive: true });
+            });
+
+            // Initialize the idle timer when the script loads
+            resetIdleTimer();
+
+            // Periodically check session validity (every minute)
+            setInterval(function () {
+                const lastActivity = parseInt(sessionStorage.getItem('last_activity') || '0');
+                const currentTime = new Date().getTime();
+
+                if ((currentTime - lastActivity) > IDLE_TIMEOUT) {
+                    logoutDueToInactivity();
+                }
+            }, 60000); // Check every minute
+        })();
+    </script>
+
+    <!-- Regular session check script for additional validation -->
+    <script src="../utils/session-check.js"></script>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header with business names and table number */
+        .menu-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .menu-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Dark overlay for better text visibility */
+            z-index: 0;
+        }
+
+        .menu-header>div {
+            position: relative;
+            z-index: 1;
+        }
+
+        .business-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .business-name-cn {
+            font-size: 1.2rem;
+            margin: 0;
+            opacity: 0.9;
+            display: inline-block;
+        }
+
+        .table-number {
+            font-size: 0.9rem;
+            font-weight: normal;
+            margin-left: 8px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .cart-icon-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.3s;
+            color: white;
+            font-size: 24px;
+            padding: 4px;
+        }
+
+        .cart-icon-header:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Exit/logout button styling to match cart icon - without circular background */
+        .menu-cart-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.3s;
+            color: white;
+            font-size: 24px;
+            margin-right: 15px;
+            padding: 4px;
+        }
+
+        .menu-cart-icon:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .menu-cart-icon i {
+            font-size: 24px;
+            color: white;
+        }
+
+        /* Search frame */
+        .search-frame {
+            background-color: white;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input-group {
+            position: relative;
+        }
+
+        .search-input-group .form-control {
+            border-radius: 20px;
+            padding-left: 38px;
+            border: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+
+        .search-input-group .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 10px;
+            color: #999;
+            z-index: 10;
+        }
+
+        /* Main content area */
+        .content-area {
+            display: flex;
+            flex: 1;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Left sidebar for categories */
+        .left-frame {
+            width: 25%;
+            background-color: white;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Right area for menu items */
+        .right-frame {
+            width: 75%;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Category tabs with images */
+        .category-tab {
+            padding: 0;
+            cursor: pointer;
+            border-bottom: 1px solid #f2f2f2;
+            transition: background-color 0.2s;
+            position: relative;
+            overflow: hidden;
+            height: 60px;
+            /* Fixed height for consistent look */
+        }
+
+        .category-tab:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .category-tab.active {
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .category-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            /* Darkens the image so text is readable */
+            z-index: 1;
+        }
+
+        .category-details {
+            flex: 1;
+            position: relative;
+            z-index: 2;
+            padding: 10px;
+            color: white;
+            /* Text color changed to white for better readability on image */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            /* Text shadow for better readability */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .category-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            color: white;
+        }
+
+        .category-desc {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        /* Menu items layout with overlay text on image */
+        .menu-item-row {
+            margin: 0;
+            padding: 0;
+            border-bottom: 1px solid #f2f2f2;
+            position: relative;
+            height: 80px;
+            /* Increased height for better image display */
+            overflow: hidden;
+            cursor: pointer;
+            /* Make the whole item clickable */
+        }
+
+        .menu-item-row:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .menu-item-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .menu-item-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.7);
+            /* Darkens the image so text is readable */
+            z-index: 1;
+        }
+
+        .menu-item-details {
+            flex-grow: 1;
+            padding: 10px;
+            position: relative;
+            z-index: 2;
+            color: white;
+            /* Text color changed to white for better readability on image */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            /* Text shadow for better readability */
+        }
+
+        .menu-item-code {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .menu-item-name {
+            font-size: 0.85rem;
+            margin: 0;
+            opacity: 0.9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 5px;
+        }
+
+        .menu-item-desc {
+            font-size: 0.75rem;
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.9;
+            display: none;
+        }
+
+        .menu-item-price {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+            margin: 0;
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+        }
+
+        /* Loading state */
+        .menu-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .menu-loading p {
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        /* Empty state */
+        .menu-empty {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-icon {
+            font-size: 2rem;
+            color: #ddd;
+            margin-bottom: 10px;
+        }
+
+        .menu-empty h4 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .menu-empty p {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger-color);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        /* Skeleton loading animation */
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-color: #f2f2f2;
+            }
+
+            100% {
+                background-color: #e0e0e0;
+            }
+        }
+
+        .skeleton-category {
+            height: 40px;
+            margin-bottom: 1px;
+        }
+
+        .skeleton-item {
+            height: 80px;
+            margin-bottom: 1px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .left-frame {
+                width: 35%;
+            }
+
+            .right-frame {
+                width: 65%;
+            }
+
+            .menu-item-desc {
+                display: none;
+            }
+
+            .business-name {
+                font-size: 1.2rem;
+            }
+
+            .business-name-cn {
+                font-size: 1rem;
+            }
+
+            .table-number {
+                font-size: 0.75rem;
+                padding: 1px 4px;
+            }
+        }
+
+        /* Item Detail Modal */
+        .modal-item-image {
+            width: 100%;
+            height: 150px;
+            /* Further reduced from 180px */
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .item-detail-modal .modal-content {
+            border-radius: 5px;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .item-detail-content {
+            padding: 10px 8px;
+            /* Further reduced padding */
+        }
+
+        .item-detail-name {
+            font-size: 1rem;
+            /* Further reduced from 1.2rem */
+            font-weight: bold;
+            margin-bottom: 2px;
+            /* Reduced from 3px */
+        }
+
+        .item-detail-code {
+            font-size: 0.7rem;
+            /* Further reduced from 0.8rem */
+            color: #777;
+            margin-bottom: 5px;
+            /* Reduced from 8px */
+            display: inline-block;
+            background-color: #f8f9fa;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .item-detail-desc {
+            font-size: 0.75rem;
+            /* Reduced from 0.85rem */
+            margin-bottom: 8px;
+            /* Reduced from 12px */
+            color: #555;
+        }
+
+        .item-detail-price {
+            font-size: 0.95rem;
+            /* Reduced from 1.1rem */
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            /* Reduced from 15px */
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            /* Reduced from 15px */
+            justify-content: center;
+            padding: 6px 0;
+            /* Reduced from 10px */
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .quantity-btn {
+            width: 30px;
+            /* Reduced from 36px */
+            height: 30px;
+            /* Reduced from 36px */
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.9rem;
+            /* Reduced from 1.1rem */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .quantity-value {
+            width: 40px;
+            /* Reduced from 50px */
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            /* Reduced from 1.1rem */
+            margin: 0 8px;
+            /* Reduced from 12px */
+        }
+
+        /* Modal buttons in same row with reduced size */
+        .modal-item-buttons {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            /* Add sticky positioning to ensure buttons stay visible */
+            position: sticky;
+            bottom: 0;
+            background-color: white;
+            padding: 6px 0;
+            z-index: 10;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 6px 4px;
+            /* Reduced padding */
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            /* Reduced font size */
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .btn-add-to-cart {
+            flex: 2;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 4px;
+            /* Reduced padding */
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8rem;
+            /* Reduced font size */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Item variations styling - more compact */
+        .item-variations-container {
+            margin-bottom: 8px;
+            /* Reduced from 15px */
+            max-height: 180px;
+            /* Reduced from 220px */
+            overflow-y: auto;
+            border: none;
+            /* Removed border */
+            background-color: #fafafa;
+            padding: 6px;
+            /* Reduced padding */
+            border-radius: 4px;
+            font-size: 0.8rem;
+            /* Base smaller font size */
+        }
+
+        .variations-loading {
+            text-align: center;
+            padding: 8px;
+            /* Reduced from 12px */
+            color: #777;
+            font-size: 0.75rem;
+            /* Reduced from 0.85rem */
+        }
+
+        .variation-group {
+            margin-bottom: 8px;
+            /* Reduced from 12px */
+            padding-bottom: 6px;
+            /* Reduced from 8px */
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .variation-group-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 3px;
+            /* Reduced from 6px */
+        }
+
+        .variation-group-header h6 {
+            margin: 0;
+            font-size: 0.8rem;
+            /* Reduced from 0.9rem */
+            font-weight: 600;
+            margin-right: 5px;
+            /* Reduced from 8px */
+        }
+
+        .variation-required {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 0.6rem;
+            /* Reduced from 0.65rem */
+            padding: 0 4px;
+            /* Reduced from 1px 5px */
+            border-radius: 2px;
+            margin-right: 3px;
+            /* Reduced from 4px */
+        }
+
+        .variation-optional {
+            background-color: #3498db;
+            color: white;
+            font-size: 0.6rem;
+            padding: 0 4px;
+            border-radius: 2px;
+            margin-right: 3px;
+        }
+
+        .variation-min,
+        .variation-max {
+            background-color: #f39c12;
+            color: white;
+            font-size: 0.6rem;
+            /* Reduced from 0.65rem */
+            padding: 0 4px;
+            /* Reduced from 1px 5px */
+            border-radius: 2px;
+            margin-right: 3px;
+            /* Reduced from 4px */
+        }
+
+        .variation-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            /* Reduced from 6px */
+            padding: 2px 0;
+            /* Reduced from 4px */
+        }
+
+        .variation-option {
+            display: flex;
+            align-items: center;
+            width: 48%;
+            /* Maintain 2 options per row */
+        }
+
+        .variation-option-label {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            padding: 3px 4px;
+            /* Reduced from 6px */
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .variation-option-label:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .variation-option-name {
+            flex: 1;
+            margin-left: 4px;
+            /* Reduced from 6px */
+            font-size: 0.75rem;
+            /* Reduced from 0.8rem */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .variation-option-price {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.7rem;
+            /* Reduced from 0.75rem */
+        }
+
+        /* Even smaller screens */
+        @media (max-width: 320px) {
+            .variation-option {
+                width: 100%;
+                /* Full width on very small screens */
+            }
+
+            .item-detail-name {
+                font-size: 0.9rem;
+            }
+
+            .btn-cancel,
+            .btn-add-to-cart {
+                font-size: 0.7rem;
+                padding: 5px 2px;
+            }
+        }
+
+        /* Tiny badge for price breakdown */
+        .price-breakdown {
+            font-size: 0.65rem;
+            color: #777;
+            margin-top: 1px;
+            line-height: 1;
+        }
+
+        /* Update cart section styles */
+        .order-summary-section {
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #eee;
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .btn-view-cart {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        /* Cart modal styling */
+        .cart-items-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            padding: 12px;
+            border-bottom: 1px solid #f2f2f2;
+            position: relative;
+        }
+
+        .cart-item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            background-size: cover;
+            background-position: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .cart-item-details {
+            flex-grow: 1;
+        }
+
+        .cart-item-code {
+            font-size: 0.75rem;
+            color: #777;
+            margin-bottom: 2px;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .cart-item-variation-group {
+            font-size: 0.8rem;
+            color: #555;
+            margin-bottom: 3px;
+        }
+
+        .cart-item-price {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+        }
+
+        .cart-item-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .cart-item-subtotal {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-cart-item {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .btn-remove {
+            margin-left: 8px;
+            color: var(--danger-color);
+        }
+
+        .cart-item-quantity {
+            margin: 0 8px;
+            min-width: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 30px 15px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        .cart-footer {
+            padding: 15px;
+        }
+
+        .cart-total-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .cart-total-label {
+            font-size: 1rem;
+        }
+
+        .cart-total-amount {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .btn-checkout {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Improved Cart Item Variation Styling */
+        .cart-item-variations-container {
+            margin: 6px 0;
+            font-size: 0.75rem;
+        }
+
+        .cart-item-variation-group {
+            margin-bottom: 6px;
+            padding-bottom: 3px;
+        }
+
+        .variation-group-name {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.7rem;
+        }
+
+        .variation-options-list {
+            padding-left: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .variation-option-item {
+            display: flex;
+            align-items: center;
+            padding: 2px 0;
+        }
+
+        .variation-name {
+            color: #666;
+            margin-right: 4px;
+        }
+
+        .variation-price {
+            font-size: 0.65rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .cart-item-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+        }
+
+        /* Make cart items stack better on mobile */
+        @media (max-width: 576px) {
+            .cart-item {
+                flex-wrap: wrap;
+                padding: 10px;
+            }
+
+            .cart-item-image {
+                width: 50px;
+                height: 50px;
+            }
+
+            .cart-item-details {
+                width: calc(100% - 65px);
+            }
+
+            .cart-item-actions {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px dashed #eee;
+            }
+        }
+
+        /* Addition to the existing CSS */
+        /* Enhance variation styling with validation colors */
+        .variation-required {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-right: 4px;
+            font-weight: 500;
+        }
+
+        .variation-min,
+        .variation-max {
+            background-color: #f39c12;
+            color: white;
+            font-size: 0.65rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-right: 4px;
+            font-weight: 500;
+        }
+
+        /* Style for the price breakdown that appears when variations are selected */
+        .price-breakdown {
+            font-size: 0.7rem;
+            color: #777;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+
+        /* Validation states for the variation options */
+        .variation-option-label.error {
+            border: 1px solid #e74c3c;
+            background-color: rgba(231, 76, 60, 0.05);
+        }
+
+        /* Highlight effect when a variation option is selected */
+        .variation-option input:checked+.variation-option-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .variation-options {
+            padding: 4px 0;
+        }
+
+        /* Make the variation container more distinct when scrolling */
+        .item-variations-container {
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 15px;
+            max-height: 220px;
+            overflow-y: auto;
+            background-color: #fafafa;
+        }
+
+        .variation-group:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .order-type-selector {
+            margin-left: 15px;
+            border-left: 1px solid #eee;
+            padding-left: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .form-check-inline {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 8px;
+        }
+
+        .form-check-input {
+            margin-right: 3px;
+        }
+
+        .form-check-label {
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        @media (max-width: 576px) {
+            .quantity-control {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .order-type-selector {
+                margin-left: 0;
+                border-left: none;
+                border-top: 1px solid #eee;
+                padding-left: 0;
+                padding-top: 6px;
+                margin-top: 6px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Order confirmation modal styling */
+        .order-confirm-items {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .order-confirm-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .order-confirm-item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .order-confirm-item-variations {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .order-confirm-item-price {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+
+        .order-total-section {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        /* Additional styles for more compact cart and modal display */
+        .variation-option-inline {
+            display: inline-block;
+            font-size: 0.7rem;
+            margin-right: 3px;
+        }
+
+        .order-type-badge {
+            display: inline-block;
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-size: 0.65rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: normal;
+            vertical-align: middle;
+        }
+
+        /* More compact order confirmation modal styles */
+        .order-confirm-items {
+            max-height: 180px;
+            font-size: 0.8rem;
+        }
+
+        .order-confirm-item {
+            padding: 6px;
+            margin-bottom: 5px;
+        }
+
+        .order-confirm-item-name {
+            font-size: 0.8rem;
+            margin-bottom: 1px;
+        }
+
+        .order-confirm-item-variations {
+            font-size: 0.7rem;
+            line-height: 1.1;
+        }
+
+        .order-confirm-item-price {
+            font-size: 0.8rem;
+        }
+
+        .order-details-section h6 {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .form-label {
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+        }
+
+        .form-control {
+            font-size: 0.8rem;
+            padding: 0.375rem 0.5rem;
+        }
+
+        .order-total-section {
+            font-size: 0.8rem;
+            padding: 8px;
+        }
+
+        /* Final Order Success Modal Styles */
+        .order-success-modal .modal-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 15px;
+        }
+
+        .order-success-modal .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .order-success-icon {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .order-success-icon i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+        }
+
+        .order-number-display {
+            background-color: #f8f9fa;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .order-success-message {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .order-summary-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin: 10px 0;
+        }
+
+        .order-success-items {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+        }
+
+        .order-success-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px dotted #eee;
+        }
+
+        .order-success-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-order-success {
+            width: 100%;
+            background-color: var(--secondary-color);
+            border: none;
+            color: white;
+        }
+
+        /* More compact variation styling */
+        .variation-group {
+            margin-bottom: 4px;
+            /* Reduced from 8px */
+            padding-bottom: 3px;
+            /* Reduced from 6px */
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .variation-group-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 2px;
+            /* Reduced from 3px */
+        }
+
+        .variation-group-header h6 {
+            margin: 0;
+            font-size: 0.7rem;
+            /* Reduced from 0.8rem */
+            font-weight: 600;
+            margin-right: 4px;
+            /* Reduced from 5px */
+        }
+
+        .variation-required {
+            background-color: #e74c3c;
+            color: white;
+            font-size: 0.55rem;
+            /* Reduced from 0.6rem */
+            padding: 0 3px;
+            /* Reduced padding */
+            border-radius: 2px;
+            margin-right: 2px;
+            /* Reduced from 3px */
+        }
+
+        .variation-optional {
+            background-color: #3498db;
+            color: white;
+            font-size: 0.55rem;
+            padding: 0 3px;
+            border-radius: 2px;
+            margin-right: 2px;
+        }
+
+        .variation-min,
+        .variation-max {
+            background-color: #f39c12;
+            color: white;
+            font-size: 0.55rem;
+            /* Reduced from 0.6rem */
+            padding: 0 3px;
+            /* Reduced padding */
+            border-radius: 2px;
+            margin-right: 2px;
+            /* Reduced from 3px */
+        }
+
+        .variation-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            /* Reduced from 4px */
+            padding: 1px 0;
+            /* Reduced from 2px 0 */
+        }
+
+        .variation-option {
+            display: flex;
+            align-items: center;
+            width: 48%;
+            /* Maintain 2 options per row */
+        }
+
+        .variation-option-label {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            padding: 1px 2px;
+            /* Reduced from 3px 4px */
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+
+        .variation-option-name {
+            flex: 1;
+            margin-left: 2px;
+            /* Reduced from 4px */
+            font-size: 0.65rem;
+            /* Reduced from 0.75rem */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .variation-option-price {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.6rem;
+            /* Reduced from 0.7rem */
+        }
+
+        /* Item variations container - more compact */
+        .item-variations-container {
+            margin-bottom: 5px;
+            /* Reduced from 8px */
+            max-height: 160px;
+            /* Reduced from 180px */
+            overflow-y: auto;
+            border: none;
+            background-color: #fafafa;
+            padding: 4px;
+            /* Reduced padding */
+            border-radius: 3px;
+            font-size: 0.7rem;
+            /* Reduced base font size */
+        }
+
+        /* More compact cart item styling */
+        .cart-item {
+            display: flex;
+            padding: 8px 5px;
+            /* Reduced from 12px */
+            border-bottom: 1px solid #f2f2f2;
+            position: relative;
+        }
+
+        .cart-item-image {
+            width: 45px;
+            /* Reduced from 60px */
+            height: 45px;
+            /* Reduced from 60px */
+            border-radius: 3px;
+            background-size: cover;
+            background-position: center;
+            margin-right: 8px;
+            /* Reduced from 12px */
+            flex-shrink: 0;
+        }
+
+        .cart-item-header {
+            border-bottom: 1px dotted rgba(0, 0, 0, 0.05);
+            margin-bottom: 2px;
+            /* Reduced from 5px */
+            padding-bottom: 2px;
+            /* Reduced from 3px */
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            /* Reduced from 0.9rem */
+            margin-bottom: 1px;
+            /* Reduced from 2px */
+        }
+
+        .cart-item-code {
+            font-size: 0.65rem;
+            /* Reduced from 0.75rem */
+            color: #777;
+            margin-bottom: 0;
+        }
+
+        .cart-item-variations-container {
+            margin: 2px 0;
+            /* Reduced from 6px 0 */
+            font-size: 0.65rem;
+            /* Reduced from 0.75rem */
+            line-height: 1.1;
+        }
+
+        .variation-option-inline {
+            display: inline;
+            font-size: 0.65rem;
+            /* Reduced from 0.7rem */
+            margin-right: 0;
+        }
+
+        .order-type-badge {
+            display: inline-block;
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-size: 0.6rem;
+            /* Reduced from 0.65rem */
+            padding: 0 3px;
+            /* Reduced padding */
+            border-radius: 2px;
+            margin-left: 3px;
+            /* Reduced from 4px */
+            font-weight: normal;
+            vertical-align: middle;
+        }
+
+        /* Ultra-compact cart variation styles */
+        .cart-item-variations-inline {
+            font-size: 0.6rem;
+            /* Further reduced from 0.65rem */
+            color: #666;
+            margin: 1px 0;
+            line-height: 1;
+            display: block;
+            width: 100%;
+        }
+
+        .cart-variation-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1px;
+            padding: 1px 0;
+        }
+
+        .cart-variation-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 4px;
+            color: #555;
+        }
+
+        .cart-variation-price {
+            font-size: 0.55rem;
+            color: var(--primary-color);
+            font-weight: 500;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .cart-item-details {
+            flex-grow: 1;
+            padding: 0 3px;
+            /* Added minimal padding */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Menu Header with Business Name and Cart Icon -->
+    <div class="menu-header" id="business-banner-header"
+        style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); background-size: cover; background-position: center; margin-bottom: 0; position: relative; height: 80px; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div
+            style="position: relative; z-index: 1; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 16px;">
+            <!-- Business name and info moved to the left -->
+            <div style="text-align: left;">
+                <h1 class="business-name" id="header-business-name"
+                    style="margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); font-size: 1.3rem;">Loading...</h1>
+                <p class="business-name-cn" id="header-business-name-chn"
+                    style="margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); font-size: 1rem;">加载中...</p>
+                <span class="table-number" id="tableNumber" style="margin-top: 4px; display: inline-block;">Table:
+                    --</span>
+            </div>
+
+            <!-- Cart and logout buttons on the right -->
+            <div style="display: flex; align-items: center;">
+                <div id="logout-button" class="menu-cart-icon" title="Log Out">
+                    <i class="material-icons">exit_to_app</i>
+                </div>
+                <div class="cart-icon-header" id="cart-button">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div class="cart-badge" id="cart-count">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Frame -->
+    <div class="search-frame">
+        <div class="container-fluid px-2">
+            <div class="search-input-group">
+                <span class="search-icon"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="itemCodeSearch" placeholder="Search by Item Code...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-area">
+        <!-- Left Frame: Categories -->
+        <div class="left-frame">
+            <div id="categories-container">
+                <!-- Skeleton loaders for categories -->
+                <div class="skeleton skeleton-category"></div>
+                <div class="skeleton skeleton-category"></div>
+                <div class="skeleton skeleton-category"></div>
+                <div class="skeleton skeleton-category"></div>
+            </div>
+        </div>
+
+        <!-- Right Frame: Menu Items -->
+        <div class="right-frame">
+            <!-- Menu items container -->
+            <div id="menu-items-container">
+                <!-- Skeleton loaders for menu items -->
+                <div class="skeleton skeleton-item"></div>
+                <div class="skeleton skeleton-item"></div>
+                <div class="skeleton skeleton-item"></div>
+                <div class="skeleton skeleton-item"></div>
+                <div class="skeleton skeleton-item"></div>
+                <div class="skeleton skeleton-item"></div>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="menu-loading" class="menu-loading" style="display: none;">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading items...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="menu-empty" class="menu-empty" style="display: none;">
+                <div class="empty-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h4>No Items Found</h4>
+                <p class="text-muted">No items available in this category</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Detail Modal -->
+    <div class="modal fade" id="itemDetailModal" tabindex="-1" aria-labelledby="itemDetailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered item-detail-modal">
+            <div class="modal-content">
+                <div id="modalItemImage" class="modal-item-image"></div>
+                <div class="item-detail-content">
+                    <h5 id="modalItemName" class="item-detail-name">Item Name</h5>
+                    <span id="modalItemCode" class="item-detail-code">CODE</span>
+                    <p id="modalItemDesc" class="item-detail-desc">Item description goes here.</p>
+                    <div id="modalItemPrice" class="item-detail-price">$0.00</div>
+                    <div class="quantity-control">
+                        <button class="quantity-btn" id="decreaseModalQuantity">-</button>
+                        <span class="quantity-value" id="modalQuantity">1</span>
+                        <button class="quantity-btn" id="increaseModalQuantity">+</button>
+
+                        <!-- Manual Take Away, Dine In, or Delivery selector with smaller font -->
+                        <div class="order-type-selector">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="orderType" id="dineIn"
+                                    value="Dine In" checked>
+                                <label class="form-check-label" for="dineIn">Dine In</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="orderType" id="takeAway"
+                                    value="Take Away">
+                                <label class="form-check-label" for="takeAway">Take Away</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="orderType" id="delivery"
+                                    value="Delivery">
+                                <label class="form-check-label" for="delivery">Delivery</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="itemVariationsContainer" class="item-variations-container"></div>
+                    <div class="modal-item-buttons">
+                        <button class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn-add-to-cart" id="addToCartModal">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div class="modal fade" id="orderConfirmModal" tabindex="-1" aria-labelledby="orderConfirmModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderConfirmModalLabel">Confirm Your Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="orderConfirmItems" class="order-confirm-items">
+                        <!-- Items will be populated here -->
+                    </div>
+                    <div id="orderTotalSection" class="order-total-section">
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span id="orderSubtotal">RM0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>SST:</span>
+                            <span id="orderServiceFee">RM0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold mt-2">
+                            <span>Total:</span>
+                            <span id="orderGrandTotal">RM0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitOrderBtn">Submit Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 p-3"
+        style="z-index: 11; width: 100%; max-width: 300px; left: 50%; transform: translateX(-50%);">
+        <div id="toast" class="toast align-items-center text-white bg-primary border-0" role="alert"
+            aria-live="assertive" aria-atomic="true" data-bs-delay="3000" data-bs-autohide="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-message">
+                    Notification message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import the ThermalPrinter module -->
+    <script type="module">
+        // Import ThermalPrinter utility
+        import ThermalPrinter from '../../utils/thermal-printer.js';
+
+        // Make it available globally
+        window.ThermalPrinter = ThermalPrinter;
+    </script>
+
+    <!-- Add Bootstrap JavaScript library -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Declare global variables
+        let cart = [];
+        let selectedItem = null; // For the modal
+        let categories = [];
+        let menuItems = [];
+        let allMenuItems = [];
+        let activeCategory = null;
+
+        // DOM Elements
+        const categoriesContainer = document.getElementById('categories-container');
+        const menuItemsContainer = document.getElementById('menu-items-container');
+        const menuLoading = document.getElementById('menu-loading');
+        const menuEmpty = document.getElementById('menu-empty');
+        const cartCount = document.getElementById('cart-count');
+        const businessNameElement = document.getElementById('businessName');
+        const businessNameChnElement = document.getElementById('businessNameChn');
+        const tableNumberElement = document.getElementById('tableNumber');
+        const menuHeader = document.getElementById('menuHeader');
+        const itemCodeSearchElement = document.getElementById('itemCodeSearch');
+        const toast = new bootstrap.Toast(document.getElementById('toast'));
+        const itemDetailModal = new bootstrap.Modal(document.getElementById('itemDetailModal'));
+
+        // Add missing utility functions for error handling and UI
+        // Hide skeleton loaders
+        function hideSkeletons() {
+            const skeletonElements = document.querySelectorAll('.skeleton');
+            skeletonElements.forEach(skeleton => {
+                skeleton.style.display = 'none';
+            });
+        }
+
+        // Show error toast notification
+        function showError(message) {
+            const toastElement = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            if (toastElement && toastMessage) {
+                toastElement.classList.remove('bg-primary', 'bg-success');
+                toastElement.classList.add('bg-danger');
+                toastMessage.textContent = message;
+
+                const bsToast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
+                bsToast.show();
+            } else {
+                // Fallback if toast elements aren't available
+                console.error('Error:', message);
+                alert('Error: ' + message);
+            }
+        }
+
+        // Show success toast notification
+        function showSuccess(message) {
+            const toastElement = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            if (toastElement && toastMessage) {
+                toastElement.classList.remove('bg-primary', 'bg-danger');
+                toastElement.classList.add('bg-success');
+                toastMessage.textContent = message;
+
+                const bsToast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
+                bsToast.show();
+            } else {
+                console.log('Success:', message);
+            }
+        }
+
+        // Show info toast notification
+        function showInfo(message) {
+            const toastElement = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            if (toastElement && toastMessage) {
+                toastElement.classList.remove('bg-success', 'bg-danger');
+                toastElement.classList.add('bg-primary');
+                toastMessage.textContent = message;
+
+                const bsToast = bootstrap.Toast.getInstance(toastElement) || new bootstrap.Toast(toastElement);
+                bsToast.show();
+            } else {
+                console.log('Info:', message);
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check authentication
+            checkAuthentication();
+
+            // Load user info and banner image
+            loadUserInfo();
+
+            // Fetch user data including SST and SALES_TAX
+            fetchUserData();
+
+            // Fetch data
+            fetchCategories();
+            fetchAllMenuItems(); // Fetch all menu items for search functionality
+
+            // Load cart from localStorage
+            loadCartFromStorage();
+
+            // Setup event listeners
+            document.getElementById('cart-button').addEventListener('click', openCart);
+            document.getElementById('logout-button').addEventListener('click', performSecureLogout);
+            itemCodeSearchElement.addEventListener('input', searchByItemCode);
+            document.getElementById('decreaseModalQuantity').addEventListener('click', decreaseModalQuantity);
+            document.getElementById('increaseModalQuantity').addEventListener('click', increaseModalQuantity);
+            document.getElementById('addToCartModal').addEventListener('click', addToCartFromModal);
+        });
+
+        // Load user information from session/localStorage and fetch client data
+        async function loadUserInfo() {
+            // Debug tracker for header loading
+            console.log('=== HEADER LOADING DEBUG TRACKER ===');
+            console.log('Starting loadUserInfo function', new Date().toISOString());
+
+            try {
+                // Get username from localStorage - this is critical for finding the right data
+                const username = localStorage.getItem('username') || sessionStorage.getItem('username') || 'Guest';
+                console.log('DEBUG: Username from storage:', username);
+
+                // Create references to the header elements
+                const headerBusinessName = document.getElementById('header-business-name');
+                const headerBusinessNameChn = document.getElementById('header-business-name-chn');
+                const businessBannerHeader = document.getElementById('business-banner-header');
+                const tableNo = localStorage.getItem('table_no') || sessionStorage.getItem('table_no') || '--';
+                const tableNumberElement = document.getElementById('tableNumber');
+
+                console.log('DEBUG: Header elements found:', {
+                    headerBusinessName: !!headerBusinessName,
+                    headerBusinessNameChn: !!headerBusinessNameChn,
+                    businessBannerHeader: !!businessBannerHeader,
+                    tableNumberElement: !!tableNumberElement
+                });
+
+                // Update table number immediately
+                if (tableNumberElement) {
+                    tableNumberElement.textContent = 'Table: ' + tableNo;
+                    console.log('DEBUG: Updated table number to:', tableNo);
+                }
+
+                // First use any cached values as defaults
+                const cachedBusinessName = localStorage.getItem('businessname') || sessionStorage.getItem('businessname');
+                const cachedBusinessChn = localStorage.getItem('businesschn') || sessionStorage.getItem('businesschn');
+                const cachedBannerImgUrl = localStorage.getItem('banner_imgurl') || sessionStorage.getItem('banner_imgurl');
+
+                console.log('DEBUG: Cached business data:', {
+                    cachedBusinessName,
+                    cachedBusinessChn,
+                    cachedBannerImgUrl
+                });
+
+                // Display cached values immediately if available (upfront display)
+                if (cachedBusinessName && headerBusinessName) {
+                    headerBusinessName.textContent = cachedBusinessName;
+                    console.log('DEBUG: Set business name from cache:', cachedBusinessName);
+                } else {
+                    console.log('DEBUG: No cached business name available or header element not found');
+                }
+
+                if (cachedBusinessChn && headerBusinessNameChn) {
+                    headerBusinessNameChn.textContent = cachedBusinessChn;
+                    console.log('DEBUG: Set business Chinese name from cache:', cachedBusinessChn);
+                } else {
+                    console.log('DEBUG: No cached Chinese business name available or header element not found');
+                }
+
+                if (cachedBannerImgUrl && businessBannerHeader) {
+                    businessBannerHeader.style.backgroundImage = `url('${cachedBannerImgUrl}')`;
+                    // Add a semi-transparent overlay for better text readability
+                    businessBannerHeader.style.boxShadow = 'inset 0 0 0 2000px rgba(0, 0, 0, 0.5)';
+                    console.log('DEBUG: Set banner image from cache:', cachedBannerImgUrl);
+                } else {
+                    console.log('DEBUG: No cached banner image URL available or header element not found');
+                }
+
+                // Now fetch fresh client data from the API if we're logged in
+                if (username && username !== 'Guest') {
+                    // Try to fetch client data from API
+                    console.log('DEBUG: Fetching client data from API for username:', username);
+                    let clientData = null;
+                    let responseStatus = null;
+                    let responseText = '';
+
+                    // Different possible API endpoints to try
+                    const possibleEndpoints = [
+                        `/api/clients/by-username/${encodeURIComponent(username)}`,
+                        `/api/client?username=${encodeURIComponent(username)}`
+                    ];
+
+                    // Try each endpoint until we get a successful response
+                    let timeoutId = setTimeout(() => {
+                        console.error('DEBUG: API request timeout for client data');
+                    }, 10000); // 10 second timeout
+
+                    for (const endpoint of possibleEndpoints) {
+                        try {
+                            console.log(`DEBUG: Trying endpoint: ${endpoint}`);
+
+                            const response = await fetch(endpoint);
+                            responseStatus = response.status;
+                            responseText = await response.text();
+
+                            if (response.ok) {
+                                try {
+                                    clientData = JSON.parse(responseText);
+                                    console.log(`DEBUG: Successfully fetched client data from ${endpoint}:`, clientData);
+                                    break;
+                                } catch (jsonError) {
+                                    console.error(`DEBUG: Error parsing JSON from ${endpoint}:`, jsonError);
+                                    console.log(`DEBUG: Raw response:`, responseText);
+                                }
+                            } else {
+                                console.warn(`DEBUG: Endpoint ${endpoint} returned status ${response.status}`);
+                                console.log(`DEBUG: Response text:`, responseText);
+                            }
+                        } catch (endpointError) {
+                            console.warn(`DEBUG: Error with endpoint ${endpoint}:`, endpointError);
+                        }
+                    }
+
+                    clearTimeout(timeoutId);
+
+                    if (clientData) {
+                        console.log('DEBUG: Successfully retrieved client data from API');
+                    } else {
+                        console.warn('DEBUG: Failed to retrieve client data from all API endpoints');
+                        console.log('DEBUG: Last response status:', responseStatus);
+                        console.log('DEBUG: Last response text:', responseText);
+                    }
+
+                    // Update UI with the fetched client information if available
+                    if (clientData) {
+                        // Save the full client data in localStorage for future use
+                        localStorage.setItem('userfile_data', JSON.stringify(clientData));
+                        console.log('DEBUG: Saved client data to localStorage as userfile_data');
+
+                        // Dump all available fields from clientData for debugging
+                        console.log('DEBUG: Available fields in API response:', Object.keys(clientData));
+                        if (Array.isArray(clientData) && clientData.length > 0) {
+                            console.log('DEBUG: Available fields in first array item:', Object.keys(clientData[0]));
+                        }
+                        if (clientData.data) {
+                            console.log('DEBUG: Available fields in data property:', Object.keys(clientData.data));
+                        }
+
+                        // Handle different API response structures
+                        // This is the key fix - check for both camelCase and uppercase property names
+                        // Extract data from nested structure if necessary
+                        const dataObj = clientData.data || clientData;
+
+                        // Extract and store SST rate if available
+                        const sstRate = dataObj.sst || dataObj.SST || 0;
+                        if (sstRate !== undefined) {
+                            localStorage.setItem('SST', sstRate.toString());
+                            console.log('DEBUG: Saved SST rate to localStorage:', sstRate);
+                        }
+
+                        // Check all possible property name variations (camelCase, uppercase, etc.)
+                        const businessName = dataObj.businessName || dataObj.BUSINESSNAME ||
+                            dataObj.business_name || dataObj.BusinessName;
+
+                        const businessChn = dataObj.businessNameChn || dataObj.BUSINESSCHN ||
+                            dataObj.business_name_chn || dataObj.BusinessNameChn;
+
+                        const bannerImgUrl = dataObj.bannerImgUrl || dataObj.BANNER_IMGURL ||
+                            dataObj.banner_img_url || dataObj.BannerImgUrl;
+
+                        console.log('DEBUG: Extracted values from API response:', {
+                            businessName,
+                            businessChn,
+                            bannerImgUrl
+                        });
+
+                        // Update business name
+                        if (businessName && headerBusinessName) {
+                            headerBusinessName.textContent = businessName;
+                            localStorage.setItem('businessname', businessName);
+                            localStorage.setItem('BUSINESSNAME', businessName); // Store with direct field name
+                            console.log('DEBUG: Updated business name from API:', businessName);
+                        } else {
+                            console.log('DEBUG: Could not update business name - Value or element missing');
+                        }
+
+                        // Update Chinese business name
+                        if (businessChn && headerBusinessNameChn) {
+                            headerBusinessNameChn.textContent = businessChn;
+                            localStorage.setItem('businesschn', businessChn);
+                            localStorage.setItem('BUSINESSCHN', businessChn); // Store with direct field name
+                            console.log('DEBUG: Updated business Chinese name from API:', businessChn);
+                        } else {
+                            console.log('DEBUG: Could not update Chinese business name - Value or element missing');
+                        }
+
+                        // Update banner image
+                        if (bannerImgUrl && businessBannerHeader) {
+                            businessBannerHeader.style.backgroundImage = `url('${bannerImgUrl}')`;
+                            // Add a semi-transparent overlay for better text readability
+                            businessBannerHeader.style.boxShadow = 'inset 0 0 0 2000px rgba(0, 0, 0, 0.5)';
+                            localStorage.setItem('banner_imgurl', bannerImgUrl);
+                            localStorage.setItem('BANNER_IMGURL', bannerImgUrl); // Store with direct field name
+                            console.log('DEBUG: Updated banner image URL from API:', bannerImgUrl);
+                        } else {
+                            console.log('DEBUG: Could not update banner image - Value or element missing');
+                        }
+                    } else {
+                        console.warn('DEBUG: No client data found after trying all endpoints');
+
+                        // Final fallback: set generic values if still showing "Loading..." or placeholder
+                        if (headerBusinessName && (headerBusinessName.textContent === "Loading..." || !headerBusinessName.textContent)) {
+                            headerBusinessName.textContent = username || "Restaurant";
+                            console.log('DEBUG: FALLBACK - Setting business name to username:', username);
+                        }
+
+                        if (headerBusinessNameChn && (headerBusinessNameChn.textContent === "加载中..." || !headerBusinessNameChn.textContent)) {
+                            headerBusinessNameChn.textContent = "Restaurant";
+                            console.log('DEBUG: FALLBACK - Setting generic Chinese business name');
+                        }
+                    }
+                } else {
+                    console.log('DEBUG: Not logged in or guest user, skipping client data fetch');
+
+                    // Set generic values for guest users
+                    if (headerBusinessName && (headerBusinessName.textContent === "Loading..." || !headerBusinessName.textContent)) {
+                        headerBusinessName.textContent = "FoodBao Menu";
+                        console.log('DEBUG: Setting generic business name for guest user');
+                    }
+
+                    if (headerBusinessNameChn && (headerBusinessNameChn.textContent === "加载中..." || !headerBusinessNameChn.textContent)) {
+                        headerBusinessNameChn.textContent = "Online Menu";
+                        console.log('DEBUG: Setting generic Chinese business name for guest user');
+                    }
+                }
+
+                // Final check - are values still showing loading placeholders?
+                console.log('DEBUG: Final state of header elements:');
+                if (headerBusinessName) {
+                    console.log('DEBUG: Business name:', headerBusinessName.textContent);
+                }
+                if (headerBusinessNameChn) {
+                    console.log('DEBUG: Chinese business name:', headerBusinessNameChn.textContent);
+                }
+                if (businessBannerHeader) {
+                    console.log('DEBUG: Banner background image:', businessBannerHeader.style.backgroundImage);
+                }
+
+                console.log('=== END OF HEADER LOADING DEBUG TRACKER ===');
+            } catch (error) {
+                console.error('DEBUG: CRITICAL ERROR in loadUserInfo function:', error);
+
+                // Emergency fallback - ensure header doesn't stay in loading state
+                try {
+                    const headerBusinessName = document.getElementById('header-business-name');
+                    const headerBusinessNameChn = document.getElementById('header-business-name-chn');
+
+                    if (headerBusinessName && headerBusinessName.textContent === "Loading...") {
+                        const username = localStorage.getItem('username') || sessionStorage.getItem('username') || "FoodBao Menu";
+                        headerBusinessName.textContent = username;
+                        console.log('DEBUG: EMERGENCY FALLBACK - Set business name to:', username);
+                    }
+
+                    if (headerBusinessNameChn && headerBusinessNameChn.textContent === "加载中...") {
+                        headerBusinessNameChn.textContent = "Restaurant";
+                        console.log('DEBUG: EMERGENCY FALLBACK - Set Chinese business name to generic value');
+                    }
+                } catch (fallbackError) {
+                    console.error('DEBUG: Even emergency fallback failed:', fallbackError);
+                }
+
+                console.log('=== END OF HEADER LOADING DEBUG TRACKER (WITH ERROR) ===');
+            }
+        }
+
+        // Check if user is authenticated
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+            if (!authToken || !username) {
+                // Redirect to login if not authenticated
+                window.location.href = '../login.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Fetch all menu items for search functionality
+        async function fetchAllMenuItems() {
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+
+                const response = await fetch('/api/menu-items', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    showError('Failed to load menu items');
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Filter menu items by the logged-in user's username
+                    allMenuItems = data.data.filter(item => item.USERNAME === username) || [];
+                    console.log(`Loaded ${allMenuItems.length} total menu items for search functionality`);
+                } else {
+                    showError(data.message || 'Failed to load menu items');
+                }
+            } catch (error) {
+                console.error('Error fetching all menu items:', error);
+                showError('An error occurred while loading menu items');
+            }
+        }
+
+        // Search by item code
+        function searchByItemCode() {
+            const searchTerm = itemCodeSearchElement.value.trim().toLowerCase();
+
+            if (!searchTerm) {
+                // If search is cleared, show the current category
+                if (activeCategory) {
+                    renderMenuItemsByCategory(activeCategory);
+                }
+                return;
+            }
+
+            // Filter items by ITEM_CODE
+            const filteredItems = allMenuItems.filter(item => {
+                const itemCode = (item.ITEM_CODE || '').toString().toLowerCase();
+                return itemCode.includes(searchTerm);
+            });
+
+            // Update menu items display
+            menuItems = filteredItems;
+            renderMenuItems();
+
+            // Clear active category highlight
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            categoryTabs.forEach(tab => tab.classList.remove('active'));
+        }
+
+        // Render menu items by category
+        function renderMenuItemsByCategory(categoryId) {
+            // Filter by category
+            menuItems = allMenuItems.filter(item => item.CATEGORY_ID === categoryId);
+            renderMenuItems();
+        }
+
+        // Fetch categories filtered by username
+        async function fetchCategories() {
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+
+                const response = await fetch('/api/menu-categories', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    showError('Failed to load categories');
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Filter categories by the logged-in user's username
+                    const allCategories = data.data || [];
+                    categories = allCategories.filter(category => category.USERNAME === username);
+
+                    // Sort categories by display order
+                    categories = categories.sort((a, b) => a.DISPLAY_ORDER - b.DISPLAY_ORDER);
+
+                    // Render categories
+                    renderCategories();
+
+                    // Select first category by default if available
+                    if (categories.length > 0) {
+                        selectCategory(categories[0].CATEGORY_ID);
+                    } else {
+                        // Show empty state if no categories
+                        hideSkeletons();
+                        menuEmpty.style.display = 'block';
+                    }
+                } else {
+                    showError(data.message || 'Failed to load categories');
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                showError('An error occurred while loading categories');
+            }
+        }
+
+        // Fetch menu items by category and username
+        async function fetchMenuItems(categoryId) {
+            try {
+                // Show loading
+                menuItemsContainer.style.display = 'none';
+                menuEmpty.style.display = 'none';
+                menuLoading.style.display = 'flex';
+
+                // Hide skeleton loaders
+                hideSkeletons();
+
+                // We already have all menu items, so we can just filter them
+                if (allMenuItems.length > 0) {
+                    renderMenuItemsByCategory(categoryId);
+                    menuLoading.style.display = 'none';
+                    return;
+                }
+
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+
+                const response = await fetch('/api/menu-items', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    showError('Failed to load menu items');
+                    menuLoading.style.display = 'none';
+                    menuEmpty.style.display = 'block';
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Filter menu items by the logged-in user's username
+                    let allItems = data.data || [];
+                    allItems = allItems.filter(item => item.USERNAME === username);
+
+                    // Save all items for search functionality
+                    allMenuItems = allItems;
+
+                    // Filter by category if specified
+                    if (categoryId) {
+                        menuItems = allItems.filter(item => item.CATEGORY_ID === categoryId);
+                    } else {
+                        menuItems = allItems;
+                    }
+
+                    console.log(`Found ${menuItems.length} items for category ID ${categoryId}`);
+
+                    // Render menu items
+                    renderMenuItems();
+                } else {
+                    showError(data.message || 'Failed to load menu items');
+                    menuLoading.style.display = 'none';
+                    menuEmpty.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching menu items:', error);
+                showError('An error occurred while loading menu items');
+                menuLoading.style.display = 'none';
+                menuEmpty.style.display = 'block';
+            } finally {
+                // Hide loading
+                menuLoading.style.display = 'none';
+            }
+        }
+
+        // Render categories in the left sidebar with images
+        function renderCategories() {
+            categoriesContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const categoryTab = document.createElement('div');
+                categoryTab.className = 'category-tab';
+                categoryTab.dataset.id = category.CATEGORY_ID;
+                categoryTab.onclick = () => selectCategory(category.CATEGORY_ID);
+
+                // Get category image URL or use a placeholder
+                const categoryImageUrl = category.GROUP_IMGURL || '../img/dish.png';
+
+                categoryTab.innerHTML = `
+                    <div class="category-image" style="background-image: url('${categoryImageUrl}')"></div>
+                    <div class="category-details">
+                        <div class="category-name">${category.NAME}</div>
+                        <div class="category-desc">${category.DESCRIPTION || 'Food items in this category'}</div>
+                    </div>
+                `;
+
+                categoriesContainer.appendChild(categoryTab);
+            });
+        }
+
+        // Render menu items in the right container
+        function renderMenuItems() {
+            menuItemsContainer.innerHTML = '';
+
+            if (menuItems.length === 0) {
+                menuItemsContainer.style.display = 'none';
+                menuEmpty.style.display = 'block';
+                return;
+            }
+
+            menuItemsContainer.style.display = 'block';
+            menuEmpty.style.display = 'none';
+
+            menuItems.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item-row';
+                menuItem.onclick = () => openItemDetailModal(item);
+
+                const isAvailable = item.IS_AVAILABLE !== false;
+                const isFeatured = item.IS_FEATURED === true;
+                const itemCode = item.ITEM_CODE || '';
+
+                // Get menu item image URL or use a placeholder
+                const imgUrl = item.IMAGE_URL || '../img/dish.png';
+
+                menuItem.innerHTML = `
+                    <div class="menu-item-content">
+                        <div class="menu-item-img" style="background-image: url('${imgUrl}')"></div>
+                        ${isFeatured ? '<span class="badge-featured">Featured</span>' : ''}
+                        <div class="menu-item-details">
+                            <div class="menu-item-code">${itemCode} ${item.DESCRIPTION ? `- ${item.DESCRIPTION}` : ''}</div>
+                            <div class="menu-item-name">${item.NAME}</div>
+                            <div class="menu-item-price">RM${parseFloat(item.BASE_PRICE).toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+
+                menuItemsContainer.appendChild(menuItem);
+            });
+        }
+
+        // Open item detail modal
+        function openItemDetailModal(item) {
+            // Reset any previously selected item data
+            selectedItem = item;
+
+            // Reset the quantity to 1
+            document.getElementById('modalQuantity').textContent = '1';
+
+            // Clear any price calculation from a previous item
+            if (item.calculatedPrice) {
+                delete item.calculatedPrice;
+            }
+
+            // Set modal content in required format: ITEM_CODE - DESCRIPTION in first row, NAME in second row
+            document.getElementById('modalItemCode').textContent = `${item.ITEM_CODE || 'No Code'} - ${item.DESCRIPTION || 'No description'}`;
+            document.getElementById('modalItemName').textContent = item.NAME;
+            document.getElementById('modalItemDesc').style.display = 'none'; // Hide the description since we've combined it with the code
+
+            // Reset price to default base price
+            document.getElementById('modalItemPrice').textContent = `RM${parseFloat(item.BASE_PRICE).toFixed(2)}`;
+
+            // Reset Add to Cart button text
+            document.getElementById('addToCartModal').textContent = 'Add to Cart';
+
+            // Set image
+            const imgUrl = item.IMAGE_URL || '../img/dish.png';
+            document.getElementById('modalItemImage').style.backgroundImage = `url('${imgUrl}')`;
+
+            // Clear existing variations container and show loading
+            const variationsContainer = document.getElementById('itemVariationsContainer');
+            if (variationsContainer) {
+                variationsContainer.innerHTML = '<div class="variations-loading">Loading options...</div>';
+                variationsContainer.style.display = 'block';
+            }
+
+            // Show modal - we show it before fetching variations for better UX
+            itemDetailModal.show();
+
+            // Fetch and display variations for this item
+            fetchItemVariations(item.ITEM_ID);
+        }
+
+        // Fetch variations for a specific menu item
+        async function fetchItemVariations(itemId) {
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+
+                // Clear previous variations
+                const variationsContainer = document.getElementById('itemVariationsContainer');
+
+                // Explicitly add username as both query parameter and header for reliability
+                const response = await fetch(`/api/menu-item-variations/${itemId}?username=${encodeURIComponent(username)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken,
+                        'X-Username': username // Add explicit username header
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error(`Failed to load variations: ${response.status} ${response.statusText}`);
+                    if (variationsContainer) {
+                        variationsContainer.style.display = 'none';
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('Variations response:', data); // Debug logging
+
+                if (data.success && data.data && data.data.length > 0) {
+                    // Process and organize variations by group before rendering
+                    const processedVariations = processVariationsData(data.data);
+                    renderItemVariations(processedVariations);
+                } else {
+                    console.log('No variations found or empty data:', data);
+                    if (variationsContainer) {
+                        variationsContainer.style.display = 'none';
+                        // When no variations, still update the base price
+                        updateItemPrice();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching item variations:', error);
+                const variationsContainer = document.getElementById('itemVariationsContainer');
+                if (variationsContainer) {
+                    variationsContainer.style.display = 'none';
+                }
+                // Even on error, still update the base price
+                updateItemPrice();
+            }
+        }
+
+        // Process variation data to organize by groups
+        function processVariationsData(variations) {
+            console.log('Processing variations data, received count:', variations.length);
+
+            // In the junction table design, variations might have null ITEM_ID but they're still valid
+            // because they're associated with the item through the junction table itself
+
+            // Group variations by variation group
+            const variationGroups = {};
+
+            variations.forEach(variation => {
+                const groupId = variation.VARIATION_GROUP_ID || variation.NAME;
+
+                if (!variationGroups[groupId]) {
+                    variationGroups[groupId] = {
+                        id: groupId,
+                        name: variation.GROUP_NAME || variation.NAME,
+                        isRequired: variation.IS_REQUIRED || false,
+                        minSelections: variation.MIN_SELECTIONS || (variation.IS_REQUIRED ? 1 : 0),
+                        maxSelections: variation.MAX_SELECTIONS || 0,
+                        displayOrder: variation.DISPLAY_ORDER || 0,
+                        options: []
+                    };
+                }
+
+                // Use PRICE directly from the junction table or fall back to MIN_PRICE (for backward compatibility)
+                const price = parseFloat(variation.PRICE || variation.MIN_PRICE || 0);
+
+                variationGroups[groupId].options.push({
+                    id: variation.VARIATION_ID,
+                    name: variation.VARIATION_NAME || variation.NAME,
+                    price: price,
+                    isDefault: variation.IS_DEFAULT || false
+                });
+            });
+
+            console.log('Grouped variations into', Object.keys(variationGroups).length, 'groups');
+
+            // Convert to array and sort by display order
+            return Object.values(variationGroups).sort(
+                (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)
+            );
+        }
+
+        // Render variations in the modal
+        function renderItemVariations(variationGroups) {
+            const variationsContainer = document.getElementById('itemVariationsContainer');
+            if (!variationsContainer) return;
+
+            variationsContainer.innerHTML = '';
+
+            if (!variationGroups || variationGroups.length === 0) {
+                variationsContainer.style.display = 'none';
+                return;
+            }
+
+            variationsContainer.style.display = 'block';
+
+            // Create variation selection groups
+            variationGroups.forEach(group => {
+                const variationGroup = document.createElement('div');
+                variationGroup.className = 'variation-group';
+                variationGroup.dataset.groupId = group.id;
+                variationGroup.dataset.required = group.isRequired;
+                variationGroup.dataset.minSelections = group.minSelections;
+                variationGroup.dataset.maxSelections = group.maxSelections;
+
+                // Create group header with validation badges
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'variation-group-header';
+                groupHeader.innerHTML = `
+                    <h6>${group.name}</h6>
+                    ${group.isRequired ? '<span class="variation-required">Required</span>' : ''}
+                    ${group.minSelections > 0 ? `<span class="variation-min">Min: ${group.minSelections}</span>` : ''}
+                    ${group.maxSelections > 0 ? `<span class="variation-max">Max: ${group.maxSelections}</span>` : ''}
+                `;
+
+                variationGroup.appendChild(groupHeader);
+
+                // Create option inputs
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'variation-options';
+
+                // Here's the change - we'll use checkboxes for all variations regardless of maxSelections
+                const inputType = 'checkbox';
+                const inputName = `variation_group_${group.id}`;
+
+                // Add "Choose for me" option for Take Away or Dine In
+                if (group.name === 'Take Away or Dine In' || group.name.toLowerCase().includes('take away') ||
+                    group.name.toLowerCase().includes('dine in')) {
+                    const randomOptionItem = document.createElement('div');
+                    randomOptionItem.className = 'variation-option';
+
+                    randomOptionItem.innerHTML = `
+                        <label class="variation-option-label choose-for-me">
+                            <input type="checkbox" name="choose_for_me_${group.id}" 
+                                data-option-id="choose_for_me" 
+                                data-option-name="Choose for me"
+                                data-option-price="0"
+                                data-group-name="${group.name}">
+                            <span class="variation-option-name">Choose for me</span>
+                            <span class="variation-option-price"></span>
+                        </label>
+                    `;
+
+                    optionsContainer.appendChild(randomOptionItem);
+                }
+
+                group.options.forEach((option, index) => {
+                    const optionItem = document.createElement('div');
+                    optionItem.className = 'variation-option';
+
+                    const priceDisplay = option.price > 0 ? `+RM${parseFloat(option.price).toFixed(2)}` : '';
+
+                    optionItem.innerHTML = `
+                        <label class="variation-option-label">
+                            <input type="${inputType}" name="${inputName}" 
+                                data-option-id="${option.id}" 
+                                data-option-name="${option.name}"
+                                data-option-price="${option.price}"
+                                data-group-name="${group.name}"
+                                ${option.isDefault || (index === 0 && group.isRequired && group.maxSelections === 1) ? 'checked' : ''}>
+                            <span class="variation-option-name">${option.name}</span>
+                            <span class="variation-option-price">${priceDisplay}</span>
+                        </label>
+                    `;
+
+                    optionsContainer.appendChild(optionItem);
+                });
+
+                variationGroup.appendChild(optionsContainer);
+                variationsContainer.appendChild(variationGroup);
+            });
+
+            // Add event listeners to update total price when variations are selected
+            addVariationChangeListeners();
+
+            // Add special handlers for "Choose for me" checkboxes
+            addChooseForMeHandlers();
+        }
+
+        // Decrease modal quantity
+        function decreaseModalQuantity() {
+            const quantityElement = document.getElementById('modalQuantity');
+            let quantity = parseInt(quantityElement.textContent);
+            if (quantity > 1) {
+                quantity--;
+                quantityElement.textContent = quantity;
+            }
+        }
+
+        // Increase modal quantity
+        function increaseModalQuantity() {
+            const quantityElement = document.getElementById('modalQuantity');
+            let quantity = parseInt(quantityElement.textContent);
+            quantity++;
+            quantityElement.textContent = quantity;
+        }
+
+        // Add to cart from modal
+        function addToCartFromModal() {
+            if (!selectedItem) return;
+
+            // First validate the variations selection
+            if (!validateVariations()) {
+                return; // Stop if validation fails
+            }
+
+            const quantity = parseInt(document.getElementById('modalQuantity').textContent);
+
+            // Get selected order type (Take Away or Dine In)
+            const orderType = document.querySelector('input[name="orderType"]:checked').value;
+
+            // Check if the order type is Dine In and validate table number
+            if (orderType.toUpperCase() === 'DINE IN') {
+                const tableNumber = localStorage.getItem('table_no') || sessionStorage.getItem('table_no');
+                if (!tableNumber || tableNumber === '0') {
+                    // Show table number input modal and return early
+                    showTableNumberInputModal(true);
+                    return;
+                }
+            }
+
+            // Collect selected variations
+            const selectedVariations = [];
+            const variationsContainer = document.getElementById('itemVariationsContainer');
+
+            // Add the order type as a special variation first
+            selectedVariations.push({
+                id: 'order_type',
+                name: orderType,
+                price: 0,
+                groupName: 'Order Type'
+            });
+
+            // Add the order type as a special variation first
+            selectedVariations.push({
+                id: 'order_type',
+                name: orderType,
+                price: 0,
+                groupName: 'Order Type'
+            });
+
+            if (variationsContainer) {
+                const variationGroups = variationsContainer.querySelectorAll('.variation-group');
+
+                variationGroups.forEach(group => {
+                    const groupName = group.querySelector('.variation-group-header h6').textContent;
+
+                    // Skip if the group is about Take Away / Dine In since we're handling it separately
+                    if (groupName.toLowerCase().includes('take away') || groupName.toLowerCase().includes('dine in')) {
+                        return;
+                    }
+
+                    // Get all selected inputs in this group
+                    const selectedInputs = group.querySelectorAll('input:checked');
+
+                    // Add all selected variations to the array
+                    selectedInputs.forEach(input => {
+                        selectedVariations.push({
+                            id: input.dataset.optionId,
+                            name: input.dataset.optionName,
+                            price: parseFloat(input.dataset.optionPrice) || 0,
+                            groupName: input.dataset.groupName
+                        });
+                    });
+                });
+            }
+
+            // Calculate total price including variations
+            const basePrice = parseFloat(selectedItem.BASE_PRICE);
+            const variationsTotalPrice = selectedVariations.reduce((sum, variation) => sum + variation.price, 0);
+            const totalPrice = basePrice + variationsTotalPrice;
+
+            console.log(`Adding to cart - Item: ${selectedItem.NAME}, Order Type: ${orderType}, Base price: RM${basePrice.toFixed(2)}, Variations total: RM${variationsTotalPrice.toFixed(2)}, Final total: RM${totalPrice.toFixed(2)}`);
+
+            // Check if same item with exact same variations already in cart
+            const existingItemIndex = findItemInCart(selectedItem.ITEM_ID, selectedVariations);
+
+            if (existingItemIndex !== -1) {
+                // Item with same variations exists, update quantity
+                cart[existingItemIndex].quantity += quantity;
+            } else {
+                // Add new item to cart
+                cart.push({
+                    itemId: selectedItem.ITEM_ID,
+                    name: selectedItem.NAME,
+                    basePrice: basePrice,
+                    totalPrice: totalPrice, // This now includes the variations price
+                    quantity: quantity,
+                    itemCode: selectedItem.ITEM_CODE || '',
+                    orderType: orderType, // Add order type explicitly for easier access
+                    variations: selectedVariations,
+                    imageUrl: selectedItem.IMAGE_URL || '../img/dish.png'
+                });
+            }
+
+            // Save cart to localStorage for persistence
+            saveCartToStorage();
+
+            // Update cart count
+            updateCartCount();
+
+            // Show success toast with variation details and order type
+            let successMessage = `${selectedItem.NAME} added to cart (${orderType})`;
+            if (selectedVariations.length > 1) { // More than 1 because we always add Order Type
+                successMessage += ` with ${selectedVariations.length - 1} option(s)`;
+            }
+            successMessage += ` - RM${totalPrice.toFixed(2)}`;
+            showSuccess(successMessage);
+
+            // Close modal
+            itemDetailModal.hide();
+        }
+
+        // Find item in cart with exact same variations
+        function findItemInCart(itemId, variations) {
+            for (let i = 0; i < cart.length; i++) {
+                const item = cart[i];
+
+                // Check if same item ID
+                if (item.itemId === itemId) {
+                    // If no variations for both, it's a match
+                    if (!variations.length && !item.variations.length) {
+                        return i;
+                    }
+
+                    // If variations length doesn't match, not a match
+                    if (variations.length !== item.variations.length) {
+                        continue;
+                    }
+
+                    // Check if all variations match
+                    const allVariationsMatch = variations.every(variation => {
+                        return item.variations.some(itemVariation =>
+                            itemVariation.id === variation.id &&
+                            itemVariation.name === variation.name
+                        );
+                    });
+
+                    if (allVariationsMatch) {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        // Save cart to localStorage for persistence
+        function saveCartToStorage() {
+            localStorage.setItem('food_cart', JSON.stringify(cart));
+        }
+
+        // Load cart from localStorage
+        function loadCartFromStorage() {
+            const savedCart = localStorage.getItem('food_cart');
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                    updateCartCount();
+                } catch (error) {
+                    console.error('Error parsing saved cart:', error);
+                }
+            }
+        }
+
+        // Select a category
+        function selectCategory(categoryId) {
+            // Update active category
+            activeCategory = categoryId;
+
+            // Clear search input
+            itemCodeSearchElement.value = '';
+
+            // Update active class in tabs
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            categoryTabs.forEach(tab => {
+                if (parseInt(tab.dataset.id) === categoryId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Fetch menu items for this category
+            fetchMenuItems(categoryId);
+        }
+
+        // Update cart count
+        function updateCartCount() {
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+
+        // Open cart with improved variation display
+        function openCart() {
+            if (cart.length === 0) {
+                showInfo('Your cart is empty');
+                return;
+            }
+
+            // Create modal element if it doesn't exist, or clear it if it does
+            let cartModal = document.getElementById('cartModal');
+            if (!cartModal) {
+                cartModal = document.createElement('div');
+                cartModal.id = 'cartModal';
+                cartModal.className = 'modal fade';
+                cartModal.tabIndex = '-1';
+                cartModal.setAttribute('aria-labelledby', 'cartModalLabel');
+                cartModal.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(cartModal);
+            }
+
+            // Calculate cart total
+            const cartTotal = cart.reduce((total, item) => total + (item.totalPrice * item.quantity), 0);
+
+            // Generate cart items HTML
+            const cartItemsHtml = generateCartItemsHtml();
+
+            // Build cart modal HTML
+            cartModal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cartModalLabel">Your Cart</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="cart-items-container">
+                            ${cart.length > 0 ? cartItemsHtml : '<div class="cart-empty">Your cart is empty</div>'}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="cart-total-section">
+                            <span class="cart-total-label">Total:</span>
+                            <span class="cart-total-amount">RM${cartTotal.toFixed(2)}</span>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-checkout" onclick="proceedToCheckout()">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            // Show cart modal
+            const cartModalInstance = new bootstrap.Modal(cartModal);
+
+            // Listen for modal hidden event to ensure proper cleanup
+            cartModal.addEventListener('hidden.bs.modal', function () {
+                console.log('Cart modal closed via hidden.bs.modal event');
+            }, { once: true });
+
+            cartModalInstance.show();
+        }
+
+        // Decrease cart item quantity
+        function decreaseCartItemQuantity(index) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity--;
+                saveCartToStorage();
+                updateCartCount();
+                openCart(); // Refresh cart display
+            }
+        }
+
+        // Increase cart item quantity
+        function increaseCartItemQuantity(index) {
+            cart[index].quantity++;
+            saveCartToStorage();
+            updateCartCount();
+            openCart(); // Refresh cart display
+        }
+
+        // Remove item from cart
+        function removeCartItem(index) {
+            try {
+                // Safely remove the item
+                cart.splice(index, 1);
+                saveCartToStorage();
+                updateCartCount();
+
+                // Check if cart is now empty
+                if (cart.length === 0) {
+                    // Close the cart modal if it's the last item
+                    const cartModal = document.getElementById('cartModal');
+                    if (cartModal) {
+                        // Get the modal instance properly
+                        try {
+                            const bsModal = bootstrap.Modal.getInstance(cartModal);
+                            if (bsModal) {
+                                // First add the listener, then hide
+                                cartModal.addEventListener('hidden.bs.modal', function () {
+                                    console.log('Modal fully hidden, cart empty');
+                                    // Remove the modal from DOM completely
+                                    if (cartModal.parentNode) {
+                                        cartModal.parentNode.removeChild(cartModal);
+                                    }
+                                    setTimeout(() => showInfo('Your cart is now empty'), 300);
+                                }, { once: true });
+
+                                bsModal.hide();
+                            }
+                        } catch (modalError) {
+                            console.error('Error closing modal:', modalError);
+                            // Fallback: forcibly remove the modal
+                            document.body.classList.remove('modal-open');
+                            const backdrop = document.querySelector('.modal-backdrop');
+                            if (backdrop && backdrop.parentNode) {
+                                backdrop.parentNode.removeChild(backdrop);
+                            }
+                            if (cartModal.parentNode) {
+                                cartModal.parentNode.removeChild(cartModal);
+                            }
+                            setTimeout(() => showInfo('Your cart is now empty'), 300);
+                        }
+                    }
+                } else {
+                    // Refresh cart display if items remain - use a new approach instead of recursive call
+                    const cartModal = document.getElementById('cartModal');
+                    if (cartModal) {
+                        // Instead of recursive call, update the current modal's content
+                        updateCartModalContent();
+                    }
+                }
+            } catch (error) {
+                console.error('Error removing item from cart:', error);
+                showError('Failed to remove item. Please try again.');
+
+                // Emergency recovery
+                try {
+                    const cartModal = document.getElementById('cartModal');
+                    if (cartModal) {
+                        bootstrap.Modal.getInstance(cartModal).hide();
+                    }
+                } catch (e) {
+                    // Last resort: force remove modal elements
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.parentNode.removeChild(backdrop);
+                }
+            }
+        }
+
+        // Update cart modal content without recreating the entire modal
+        function updateCartModalContent() {
+            const cartModal = document.getElementById('cartModal');
+            if (!cartModal) return;
+
+            // Calculate cart total
+            const cartTotal = cart.reduce((total, item) => total + (item.totalPrice * item.quantity), 0);
+
+            // Update cart items
+            const cartItemsContainer = cartModal.querySelector('.cart-items-container');
+            if (cartItemsContainer) {
+                // Generate cart items HTML
+                const cartItemsHtml = generateCartItemsHtml();
+                cartItemsContainer.innerHTML = cart.length > 0 ? cartItemsHtml : '<div class="cart-empty">Your cart is empty</div>';
+
+                // Update total amount
+                const totalElement = cartModal.querySelector('.cart-total-amount');
+                if (totalElement) {
+                    totalElement.textContent = `RM${parseFloat(cartTotal).toFixed(2)}`;
+                }
+            }
+        }
+
+        // Generate HTML for cart items with row-based variation display
+        function generateCartItemsHtml() {
+            return cart.map((item, index) => {
+                // Format variations list with more compact row-based layout
+                let variationsHtml = '';
+                if (item.variations && item.variations.length > 0) {
+                    // Group variations by their group name but exclude Order Type
+                    const nonOrderTypeVariations = item.variations.filter(v =>
+                        v.groupName.toLowerCase() !== 'order type' && v.id !== 'order_type'
+                    );
+
+                    if (nonOrderTypeVariations.length > 0) {
+                        variationsHtml = '<div class="cart-item-variations-inline">';
+
+                        // Add each variation as a separate row with aligned price
+                        nonOrderTypeVariations.forEach(variation => {
+                            const priceStr = variation.price > 0 ? `<span class="cart-variation-price">+RM${parseFloat(variation.price).toFixed(2)}</span>` : '';
+
+                            variationsHtml += `
+                                <div class="cart-variation-row">
+                                    <span class="cart-variation-name">${variation.name}</span>
+                                    ${priceStr}
+                                </div>
+                            `;
+                        });
+
+                        variationsHtml += '</div>';
+                    }
+                }
+
+                // Calculate item subtotal
+                const itemSubtotal = item.totalPrice * item.quantity;
+
+                // Find order type from variations
+                const orderTypeVariation = item.variations.find(v =>
+                    v.groupName.toLowerCase() === 'order type' || v.id === 'order_type'
+                );
+                const orderTypeDisplay = orderTypeVariation ? `<span class="order-type-badge">${orderTypeVariation.name}</span>` : '';
+
+                return `
+                <div class="cart-item">
+                    <div class="cart-item-image" style="background-image: url('${item.imageUrl}')"></div>
+                    <div class="cart-item-details">
+                        <div class="cart-item-name">${item.name} ${orderTypeDisplay}</div>
+                        <div class="cart-item-code">${item.itemCode}</div>
+                        ${variationsHtml}
+                    </div>
+                    <div class="cart-item-actions">
+                        <div class="cart-item-subtotal">RM${parseFloat(itemSubtotal).toFixed(2)}</div>
+                        <div class="cart-item-controls">
+                            <button class="btn-cart-item" onclick="decreaseCartItemQuantity(${index})">-</button>
+                            <span class="cart-item-quantity">${item.quantity}</span>
+                            <button class="btn-cart-item" onclick="increaseCartItemQuantity(${index})">+</button>
+                            <button class="btn-cart-item btn-remove" onclick="removeCartItem(${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // Proceed to checkout function that opens the order confirmation modal
+        function proceedToCheckout() {
+            // Validate cart isn't empty
+            if (cart.length === 0) {
+                showError('Your cart is empty. Please add items before checkout.');
+                return;
+            }
+
+            // First close the cart modal
+            const cartModal = document.getElementById('cartModal');
+            if (cartModal) {
+                const bsCartModal = bootstrap.Modal.getInstance(cartModal);
+                if (bsCartModal) {
+                    bsCartModal.hide();
+
+                    // Wait for cart modal to close before showing order confirmation modal
+                    cartModal.addEventListener('hidden.bs.modal', function () {
+                        console.log('Cart modal closed');
+
+                        // Create a small delay to ensure the modal is fully closed
+                        setTimeout(() => {
+                            try {
+                                // Populate order confirmation modal - this now uses synchronous calculation
+                                populateOrderConfirmationModal();
+
+                                // Then show the order confirmation modal
+                                const orderConfirmModal = document.getElementById('orderConfirmModal');
+                                if (orderConfirmModal) {
+                                    const bsOrderConfirmModal = new bootstrap.Modal(orderConfirmModal);
+                                    bsOrderConfirmModal.show();
+                                } else {
+                                    showError('Could not find order confirmation modal');
+                                }
+                            } catch (error) {
+                                console.error('Error preparing order confirmation modal:', error);
+                                showError('Unable to prepare checkout. Please try again.');
+                            }
+                        }, 300); // Added delay to ensure complete rendering
+                    }, { once: true }); // Use once to avoid multiple event triggers
+                } else {
+                    // If modal instance not found, proceed directly
+                    try {
+                        // Populate order confirmation modal
+                        populateOrderConfirmationModal();
+
+                        // Then show the order confirmation modal
+                        const orderConfirmModal = document.getElementById('orderConfirmModal');
+                        if (orderConfirmModal) {
+                            const bsOrderConfirmModal = new bootstrap.Modal(orderConfirmModal);
+                            bsOrderConfirmModal.show();
+                        } else {
+                            showError('Could not find order confirmation modal');
+                        }
+                    } catch (error) {
+                        console.error('Error preparing order confirmation modal:', error);
+                        showError('Unable to prepare checkout. Please try again.');
+                    }
+                }
+            } else {
+                // If cart modal not found, proceed directly
+                try {
+                    // Populate order confirmation modal
+                    populateOrderConfirmationModal();
+
+                    // Then show the order confirmation modal
+                    const orderConfirmModal = document.getElementById('orderConfirmModal');
+                    if (orderConfirmModal) {
+                        const bsOrderConfirmModal = new bootstrap.Modal(orderConfirmModal);
+                        bsOrderConfirmModal.show();
+                    } else {
+                        showError('Could not find order confirmation modal');
+                    }
+                } catch (error) {
+                    console.error('Error preparing order confirmation modal:', error);
+                    showError('Unable to prepare checkout. Please try again.');
+                }
+            }
+        }
+
+        // Populate the order confirmation modal with cart items and totals
+        async function populateOrderConfirmationModal() {
+            try {
+                const orderConfirmItems = document.getElementById('orderConfirmItems');
+                const orderTotalSection = document.getElementById('orderTotalSection');
+
+                if (!orderConfirmItems) {
+                    console.error('Error preparing order confirmation modal: orderConfirmItems element not found');
+                    return null;
+                }
+
+                // Clear previous items
+                orderConfirmItems.innerHTML = '';
+
+                // Add each item to the confirmation modal
+                cart.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'order-confirm-item';
+
+                    // Create variations list if any
+                    let variationsHtml = '';
+                    if (item.variations && item.variations.length > 0) {
+                        const nonOrderTypeVariations = item.variations.filter(v =>
+                            v.groupName.toLowerCase() !== 'order type' && v.id !== 'order_type'
+                        );
+
+                        if (nonOrderTypeVariations.length > 0) {
+                            variationsHtml = '<div class="order-confirm-item-variations">';
+                            nonOrderTypeVariations.forEach(variation => {
+                                variationsHtml += `<span>${variation.name}${variation.price > 0 ? ` (+RM${variation.price.toFixed(2)})` : ''}</span>, `;
+                            });
+                            variationsHtml = variationsHtml.slice(0, -2); // Remove last comma and space
+                            variationsHtml += '</div>';
+                        }
+                    }
+
+                    // Find order type from variations
+                    const orderTypeVariation = item.variations.find(v =>
+                        v.groupName.toLowerCase() === 'order type' || v.id === 'order_type'
+                    );
+                    const orderTypeDisplay = orderTypeVariation ? ` (${orderTypeVariation.name})` : '';
+
+                    itemElement.innerHTML = `
+                        <div class="order-confirm-item-details">
+                            <div class="order-confirm-item-name">${item.name}${orderTypeDisplay}</div>
+                            <div>${item.quantity} × RM${item.totalPrice.toFixed(2)}</div>
+                            ${variationsHtml}
+                        </div>
+                        <div class="order-confirm-item-price">RM${(item.totalPrice * item.quantity).toFixed(2)}</div>
+                    `;
+
+                    orderConfirmItems.appendChild(itemElement);
+                });
+
+                // Calculate totals using the synchronous function
+                const totals = calculateCartTotals();
+
+                // If orderTotalSection exists, update it, otherwise create it
+                if (orderTotalSection) {
+                    orderTotalSection.innerHTML = `
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>RM${totals.subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax (${totals.taxRate}%):</span>
+                            <span>RM${totals.taxAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 ${totals.roundingAdjustment === 0 ? 'd-none' : ''}">
+                            <span>Rounding ${totals.roundingAdjustment > 0 ? 'up' : 'down'}:</span>
+                            <span>${totals.roundingAdjustment > 0 ? '+' : ''}RM${totals.roundingAdjustment.toFixed(2)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span>RM${totals.roundedTotal.toFixed(2)}</span>
+                        </div>
+                    `;
+                } else {
+                    // Create the section if it doesn't exist
+                    const modalBody = document.querySelector('#orderConfirmModal .modal-body');
+                    if (modalBody) {
+                        const totalSection = document.createElement('div');
+                        totalSection.id = 'orderTotalSection';
+                        totalSection.className = 'order-total-section mt-3';
+                        totalSection.innerHTML = `
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>RM${totals.subtotal.toFixed(2)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (${totals.taxRate}%):</span>
+                                <span>RM${totals.taxAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 ${totals.roundingAdjustment === 0 ? 'd-none' : ''}">
+                                <span>Rounding ${totals.roundingAdjustment > 0 ? 'up' : 'down'}:</span>
+                                <span>${totals.roundingAdjustment > 0 ? '+' : ''}RM${totals.roundingAdjustment.toFixed(2)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total:</span>
+                                <span>RM${totals.roundedTotal.toFixed(2)}</span>
+                            </div>
+                        `;
+                        modalBody.appendChild(totalSection);
+                    }
+                }
+
+                // Store the calculated values for later use when submitting order
+                window.orderTotals = {
+                    subtotal: totals.subtotal,
+                    taxRate: totals.taxRate,
+                    taxAmount: totals.taxAmount,
+                    roundingAdjustment: totals.roundingAdjustment,
+                    total: totals.roundedTotal
+                };
+
+                // Return the totals object
+                return window.orderTotals;
+            } catch (error) {
+                console.error('Error preparing order confirmation modal:', error);
+                throw error; // Re-throw to allow the caller to handle it
+            }
+        }
+
+        // Set up the submit order button event listener
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize the order confirmation modal
+            const orderConfirmModalElement = document.getElementById('orderConfirmModal');
+            if (orderConfirmModalElement) {
+                window.orderConfirmModal = new bootstrap.Modal(orderConfirmModalElement);
+
+                // Attach event listener to the Submit Order button
+                const submitOrderBtn = document.getElementById('submitOrderBtn');
+                if (submitOrderBtn) {
+                    submitOrderBtn.addEventListener('click', function () {
+                        submitOrder();
+                    });
+                    console.log('Submit order button listener attached');
+                }
+
+                // Attach event listener to the Cancel button
+                const cancelOrderBtn = orderConfirmModalElement.querySelector('button[data-bs-dismiss="modal"]');
+                if (cancelOrderBtn) {
+                    cancelOrderBtn.addEventListener('click', function () {
+                        console.log('Order cancelled by user');
+                        window.orderConfirmModal.hide();
+                    });
+                    console.log('Cancel order button listener attached');
+                }
+            } else {
+                console.error('Order confirmation modal element not found');
+            }
+        });
+
+        // Validate user session before submitting order
+        function validateSession() {
+            // Check if auth token and session key exist
+            const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+            const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+
+            if (!authToken || !sessionKey || !sessionTimestamp) {
+                console.error('Session validation failed: Missing auth token or session key');
+                return false;
+            }
+
+            // Check if session has expired (24 hours)
+            const currentTime = new Date().getTime();
+            const sessionTime = parseInt(sessionTimestamp);
+            const sessionAge = currentTime - sessionTime;
+            const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+            if (isNaN(sessionTime) || sessionAge > maxSessionAge) {
+                console.error('Session validation failed: Session expired');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Submit order function to handle order submission via Cloudflare Worker
+        async function submitOrder() {
+            // Validate session first
+            if (!validateSession()) {
+                showError('Your session has expired. Please refresh the page and try again.');
+                return;
+            }
+
+            // Validate cart isn't empty
+            if (cart.length === 0) {
+                showError('Your cart is empty. Please add items before checkout.');
+                return;
+            }
+
+            // Check if any DINE-IN items exist and validate table number
+            const hasDineInItems = cart.some(item => {
+                const orderTypeVariation = item.variations.find(v =>
+                    v.groupName.toLowerCase() === 'order type' || v.id === 'order_type'
+                );
+                return orderTypeVariation && orderTypeVariation.name.toUpperCase() === 'DINE IN';
+            });
+
+            if (hasDineInItems) {
+                const tableNumber = localStorage.getItem('table_no') || sessionStorage.getItem('table_no');
+                if (!tableNumber || tableNumber === '0') {
+                    // Show table number input modal
+                    showTableNumberInputModal();
+                    return;
+                }
+            }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = document.getElementById('submitOrderBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+
+            try {
+                // First, get a formatted order number from our new Cloudflare Function API
+                let orderNumber;
+                try {
+                    const orderNumberResponse = await fetch('/api/generate-order-number', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')}`
+                        }
+                    });
+
+                    if (!orderNumberResponse.ok) {
+                        throw new Error(`Failed to generate order number: ${orderNumberResponse.status}`);
+                    }
+
+                    const orderNumberData = await orderNumberResponse.json();
+                    if (orderNumberData.success) {
+                        orderNumber = orderNumberData.orderNumber;
+                        console.log(`Generated order number: ${orderNumber}`);
+                    } else {
+                        throw new Error(orderNumberData.message || 'Failed to generate order number');
+                    }
+                } catch (orderNumberError) {
+                    console.error('Error generating order number:', orderNumberError);
+                    // Continue with the order submission using server-generated order number
+                }
+
+                // Get business info from local storage
+                const businessUsername = localStorage.getItem('username') || sessionStorage.getItem('username');
+                const businessName = localStorage.getItem('businessname') || sessionStorage.getItem('businessname') || 'Restaurant';
+                const tableNo = localStorage.getItem('table_no') || sessionStorage.getItem('table_no') || '0';
+
+                // Calculate the order totals to get the correct service fee (SST amount)
+                const orderTotals = calculateCartTotals();
+                console.log('Order totals for submission:', orderTotals);
+
+                // Prepare order data with correct structure for the server
+                const orderData = {
+                    customer: {
+                        name: 'Guest Customer',
+                        phone: 'N/A'
+                    },
+                    business: {
+                        username: businessUsername,
+                        name: businessName,
+                        tableNo: tableNo
+                    },
+                    orderItems: cart.map(item => ({
+                        itemId: item.itemId,
+                        name: item.name,
+                        itemCode: item.itemCode,
+                        quantity: item.quantity,
+                        basePrice: item.basePrice,
+                        totalPrice: item.totalPrice,
+                        imageUrl: item.imageUrl,
+                        orderType: item.orderType,
+                        variations: item.variations
+                    })),
+                    orderNumber: orderNumber, // Include our pre-generated order number
+                    notes: '',
+                    totals: {
+                        subtotal: orderTotals.subtotal,
+                        sst: orderTotals.sstAmount, // Changed from serviceFee to sst
+                        salesTax: orderTotals.salesTaxAmount, // Include sales tax value
+                        rounding: orderTotals.roundingAdjustment, // Include rounding adjustment
+                        total: orderTotals.total
+                    },
+                    status: 'PENDING',
+                    is_printed: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                console.log('Submitting order with data:', orderData);
+
+                // Submit order to Cloudflare Worker API
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success message
+                    showSuccess('Order submitted successfully!');
+
+                    // Close order confirmation modal
+                    const orderConfirmModal = document.getElementById('orderConfirmModal');
+                    const bsOrderConfirmModal = bootstrap.Modal.getInstance(orderConfirmModal);
+                    if (bsOrderConfirmModal) {
+                        bsOrderConfirmModal.hide();
+                    }
+
+                    // Clear cart
+                    const cartBackup = [...cart]; // Make a backup of the cart for displaying in the success modal
+                    cart = [];
+                    saveCartToStorage();
+                    updateCartCount();
+
+                    // Display the final order success modal with order details
+                    showOrderSuccessModal(data.orderNumber || orderNumber || 'Unknown', cartBackup, window.orderTotals);
+                } else {
+                    showError(data.message || 'Failed to submit order');
+                }
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                showError('An error occurred while submitting your order. Please try again.');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Order';
+            }
+        }
+
+        // Show order success modal with order details
+        function showOrderSuccessModal(orderNumber, orderItems, totals) {
+            // Get the modal element
+            const successModal = document.getElementById('orderSuccessModal');
+
+            // Update modal header
+            const modalHeader = successModal.querySelector('.modal-header');
+            modalHeader.innerHTML = `
+                <h5 class="modal-title" id="orderSuccessModalLabel">Order Submitted Successfully</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            `;
+
+            // Update modal body with order details
+            const modalBody = successModal.querySelector('.modal-body');
+
+            // Create order success content
+            let successContent = `
+                <div class="order-success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="order-success-message">
+                    Your order has been submitted and will be prepared shortly.
+                </div>
+                <div class="order-number-display">
+                    Order #: <span id="finalOrderNumber">${orderNumber}</span>
+                </div>
+                <div class="order-summary-title">Order Summary</div>
+                <div class="order-success-items">
+            `;
+
+            // Add each item to the success modal
+            orderItems.forEach(item => {
+                // Find order type
+                const orderTypeVariation = item.variations.find(v =>
+                    v.groupName.toLowerCase() === 'order type' || v.id === 'order_type'
+                );
+                const orderType = orderTypeVariation ? orderTypeVariation.name : 'Dine In';
+
+                // Format variations into a compact string
+                let variationsText = '';
+                if (item.variations && item.variations.length > 0) {
+                    const nonOrderTypeVariations = item.variations.filter(v =>
+                        v.groupName.toLowerCase() !== 'order type' && v.id !== 'order_type'
+                    );
+
+                    if (nonOrderTypeVariations.length > 0) {
+                        variationsText = nonOrderTypeVariations.map(v => v.name).join(', ');
+                    }
+                }
+
+                const itemVariationDisplay = variationsText ?
+                    `<small>${item.quantity}x ${item.name} (${orderType}) - ${variationsText}</small>` :
+                    `<small>${item.quantity}x ${item.name} (${orderType})</small>`;
+
+                successContent += `
+                    <div class="order-success-item">
+                        <div>${itemVariationDisplay}</div>
+                        <div>RM${(item.totalPrice * item.quantity).toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            successContent += `
+                </div>
+                <div class="d-flex justify-content-between mt-2 small">
+                    <span>Subtotal:</span>
+                    <span>RM${totals.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span>SST (${totals.sstRate}%):</span>
+                    <span>RM${totals.sstAmount.toFixed(2)}</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span>Sales Tax (${totals.salesTaxRate}%):</span>
+                    <span>RM${totals.salesTaxAmount.toFixed(2)}</span>
+                </div>
+                ${totals.roundingAdjustment !== 0 ? `
+                <div class="d-flex justify-content-between small">
+                    <span>Rounding ${totals.roundingAdjustment > 0 ? 'up' : 'down'}:</span>
+                    <span>${totals.roundingAdjustment > 0 ? '+' : ''}RM${totals.roundingAdjustment.toFixed(2)}</span>
+                </div>` : ''}
+                <div class="d-flex justify-content-between fw-bold mt-1">
+                    <span>Total:</span>
+                    <span>RM${totals.total.toFixed(2)}</span>
+                </div>`;
+
+            modalBody.innerHTML = successContent;
+
+            // Update modal footer
+            const modalFooter = successModal.querySelector('.modal-footer');
+            modalFooter.innerHTML = `
+                <button type="button" class="btn btn-order-success" data-bs-dismiss="modal">OK</button>
+            `;
+
+            // Show the modal
+            const successModalInstance = new bootstrap.Modal(successModal);
+            successModalInstance.show();
+        }
+
+        // Fetch user data including SST and table settings
+        async function fetchUserData() {
+            try {
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return null;
+                }
+
+                // Try multiple endpoints to get user data, starting with the most likely to succeed
+                const endpoints = [
+                    `/api/clients/by-username/${encodeURIComponent(username)}`,
+                    `/api/client?username=${encodeURIComponent(username)}`,
+                    `/api/userfile?username=${encodeURIComponent(username)}`
+                ];
+
+                let userData = null;
+                let lastError = null;
+
+                for (const endpoint of endpoints) {
+                    try {
+                        console.log(`Trying to fetch user data from: ${endpoint}`);
+
+                        const response = await fetch(endpoint, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            console.warn(`Endpoint ${endpoint} returned status ${response.status}`);
+                            continue;
+                        }
+
+                        const data = await response.json();
+
+                        // Check if we got valid data
+                        if (data) {
+                            console.log(`Successfully fetched user data from ${endpoint}:`, data);
+
+                            // Extract data from the response based on structure
+                            const dataObj = data.data || data;
+
+                            // If we have an array, use the first item
+                            userData = Array.isArray(dataObj) ? dataObj[0] : dataObj;
+
+                            if (userData) {
+                                console.log('Found valid user data, breaking out of loop');
+                                break;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Error fetching from ${endpoint}:`, error);
+                        lastError = error;
+                    }
+                }
+
+                if (!userData) {
+                    console.error('Failed to fetch user data from all endpoints', lastError);
+                    return null;
+                }
+
+                console.log('Successfully fetched user data:', userData);
+
+                // Look for SALES_TAX in user data with different case variations
+                const salesTax = userData.SALES_TAX || userData.salesTax || userData.sales_tax || 0;
+                const sstRate = userData.SST || userData.sst || userData.sst_rate || 0;
+                const maxTable = userData.TABLE || userData.table || userData.max_table || 50;
+
+                // Store values in localStorage
+                if (sstRate) {
+                    localStorage.setItem('SST', sstRate.toString());
+                    console.log(`Cached SST rate: ${sstRate}%`);
+                }
+
+                if (salesTax) {
+                    localStorage.setItem('SALES_TAX', salesTax.toString());
+                    console.log(`Cached SALES_TAX rate: ${salesTax}%`);
+                } else {
+                    console.warn('No SALES_TAX found in user data');
+                }
+
+                if (maxTable) {
+                    localStorage.setItem('MAX_TABLE', maxTable.toString());
+                    console.log(`Cached max table number: ${maxTable}`);
+                }
+
+                return userData;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                return null;
+            }
+        }
+
+        // Show table number input modal for DINE-IN orders
+        function showTableNumberInputModal(isFromCart = false) {
+            // Create modal if it doesn't exist
+            let tableModal = document.getElementById('tableNumberModal');
+            if (!tableModal) {
+                tableModal = document.createElement('div');
+                tableModal.id = 'tableNumberModal';
+                tableModal.className = 'modal fade';
+                tableModal.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(tableModal);
+            }
+
+            // Get the max table number from localStorage
+            const maxTable = parseInt(localStorage.getItem('MAX_TABLE') || '50');
+
+            // Build modal HTML
+            tableModal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Table Number Required</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please enter your table number for Dine In service:</p>
+                        <div class="form-group">
+                            <input type="number" class="form-control" id="tableNumberInput" min="1" max="${maxTable}" placeholder="Enter table number (1-${maxTable})">
+                            <div class="invalid-feedback">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmTableNumber">Confirm</button>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            // Show the modal
+            const tableModalInstance = new bootstrap.Modal(tableModal);
+            tableModalInstance.show();
+
+            // Handle confirm button click
+            document.getElementById('confirmTableNumber').addEventListener('click', function () {
+                const tableInput = document.getElementById('tableNumberInput');
+                const tableNumber = parseInt(tableInput.value);
+
+                // Validate table number
+                if (isNaN(tableNumber) || tableNumber < 1 || tableNumber > maxTable) {
+                    tableInput.classList.add('is-invalid');
+                    return;
+                }
+
+                // Save table number and update display
+                localStorage.setItem('table_no', tableNumber.toString());
+                sessionStorage.setItem('table_no', tableNumber.toString());
+
+                // Update table number display in header
+                const tableNumberElement = document.getElementById('tableNumber');
+                if (tableNumberElement) {
+                    tableNumberElement.textContent = 'Table: ' + tableNumber;
+                }
+
+                // Close modal
+                tableModalInstance.hide();
+
+                // If this was called from the cart process, continue with adding to cart
+                if (isFromCart && selectedItem) {
+                    // Small delay to ensure the modal is fully closed
+                    setTimeout(() => {
+                        addToCartFromModal();
+                    }, 300);
+                } else if (!isFromCart) {
+                    // Continue with checkout
+                    submitOrder();
+                }
+            });
+
+            // Add input validation
+            document.getElementById('tableNumberInput').addEventListener('input', function () {
+                const tableInput = document.getElementById('tableNumberInput');
+                const tableNumber = parseInt(tableInput.value);
+
+                if (isNaN(tableNumber) || tableNumber < 1 || tableNumber > maxTable) {
+                    tableInput.classList.add('is-invalid');
+                } else {
+                    tableInput.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        // Calculate total price for items in cart including SST tax and Sales Tax
+        function calculateCartTotals() {
+            // Calculate subtotal from cart items
+            const subtotal = cart.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+
+            // Get SST rate from localStorage (default to 0 if not found)
+            const sstRate = parseFloat(localStorage.getItem('SST') || localStorage.getItem('sst') || 0);
+
+            // Get SALES_TAX rate from localStorage (default to 0 if not found)
+            const salesTaxRate = parseFloat(localStorage.getItem('SALES_TAX') || 0);
+
+            // Calculate SST amount
+            const sstAmount = subtotal * (sstRate / 100);
+
+            // Calculate Sales Tax amount
+            const salesTaxAmount = subtotal * (salesTaxRate / 100);
+
+            // Calculate raw total before rounding
+            const rawTotal = subtotal + sstAmount + salesTaxAmount;
+
+            // Apply the special rounding to nearest 0.50 or 1.00
+            const { roundedTotal, roundingAdjustment } = roundToNearestHalfOrWholeRinggit(rawTotal);
+
+            return {
+                subtotal,
+                sstRate,
+                sstAmount,
+                salesTaxRate,
+                salesTaxAmount,
+                rawTotal,
+                roundedTotal,
+                roundingAdjustment,
+                total: roundedTotal // This is the final amount customer pays
+            };
+        }
+
+        // Function to round to nearest 0.50 or 1.00 Ringgit
+        function roundToNearestHalfOrWholeRinggit(amount) {
+            // Convert to 2 decimal places to avoid floating point issues
+            const rawAmount = parseFloat(amount.toFixed(2));
+
+            // Get the whole number part
+            const wholePart = Math.floor(rawAmount);
+
+            // Get the decimal part
+            const decimalPart = rawAmount - wholePart;
+
+            let roundedAmount;
+
+            // If decimal part is between 0.01-0.50, round to X.50
+            if (decimalPart > 0 && decimalPart <= 0.50) {
+                roundedAmount = wholePart + 0.50;
+            }
+            // If decimal part is between 0.51-0.99, round to X+1.00
+            else if (decimalPart > 0.50) {
+                roundedAmount = wholePart + 1.00;
+            }
+            // If decimal part is 0, keep it as is
+            else {
+                roundedAmount = wholePart;
+            }
+
+            // Calculate the rounding adjustment (can be positive or negative)
+            const roundingAdjustment = roundedAmount - rawAmount;
+
+            return {
+                roundedTotal: roundedAmount,
+                roundingAdjustment: roundingAdjustment
+            };
+        }
+
+        // Display order confirmation modal with updated totals including SST and Sales Tax
+        function populateOrderConfirmationModal() {
+            try {
+                const orderConfirmItems = document.getElementById('orderConfirmItems');
+                const orderTotalSection = document.getElementById('orderTotalSection');
+
+                if (!orderConfirmItems || !orderTotalSection) {
+                    console.error('Order confirmation elements not found');
+                    return null;
+                }
+
+                // Clear previous items
+                orderConfirmItems.innerHTML = '';
+
+                // Add each item to the confirmation modal
+                cart.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'order-confirm-item';
+
+                    // Extract order type from variations if available
+                    let orderType = 'Dine In';
+                    let variationsText = '';
+
+                    if (item.variations && item.variations.length > 0) {
+                        // Look for order type variation
+                        const orderTypeVar = item.variations.find(v => v.groupName === 'Order Type');
+                        if (orderTypeVar) {
+                            orderType = orderTypeVar.name;
+                        }
+
+                        // Format other variations
+                        const otherVars = item.variations.filter(v => v.groupName !== 'Order Type');
+                        if (otherVars.length > 0) {
+                            variationsText = otherVars.map(v => v.name).join(', ');
+                        }
+                    }
+
+                    // Format price with quantity
+                    const price = `${item.quantity} x RM${item.totalPrice.toFixed(2)}`;
+
+                    itemElement.innerHTML = `
+                        <div>
+                            <div class="order-confirm-item-name">${item.name} 
+                                <small class="text-muted">(${orderType})</small>
+                            </div>
+                            ${variationsText ? `<div class="order-confirm-item-variations">${variationsText}</div>` : ''}
+                        </div>
+                        <div class="order-confirm-item-price">${price}</div>
+                    `;
+
+                    orderConfirmItems.appendChild(itemElement);
+                });
+
+                // Calculate totals using the synchronous function
+                const totals = calculateCartTotals();
+
+                // Update the order total section
+                orderTotalSection.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span id="orderSubtotal">RM${totals.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>SST (${totals.sstRate}%):</span>
+                        <span id="orderServiceFee">RM${totals.sstAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Sales Tax (${totals.salesTaxRate}%):</span>
+                        <span id="orderSalesTax">RM${totals.salesTaxAmount.toFixed(2)}</span>
+                    </div>
+                    ${totals.roundingAdjustment !== 0 ? `
+                    <div class="d-flex justify-content-between">
+                        <span>Rounding ${totals.roundingAdjustment > 0 ? 'up' : 'down'}:</span>
+                        <span>RM${Math.abs(totals.roundingAdjustment).toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="d-flex justify-content-between fw-bold mt-2">
+                        <span>Total:</span>
+                        <span id="orderGrandTotal">RM${totals.total.toFixed(2)}</span>
+                    </div>
+                `;
+
+                // Store the calculated values for later use when submitting order
+                window.orderTotals = {
+                    subtotal: totals.subtotal,
+                    sstRate: totals.sstRate,
+                    sstAmount: totals.sstAmount,
+                    salesTaxRate: totals.salesTaxRate,
+                    salesTaxAmount: totals.salesTaxAmount,
+                    roundingAdjustment: totals.roundingAdjustment,
+                    total: totals.total
+                };
+
+                // Return the totals object
+                return window.orderTotals;
+            } catch (error) {
+                console.error('Error preparing order confirmation modal:', error);
+                throw error; // Re-throw to allow the caller to handle it
+            }
+        }
+
+        // Add event listeners to variation options to update price when selected
+        function addVariationChangeListeners() {
+            // Get all variation option inputs
+            const variationInputs = document.querySelectorAll('.variation-option input');
+
+            // Add change listener to each input
+            variationInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    updateItemPrice();
+                });
+            });
+        }
+
+        // Update the item price based on selected variations
+        function updateItemPrice() {
+            if (!selectedItem) return;
+
+            // Start with base price
+            const basePrice = parseFloat(selectedItem.BASE_PRICE);
+
+            // Calculate additional price from variations
+            let variationsPrice = 0;
+            const variationsContainer = document.getElementById('itemVariationsContainer');
+
+            if (variationsContainer) {
+                const selectedInputs = variationsContainer.querySelectorAll('input:checked');
+
+                selectedInputs.forEach(input => {
+                    // Skip the "Choose for me" options as they don't have a price
+                    if (input.classList.contains('choose-for-me-checkbox')) return;
+
+                    const priceText = input.getAttribute('data-price');
+                    if (priceText && !isNaN(parseFloat(priceText))) {
+                        variationsPrice += parseFloat(priceText);
+                    }
+                });
+            }
+
+            // Calculate total price
+            const totalPrice = basePrice + variationsPrice;
+
+            // Update price display
+            const modalItemPrice = document.getElementById('modalItemPrice');
+            if (modalItemPrice) {
+                modalItemPrice.textContent = `RM${totalPrice.toFixed(2)}`;
+
+                // Add price breakdown if there are variations
+                if (variationsPrice > 0) {
+                    modalItemPrice.innerHTML += `<div class="price-breakdown">Base: RM${basePrice.toFixed(2)} + Options: RM${variationsPrice.toFixed(2)}</div>`;
+                }
+            }
+
+            // Store calculated price for later use
+            selectedItem.calculatedPrice = totalPrice;
+        }
+
+        // Add handlers for "Choose for me" checkboxes
+        function addChooseForMeHandlers() {
+            const chooseForMeCheckboxes = document.querySelectorAll('.choose-for-me-checkbox');
+            chooseForMeCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const variationGroup = this.closest('.variation-group');
+                    if (!variationGroup) return;
+
+                    // If "Choose for me" is checked, disable all other options in this group
+                    const otherOptions = variationGroup.querySelectorAll('.variation-option input:not(.choose-for-me-checkbox)');
+                    otherOptions.forEach(option => {
+                        option.disabled = this.checked;
+                        if (this.checked) {
+                            option.checked = false;
+                        }
+                    });
+
+                    // Update the price calculation
+                    updateItemPrice();
+                });
+            });
+        }
+
+        // Validate that all required variations are selected
+        function validateVariations() {
+            const variationsContainer = document.getElementById('itemVariationsContainer');
+            if (!variationsContainer) return true; // No variations to validate
+
+            const variationGroups = variationsContainer.querySelectorAll('.variation-group');
+            let isValid = true;
+
+            variationGroups.forEach(group => {
+                // Check if this group is required
+                const isRequired = group.dataset.required === 'true';
+                const minSelections = parseInt(group.dataset.minSelections) || 0;
+                const groupName = group.querySelector('.variation-group-header h6').textContent;
+
+                // Count selected options in this group
+                const selectedOptionsCount = group.querySelectorAll('input:checked').length;
+
+                // Validate based on requirements
+                if ((isRequired && selectedOptionsCount === 0) || (minSelections > 0 && selectedOptionsCount < minSelections)) {
+                    isValid = false;
+
+                    // Get quantity for error message
+                    const requiredQuantity = minSelections > 0 ? minSelections : 1;
+                    const pluralSuffix = requiredQuantity > 1 ? 's' : '';
+
+                    // Show error message
+                    showError(`Please select at least ${requiredQuantity} option${pluralSuffix} from "${groupName}"`);
+
+                    // Highlight the group visually
+                    group.classList.add('error');
+                    setTimeout(() => {
+                        group.classList.remove('error');
+                    }, 3000);
+                }
+            });
+
+            return isValid;
+        }
+    </script>
+
+    <!-- Order Success Modal -->
+    <div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered order-success-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderSuccessModalLabel">Order Submitted</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="order-success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="order-success-message">
+                        Your order has been submitted successfully!
+                    </div>
+                    <div class="order-number-display" id="successOrderNumber">
+                        Order #: <span id="finalOrderNumber"></span>
+                    </div>
+                    <div class="order-summary-title">Order Summary</div>
+                    <div class="order-success-items" id="orderSuccessItems">
+                        <!-- Order items will be added here -->
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Subtotal:</span>
+                        <span id="successSubtotal"></span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>SST:</span>
+                        <span id="successServiceFee"></span>
+                    </div>
+                    <div class="d-flex justify-content-between fw-bold mt-1">
+                        <span>Total:</span>
+                        <span id="successTotal"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-order-success" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

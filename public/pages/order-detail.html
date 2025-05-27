@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Order Details | FoodBao</title>
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/custom.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="manifest" href="../manifest.json">
+    <!-- iOS support -->
+    <link rel="apple-touch-icon" href="../img/icons/icon-96x96.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#FFE1C4">
+    <meta name="theme-color" content="#FFE1C4">
+    <style>
+        .badge-new, .badge-in-progress, .badge-completed, .badge-cancelled {
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .badge-new {
+            background-color: #2196F3;
+        }
+        .badge-in-progress {
+            background-color: #FF9800;
+        }
+        .badge-completed {
+            background-color: #4CAF50;
+        }
+        .badge-cancelled {
+            background-color: #F44336;
+        }
+        .order-info {
+            margin-bottom: 20px;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px dotted #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .item-quantity {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .item-price {
+            color: #757575;
+        }
+        .item-notes {
+            font-style: italic;
+            color: #757575;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            padding-left: 20px;
+        }
+        .order-items {
+            margin-bottom: 20px;
+        }
+        .order-totals {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            margin-right: 10px;
+        }
+        .back-button {
+            margin-bottom: 15px;
+        }
+        .order-card {
+            border-left: 5px solid #ccc;
+            border-radius: 2px;
+        }
+        .order-card.new {
+            border-left-color: #2196F3;
+        }
+        .order-card.in-progress {
+            border-left-color: #FF9800;
+        }
+        .order-card.completed {
+            border-left-color: #4CAF50;
+        }
+        .order-card.cancelled {
+            border-left-color: #F44336;
+        }
+        .special-notes {
+            background-color: #fff9c4;
+            padding: 10px;
+            border-radius: 2px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        @media only screen and (max-width: 600px) {
+            .back-button {
+                margin-bottom: 10px;
+            }
+            .action-buttons button {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header Component -->
+    <script src="../js/components/header.js"></script>
+    <app-header></app-header>
+    
+    <div class="container" style="margin-top: 10px;">
+        <div class="back-button">
+            <a href="orders.html" class="btn-flat waves-effect">
+                <i class="material-icons left">arrow_back</i> Back to Orders
+            </a>
+        </div>
+        
+        <div class="card order-card" id="order-detail-card">
+            <div class="card-content">
+                <span class="card-title">Order #<span id="order-id">Loading...</span></span>
+                
+                <div class="order-info">
+                    <div class="row">
+                        <div class="col s12 m6">
+                            <p><strong>Status:</strong> <span id="order-status" class="badge-new">Loading...</span></p>
+                            <p><strong>Table:</strong> <span id="table-number">Loading...</span></p>
+                            <p><strong>Created:</strong> <span id="order-time">Loading...</span></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Customer:</strong> <span id="customer-name">Walk-in</span></p>
+                            <p><strong>Phone:</strong> <span id="customer-phone">N/A</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <h5>Items</h5>
+                <div class="order-items" id="order-items-container">
+                    <div class="center-align" style="padding: 20px;">
+                        <div class="preloader-wrapper small active">
+                            <div class="spinner-layer spinner-blue-only">
+                                <div class="circle-clipper left">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="gap-patch">
+                                    <div class="circle"></div>
+                                </div>
+                                <div class="circle-clipper right">
+                                    <div class="circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p>Loading order items...</p>
+                    </div>
+                </div>
+                
+                <div id="special-instructions" class="special-notes hide">
+                    <strong>Special Instructions:</strong>
+                    <p id="special-instructions-text"></p>
+                </div>
+                
+                <div class="order-totals">
+                    <p><strong>Subtotal:</strong> $<span id="subtotal">0.00</span></p>
+                    <p><strong>Tax:</strong> $<span id="tax">0.00</span></p>
+                    <h5><strong>Total:</strong> $<span id="total">0.00</span></h5>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="action-buttons" id="action-buttons-container">
+                    <!-- Action buttons will be inserted here based on order status -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add app-footer component -->
+    <script src="../js/components/footer.js"></script>
+    <app-footer></app-footer>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/materialize.min.js"></script>
+    
+    <!-- Item Template (Hidden) -->
+    <template id="item-template">
+        <div class="item-row">
+            <div>
+                <span class="item-quantity"></span> x <span class="item-name"></span>
+            </div>
+            <div class="item-price">$<span class="price-value"></span></div>
+        </div>
+        <div class="item-notes hide"></div>
+    </template>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for auth token
+            checkAuthentication();
+            
+            // Get order ID from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('id');
+            
+            if (!orderId) {
+                // No order ID provided, redirect back to orders page
+                window.location.href = 'orders.html';
+                return;
+            }
+            
+            // Load order details
+            loadOrderDetails(orderId);
+        });
+        
+        // Check if user is authenticated
+        function checkAuthentication() {
+            const token = localStorage.getItem('auth_token');
+            const username = localStorage.getItem('username');
+            
+            if (!token || !username) {
+                console.log('Not authenticated, redirecting to login page');
+                window.location.href = '../login.html';
+                return;
+            }
+        }
+        
+        // Load order details
+        function loadOrderDetails(orderId) {
+            // For development mode, use data from sessionStorage
+            if (localStorage.getItem('dev_sample_loaded')) {
+                const orderData = JSON.parse(sessionStorage.getItem('current_order') || '{}');
+                const orderItems = JSON.parse(sessionStorage.getItem('current_order_items') || '[]');
+                
+                if (orderData.ORDER_ID && orderData.ORDER_ID.toString() === orderId) {
+                    displayOrderDetails(orderData, orderItems);
+                    return;
+                }
+                
+                // If no matching order in session, try fetching from sample data
+                const sampleOrders = JSON.parse(localStorage.getItem('dev_sample_orders') || '[]');
+                const order = sampleOrders.find(o => o.ORDER_ID.toString() === orderId);
+                
+                if (order) {
+                    displayOrderDetails(order, order.items || []);
+                    return;
+                }
+            }
+            
+            // In production, call API
+            const token = localStorage.getItem('auth_token');
+            
+            // First get order details
+            fetch(`/api/orders/${orderId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order details');
+                }
+                return response.json();
+            })
+            .then(orderData => {
+                // Then get order items
+                return fetch(`/api/order-items/${orderId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch order items');
+                    }
+                    return response.json();
+                })
+                .then(itemsData => {
+                    // Display order with its items
+                    displayOrderDetails(orderData.order, itemsData.items || []);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching order details:', error);
+                M.toast({html: 'Error loading order details. Please try again.', classes: 'red'});
+                setTimeout(() => {
+                    window.location.href = 'orders.html';
+                }, 3000);
+            });
+        }
+        
+        // Display order details
+        function displayOrderDetails(order, items) {
+            // Set order basic info
+            document.getElementById('order-id').textContent = order.ORDER_ID;
+            
+            const statusElement = document.getElementById('order-status');
+            statusElement.textContent = order.STATUS;
+            statusElement.className = 'badge-' + getOrderStatusClass(order.STATUS);
+            
+            document.getElementById('table-number').textContent = order.TABLE_ID || 'N/A';
+            
+            // Set order card class based on status
+            const orderCard = document.getElementById('order-detail-card');
+            orderCard.className = 'card order-card ' + getOrderStatusClass(order.STATUS);
+            
+            // Format and set date/time
+            const orderDate = new Date(order.CREATED_AT);
+            document.getElementById('order-time').textContent = orderDate.toLocaleString();
+            
+            // Set customer info if available
+            if (order.CUSTOMER_NAME) {
+                document.getElementById('customer-name').textContent = order.CUSTOMER_NAME;
+            }
+            if (order.CUSTOMER_PHONE) {
+                document.getElementById('customer-phone').textContent = order.CUSTOMER_PHONE;
+            }
+            
+            // Clear and populate items container
+            const itemsContainer = document.getElementById('order-items-container');
+            itemsContainer.innerHTML = '';
+            
+            // Add each item
+            let subtotal = 0;
+            items.forEach(item => {
+                const itemElement = createItemElement(item);
+                itemsContainer.appendChild(itemElement);
+                
+                // Update subtotal
+                subtotal += item.QUANTITY * item.FINAL_UNIT_PRICE;
+            });
+            
+            // Set special instructions if any
+            if (order.SPECIAL_INSTRUCTIONS) {
+                document.getElementById('special-instructions').classList.remove('hide');
+                document.getElementById('special-instructions-text').textContent = order.SPECIAL_INSTRUCTIONS;
+            }
+            
+            // Calculate and display totals
+            const taxRate = 0.07; // 7% tax rate (change as needed)
+            const taxAmount = subtotal * taxRate;
+            const total = subtotal + taxAmount;
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('tax').textContent = taxAmount.toFixed(2);
+            document.getElementById('total').textContent = order.TOTAL_AMOUNT || total.toFixed(2);
+            
+            // Add action buttons based on order status
+            const actionsContainer = document.getElementById('action-buttons-container');
+            actionsContainer.innerHTML = '';
+            
+            // Print button (all statuses)
+            const printBtn = document.createElement('button');
+            printBtn.classList.add('btn', 'waves-effect', 'waves-light', 'grey');
+            printBtn.innerHTML = '<i class="material-icons left">print</i> Print Receipt';
+            printBtn.addEventListener('click', () => printOrderReceipt(order.ORDER_ID));
+            actionsContainer.appendChild(printBtn);
+            
+            // Add status-specific buttons
+            if (order.STATUS === 'PENDING') {
+                // Accept button
+                const acceptBtn = document.createElement('button');
+                acceptBtn.classList.add('btn', 'waves-effect', 'waves-light', 'orange');
+                acceptBtn.innerHTML = '<i class="material-icons left">receipt</i> Accept Order';
+                acceptBtn.addEventListener('click', () => updateOrderStatus(order.ORDER_ID, 'PREPARING'));
+                actionsContainer.appendChild(acceptBtn);
+                
+                // Reject button
+                const rejectBtn = document.createElement('button');
+                rejectBtn.classList.add('btn', 'waves-effect', 'waves-light', 'red');
+                rejectBtn.innerHTML = '<i class="material-icons left">cancel</i> Reject Order';
+                rejectBtn.addEventListener('click', () => updateOrderStatus(order.ORDER_ID, 'CANCELLED'));
+                actionsContainer.appendChild(rejectBtn);
+            } else if (order.STATUS === 'PREPARING') {
+                // Complete button
+                const completeBtn = document.createElement('button');
+                completeBtn.classList.add('btn', 'waves-effect', 'waves-light', 'green');
+                completeBtn.innerHTML = '<i class="material-icons left">check</i> Mark Completed';
+                completeBtn.addEventListener('click', () => updateOrderStatus(order.ORDER_ID, 'COMPLETED'));
+                actionsContainer.appendChild(completeBtn);
+            } else if (order.STATUS === 'COMPLETED') {
+                // Served button
+                const servedBtn = document.createElement('button');
+                servedBtn.classList.add('btn', 'waves-effect', 'waves-light', 'purple');
+                servedBtn.innerHTML = '<i class="material-icons left">restaurant</i> Mark Served';
+                servedBtn.addEventListener('click', () => updateOrderStatus(order.ORDER_ID, 'SERVED'));
+                actionsContainer.appendChild(servedBtn);
+            }
+        }
+        
+        // Create item element from template
+        function createItemElement(item) {
+            const template = document.getElementById('item-template');
+            const itemElement = document.importNode(template.content, true);
+            
+            // Set item details
+            itemElement.querySelector('.item-quantity').textContent = item.QUANTITY;
+            itemElement.querySelector('.item-name').textContent = item.ITEM_NAME || `Item #${item.ITEM_ID}`;
+            itemElement.querySelector('.price-value').textContent = (item.QUANTITY * item.FINAL_UNIT_PRICE).toFixed(2);
+            
+            // Set notes if any
+            const notesElement = itemElement.querySelector('.item-notes');
+            if (item.NOTES && item.NOTES.trim()) {
+                notesElement.textContent = item.NOTES;
+                notesElement.classList.remove('hide');
+            }
+            
+            return itemElement;
+        }
+        
+        // Update order status
+        function updateOrderStatus(orderId, newStatus) {
+            // For development mode, update sample data
+            if (localStorage.getItem('dev_sample_loaded')) {
+                const sampleOrders = JSON.parse(localStorage.getItem('dev_sample_orders') || '[]');
+                const orderIndex = sampleOrders.findIndex(o => o.ORDER_ID.toString() === orderId.toString());
+                
+                if (orderIndex >= 0) {
+                    sampleOrders[orderIndex].STATUS = newStatus;
+                    localStorage.setItem('dev_sample_orders', JSON.stringify(sampleOrders));
+                    
+                    M.toast({html: `Order ${orderId} updated to ${newStatus}`, classes: 'green'});
+                    
+                    // Also update the current order in session storage
+                    const currentOrder = JSON.parse(sessionStorage.getItem('current_order') || '{}');
+                    if (currentOrder.ORDER_ID && currentOrder.ORDER_ID.toString() === orderId.toString()) {
+                        currentOrder.STATUS = newStatus;
+                        sessionStorage.setItem('current_order', JSON.stringify(currentOrder));
+                    }
+                    
+                    // If accepted, print receipt
+                    if (newStatus === 'PREPARING') {
+                        printOrderReceipt(orderId);
+                    }
+                    
+                    // Refresh the page to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+                return;
+            }
+            
+            // In production, call API
+            const token = localStorage.getItem('auth_token');
+            
+            fetch(`/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update order status');
+                }
+                return response.json();
+            })
+            .then(data => {
+                M.toast({html: `Order ${orderId} updated to ${newStatus}`, classes: 'green'});
+                
+                // If accepted, print receipt
+                if (newStatus === 'PREPARING') {
+                    printOrderReceipt(orderId);
+                }
+                
+                // Refresh the page to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error updating order:', error);
+                M.toast({html: 'Error updating order. Please try again.', classes: 'red'});
+            });
+        }
+        
+        // Print order receipt
+        function printOrderReceipt(orderId) {
+            // For development mode, just show a toast
+            if (localStorage.getItem('dev_sample_loaded')) {
+                M.toast({html: 'Receipt sent to printer (DEV MODE)', classes: 'blue'});
+                return;
+            }
+            
+            // In production, call API
+            const token = localStorage.getItem('auth_token');
+            
+            fetch(`/api/orders/${orderId}/print`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to print receipt');
+                }
+                return response.json();
+            })
+            .then(data => {
+                M.toast({html: 'Receipt sent to printer', classes: 'blue'});
+            })
+            .catch(error => {
+                console.error('Error printing receipt:', error);
+                M.toast({html: 'Error sending to printer. Please try again.', classes: 'red'});
+            });
+        }
+        
+        // Helper function to get order status class
+        function getOrderStatusClass(status) {
+            switch(status) {
+                case 'PENDING':
+                    return 'new';
+                case 'PREPARING':
+                    return 'in-progress';
+                case 'COMPLETED':
+                case 'SERVED':
+                    return 'completed';
+                case 'CANCELLED':
+                    return 'cancelled';
+                default:
+                    return 'new';
+            }
+        }
+    </script>
+</body>
+</html>

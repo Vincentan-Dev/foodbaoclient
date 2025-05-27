@@ -1,0 +1,230 @@
+/* Compact UI Styles for Credit Page */
+.compact-ui {
+    font-size: 0.95rem; /* Slightly reduce overall font size */
+}
+
+/* Reduce header padding */
+.compact-ui .credit-header {
+    padding: 12px 15px;
+}
+
+/* Make the credit card more compact */
+.compact-ui .credit-card {
+    margin-bottom: 10px;
+}
+
+/* Reduce spacing in credit body */
+.compact-ui .credit-body {
+    padding: 12px 15px;
+}
+
+/* Compact transaction cards */
+.compact-ui .transaction-card {
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.compact-ui .transaction-header {
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.compact-ui .transaction-body {
+    padding: 3px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.compact-ui .transaction-description {
+    font-size: 0.85rem;
+    margin: 3px 0;
+    padding-top: 3px;
+}
+
+.compact-ui .transaction-expiry,
+.compact-ui .transaction-payment {
+    font-size: 0.8rem;
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.compact-ui .transaction-expiry i,
+.compact-ui .transaction-payment i {
+    font-size: 14px;
+}
+
+/* Make transaction type pills more compact */
+.compact-ui .transaction-type-pill {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.compact-ui .credit-pill {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #388e3c;
+}
+
+.compact-ui .debit-pill {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #e53935;
+}
+
+/* Compact modals */
+.compact-ui .modal {
+    width: 90%;
+}
+
+.compact-ui .modal-content {
+    padding: 12px 15px !important;
+}
+
+.compact-ui .modal-footer {
+    padding: 8px 12px;
+    height: auto;
+}
+
+/* Adjust credit packages */
+.compact-ui .credit-package {
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.compact-ui .package-amount {
+    font-size: 1.1rem !important;
+    margin: 5px 0 !important;
+}
+
+.compact-ui .package-name,
+.compact-ui .package-duration {
+    font-size: 0.85rem !important;
+    margin: 3px 0 !important;
+}
+
+/* Adjust buttons */
+.compact-ui .btn {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 12px;
+}
+
+.compact-ui .btn-small {
+    height: 28px;
+    line-height: 28px;
+    padding: 0 10px;
+}
+
+.compact-ui .btn i {
+    line-height: 32px;
+}
+
+.compact-ui .btn-small i {
+    line-height: 28px;
+}
+
+/* Tighten the step spacing in wizard */
+.compact-ui .stepper-content {
+    padding: 8px 0;
+}
+
+/* Reduce confirmation animation size */
+.compact-ui .checkmark-circle {
+    width: 80px;
+    height: 80px;
+}
+
+.compact-ui .checkmark {
+    width: 40px;
+    height: 40px;
+}
+
+/* Empty state more compact */
+.compact-ui .empty-state {
+    padding: 15px;
+}
+
+.compact-ui .empty-state h5 {
+    margin: 8px 0;
+    font-size: 1.1rem;
+}
+
+.compact-ui .empty-state .empty-icon {
+    font-size: 2.5rem;
+}
+
+/* Reduce spacing in all list items */
+.compact-ui .collection-item {
+    padding: 8px 12px;
+}
+
+/* Compact expiry indicators */
+.compact-ui .expiry-indicator {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.compact-ui .expiry-indicator i {
+    font-size: 0.7rem !important;
+    margin-right: 2px;
+}
+
+/* Mobile-specific adjustments */
+@media only screen and (max-width: 600px) {
+    .compact-ui .credit-balance {
+        font-size: 1.8rem;
+    }
+    
+    .compact-ui .coin-icon {
+        font-size: 1.6rem;
+    }
+    
+    .compact-ui .credit-header {
+        padding: 10px 12px;
+    }
+    
+    .compact-ui .credit-body {
+        padding: 8px 10px;
+    }
+    
+    .compact-ui .days-remaining {
+        font-size: 0.7rem;
+        padding: 1px 5px;
+    }
+    
+    .compact-ui .credit-expiry {
+        font-size: 0.8rem;
+    }
+    
+    .compact-ui .transaction-card {
+        padding: 6px;
+    }
+    
+    .compact-ui .transaction-amount {
+        font-size: 0.85rem;
+    }
+    
+    .compact-ui .empty-state {
+        padding: 10px;
+    }
+    
+    .compact-ui .modal-content {
+        padding: 10px !important;
+    }
+    
+    .compact-ui .btn {
+        height: 30px;
+        line-height: 30px;
+        padding: 0 10px;
+        font-size: 0.75rem;
+    }
+}

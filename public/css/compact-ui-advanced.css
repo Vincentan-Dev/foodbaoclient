@@ -1,0 +1,601 @@
+/* 
+ * FoodBao Advanced Compact UI
+ * This file provides ultra-compact styling for the entire application
+ * to eliminate excessive spacing and create a highly space-efficient design
+ */
+
+/* ==== GENERAL LAYOUT SPACING ==== */
+:root {
+  /* Ultra-reduced spacing variables */
+  --spacing-xxs: 1px;
+  --spacing-xs: 2px;
+  --spacing-sm: 3px;
+  --spacing-md: 6px;
+  --spacing-lg: 10px;
+  --spacing-xl: 14px;
+  
+  /* Reduced header height */
+  --header-height: 36px !important; /* Further reduced from 40px */
+  
+  /* Border radius reduction */
+  --border-radius-sm: 2px;
+  --border-radius-md: 3px;
+  --border-radius-lg: 4px;
+  
+  /* Font size reductions */
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8rem;
+  --font-size-md: 0.85rem;
+  --font-size-lg: 0.95rem;
+  --font-size-xl: 1.05rem;
+}
+
+/* Reduce body padding and font size */
+body {
+  padding-top: var(--header-height) !important;
+  padding-bottom: 36px !important;
+  font-size: var(--font-size-md) !important;
+  line-height: 1.3 !important;
+}
+
+/* Make containers more efficient */
+.container {
+  padding: var(--spacing-xs) !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 1280px !important;
+}
+
+.row {
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.col {
+  padding: var(--spacing-xs) !important;
+}
+
+/* Ultra-compact page section spacing */
+.section {
+  padding-top: var(--spacing-md) !important;
+  padding-bottom: var(--spacing-md) !important;
+}
+
+.page-title {
+  margin: var(--spacing-xs) 0 !important;
+  font-size: var(--font-size-lg) !important;
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  line-height: 1.2 !important;
+}
+
+/* ==== CARDS AND PANELS ==== */
+.card,
+.card-panel {
+  margin: var(--spacing-xs) 0 !important;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.08) !important;
+  border-radius: var(--border-radius-sm) !important;
+}
+
+.card-panel {
+  padding: var(--spacing-sm) !important;
+}
+
+.card .card-content {
+  padding: var(--spacing-sm) !important;
+}
+
+.card .card-action {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  min-height: auto !important;
+}
+
+.card .card-title {
+  margin-bottom: var(--spacing-xs) !important;
+  font-size: var(--font-size-lg) !important;
+  line-height: 1.3 !important;
+}
+
+.card-header {
+  padding: var(--spacing-sm) !important;
+  min-height: auto !important;
+}
+
+.card-body {
+  padding: var(--spacing-sm) !important;
+}
+
+.card-footer {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  min-height: auto !important;
+}
+
+/* ==== FORMS & INPUTS ==== */
+.input-field {
+  margin-top: var(--spacing-sm) !important;
+  margin-bottom: var(--spacing-sm) !important;
+}
+
+.input-field input, 
+.input-field textarea {
+  margin-bottom: var(--spacing-xs) !important;
+  height: 2rem !important;
+  font-size: var(--font-size-md) !important;
+}
+
+.input-field label {
+  font-size: var(--font-size-sm) !important;
+  transform: translateY(-14px) !important;
+}
+
+.input-field label.active {
+  transform: translateY(-18px) scale(0.8) !important;
+}
+
+/* Smaller select dropdowns */
+select {
+  height: 2rem !important;
+  padding: var(--spacing-xs) !important;
+}
+
+.select-wrapper input.select-dropdown {
+  height: 2rem !important;
+  line-height: 2rem !important;
+  font-size: var(--font-size-md) !important;
+}
+
+/* Compact checkbox and radio */
+[type="checkbox"]+span, 
+[type="radio"]+span {
+  height: 18px !important;
+  line-height: 18px !important;
+  padding-left: 24px !important;
+  font-size: var(--font-size-md) !important;
+}
+
+[type="checkbox"]+span:before, 
+[type="checkbox"]+span:after,
+[type="radio"]+span:before, 
+[type="radio"]+span:after {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* ==== BUTTONS ==== */
+.btn, .btn-flat {
+  height: 30px !important;
+  line-height: 30px !important;
+  padding: 0 var(--spacing-md) !important;
+  font-size: var(--font-size-md) !important;
+  text-transform: none !important;
+}
+
+.btn-small {
+  height: 26px !important;
+  line-height: 26px !important;
+  padding: 0 var(--spacing-sm) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.btn i, .btn-flat i, .btn-small i {
+  font-size: 1.1rem !important;
+  line-height: inherit !important;
+  margin-right: var(--spacing-xs) !important;
+}
+
+/* Floating action button */
+.btn-floating {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.btn-floating i {
+  line-height: 36px !important;
+}
+
+.btn-floating.btn-small {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.btn-floating.btn-small i {
+  line-height: 28px !important;
+  font-size: 1.1rem !important;
+}
+
+/* ==== MODALS ==== */
+.modal {
+  max-height: 90% !important;
+  border-radius: var(--border-radius-md) !important;
+  padding: 0 !important;
+}
+
+.modal .modal-content {
+  padding: var(--spacing-sm) !important;
+}
+
+.modal .modal-footer {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  height: auto !important;
+  min-height: 36px !important;
+}
+
+.modal-header {
+  padding: var(--spacing-sm) !important;
+}
+
+.modal-body {
+  padding: var(--spacing-sm) !important;
+}
+
+.modal-footer {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  min-height: auto !important;
+}
+
+.modal .modal-footer .btn, 
+.modal .modal-footer .btn-flat {
+  height: 30px !important;
+  line-height: 30px !important;
+  padding: 0 var(--spacing-md) !important;
+  font-size: var(--font-size-sm) !important;
+  margin: var(--spacing-xxs) !important;
+}
+
+/* ==== FULL FRAME MODALS ==== */
+.full-frame-modal {
+  padding: 0 !important;
+}
+
+.full-frame-modal .modal-header,
+.full-frame-modal .modal-body,
+.full-frame-modal .modal-footer {
+  padding: var(--spacing-sm) !important;
+}
+
+.full-frame-modal .modal-title {
+  font-size: var(--font-size-lg) !important;
+}
+
+.full-frame-modal .order-details-modal {
+  width: 98% !important;
+  max-width: 98% !important;
+  max-height: 98% !important;
+  height: 98% !important;
+  top: 1% !important;
+}
+
+/* ==== MODAL DIALOG WIDTH OPTIMIZATION ==== */
+@media only screen and (min-width: 601px) {
+  .modal {
+    width: 95% !important;
+    max-width: 95% !important;
+  }
+  
+  .modal.modal-small {
+    width: 400px !important;
+    max-width: 95% !important;
+  }
+  
+  .modal.modal-medium {
+    width: 600px !important;
+    max-width: 95% !important;
+  }
+  
+  .modal.modal-large {
+    width: 95% !important;
+    max-width: 95% !important;
+  }
+  
+  .modal.modal-full {
+    width: 98% !important;
+    height: 95% !important;
+    max-width: 98% !important;
+    max-height: 95% !important;
+    top: 2.5% !important;
+  }
+}
+
+/* Specific styling for order details modal */
+.order-details-modal {
+  width: 98% !important;
+  max-width: 98% !important;
+  max-height: 98% !important;
+  height: 98% !important;
+  top: 1% !important;
+  border-radius: var(--border-radius-md) !important;
+  overflow: hidden !important;
+}
+
+.order-details-modal .modal-content {
+  padding: 0 !important;
+  overflow-y: auto !important;
+  max-height: calc(100% - 36px) !important; /* Account for reduced modal header height */
+}
+
+.order-details-modal .modal-header {
+  background-color: #f5f5f5 !important;
+  padding: var(--spacing-xs) var(--spacing-md) !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.order-details-modal .modal-title {
+  font-size: var(--font-size-lg) !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+/* ==== TABLES ==== */
+table {
+  margin-top: var(--spacing-xs) !important;
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+table td, table th {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  font-size: var(--font-size-sm) !important;
+  height: auto !important;
+}
+
+/* Compact table rows */
+tr {
+  height: auto !important;
+  min-height: 28px !important;
+  line-height: 1.1 !important;
+}
+
+/* Zebra striping for better readability */
+tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* ==== LISTS ==== */
+.collection {
+  margin: var(--spacing-xs) 0 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: var(--border-radius-sm) !important;
+}
+
+.collection .collection-item {
+  padding: var(--spacing-sm) !important;
+  min-height: auto !important;
+  line-height: 1.3 !important;
+}
+
+/* LIST & CARD VIEWS FOR ORDERS & ITEMS */
+.list-view-row {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  margin-bottom: var(--spacing-xxs) !important;
+}
+
+.order-card, 
+.data-row, 
+.order-row,
+.item-card {
+  padding: var(--spacing-sm) !important;
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+.order-header, 
+.item-header {
+  padding: var(--spacing-xxs) 0 !important;
+  margin-bottom: var(--spacing-xxs) !important;
+}
+
+.order-body, 
+.item-body {
+  padding: var(--spacing-xxs) 0 !important;
+}
+
+.order-footer, 
+.item-footer {
+  padding: var(--spacing-xs) 0 !important;
+  margin-top: var(--spacing-xxs) !important;
+}
+
+.order-item, 
+.data-item {
+  padding: var(--spacing-xxs) 0 !important;
+}
+
+.item-quantity {
+  font-size: var(--font-size-sm) !important;
+  margin-right: var(--spacing-xs) !important;
+}
+
+.item-name {
+  font-size: var(--font-size-sm) !important;
+}
+
+.item-price {
+  font-size: var(--font-size-sm) !important;
+}
+
+/* ==== TABS & NAVIGATION ==== */
+.tabs {
+  height: 36px !important;
+}
+
+.tabs .tab {
+  line-height: 36px !important;
+}
+
+.tabs .tab a {
+  padding: 0 var(--spacing-sm) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.order-tabs {
+  margin-bottom: var(--spacing-xs) !important;
+  overflow-x: auto !important;
+}
+
+.order-tab {
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  min-width: 40px !important;
+}
+
+.order-tab i {
+  font-size: 18px !important;
+}
+
+.order-count {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 0.7rem !important;
+}
+
+/* ==== GRID LAYOUTS ==== */
+.orders-grid {
+  gap: var(--spacing-xs) !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+}
+
+/* ==== STATUS INDICATORS & BADGES ==== */
+.order-status {
+  font-size: 0.65rem !important;
+  padding: 0.1rem 0.35rem !important;
+  border-radius: 10px !important;
+}
+
+.status-indicator {
+  width: 10px !important;
+  height: 10px !important;
+  margin-right: var(--spacing-xs) !important;
+}
+
+.table-badge, .table-number {
+  font-size: var(--font-size-sm) !important;
+  padding: 1px 6px !important;
+  margin-right: var(--spacing-xs) !important;
+}
+
+/* ==== KITCHEN DISPLAY SYSTEM MODIFICATIONS ==== */
+.kitchen-item-quantity {
+  font-size: 2rem !important;
+  margin-right: 12px !important;
+  min-width: 32px !important;
+}
+
+.kitchen-item-name {
+  font-size: 2rem !important;
+  margin-bottom: 6px !important;
+}
+
+.kitchen-action-btn {
+  width: 44px !important;
+  height: 44px !important;
+  margin: 0 4px !important;
+}
+
+.kitchen-action-btn i {
+  font-size: 20px !important;
+}
+
+.kitchen-actions-container {
+  margin-top: 8px !important;
+  padding: 6px 0 !important;
+}
+
+/* ==== MODAL ORDER DETAILS ==== */
+.modal-item-quantity {
+  font-size: 1.1rem !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  margin-right: 12px !important;
+}
+
+.modal-item-name {
+  font-size: 1rem !important;
+  margin-bottom: 6px !important;
+}
+
+.modal-order-meta {
+  padding: 10px !important;
+  margin-bottom: 15px !important;
+}
+
+.modal-order-meta-item {
+  margin-right: 15px !important;
+  margin-bottom: 8px !important;
+}
+
+.modal-order-meta-label {
+  font-size: 0.8rem !important;
+  margin-bottom: 3px !important;
+}
+
+.modal-order-meta-value {
+  font-size: 1rem !important;
+}
+
+.modal-action-btn {
+  padding: 8px 18px !important;
+  font-size: 0.9rem !important;
+}
+
+/* ==== ORDER NOTES ==== */
+.order-notes {
+  margin-top: var(--spacing-xs) !important;
+  padding-top: var(--spacing-xs) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+/* ==== MEDIA QUERIES FOR RESPONSIVE DESIGN ==== */
+@media (max-width: 600px) {
+  /* Ultra-compact on mobile */
+  :root {
+    --header-height: 32px !important;
+  }
+  
+  .container {
+    width: 100% !important;
+    padding: var(--spacing-xxs) !important;
+  }
+  
+  .card .card-content {
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .modal {
+    width: 98% !important;
+    max-height: 95% !important;
+  }
+  
+  .orders-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .kitchen-item-name {
+    font-size: 1.6rem !important;
+  }
+  
+  .kitchen-item-quantity {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* ==== HIDE ELEMENTS IN COMPACT MODE ==== */
+@media (max-width: 480px) {
+  .hide-in-compact {
+    display: none !important;
+  }
+}
+
+/* ==== ADJUST SPACING FOR KITCHEN DISPLAY ==== */
+@media (min-width: 1200px) {
+  .kitchen-mode .kitchen-item-name {
+    font-size: 2.2rem !important;
+  }
+  
+  .kitchen-mode .kitchen-item-quantity {
+    font-size: 2.2rem !important;
+  }
+}

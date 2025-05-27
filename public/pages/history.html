@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Order History - FoodBao Admin</title>
+    
+    <!-- Early session check script - Must be first script loaded -->
+    <script>
+    // Enhanced session verification - inline for fastest possible execution
+    (function() {
+        try {
+            // Check session storage first (higher priority), then localStorage
+            const sessionKey = sessionStorage.getItem('session_key') || localStorage.getItem('session_key');
+            const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const sessionTimestamp = sessionStorage.getItem('session_timestamp') || localStorage.getItem('session_timestamp');
+            const currentTime = new Date().getTime();
+            
+            // Prevent back navigation after logout by replacing history state
+            history.replaceState(null, document.title, location.href);
+            
+            // Force reload on back button navigation to ensure fresh session check
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // This catches bfcache navigation in all browsers
+                    window.location.reload();
+                }
+            });
+            
+            // Comprehensive session validation logic
+            if (!sessionKey || !authToken || 
+                !sessionTimestamp || 
+                (currentTime - parseInt(sessionTimestamp)) > (24 * 60 * 60 * 1000)) { // 24 hour max session
+                // Hide content immediately to prevent UI flashing
+                document.documentElement.style.display = 'none';
+                // Redirect with cache-busting parameter
+                const redirectUrl = '/login.html?expired=true&nocache=' + new Date().getTime();
+                window.location.replace(redirectUrl);
+                throw new Error('Session invalid or expired');
+            }
+            
+            // Advanced visibility change detection
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    performFullSessionCheck();
+                }
+            });
+            
+            // Detailed session verification function
+            function performFullSessionCheck() {
+                // Additional in-depth verification could be added here for tab refocus
+                // This would check the session against server if needed
+            }
+        } catch (error) {
+            console.error('Session verification failed:', error);
+            window.location.replace('/login.html?error=session');
+        }
+    })();
+    </script>
+    
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="../css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Your custom CSS -->    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Add the fullframe-modal CSS for the order details modal -->
+    <link rel="stylesheet" href="../css/fullframe-modal.css">
+    <!-- Add compact styling for order details -->
+    <link rel="stylesheet" href="../css/compact-order-display.css">
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --primary-light: #a4d0f5;
+            --accent-color: #2ecc71;
+            --secondary-color: #f39c12;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+            --success-color: #27ae60;
+            --text-on-primary: white;
+            --text-dark: #333;
+            --bg-light: #f5f9ff;
+            --transition-speed: 0.3s;
+            --header-height: 44px;
+        }
+        
+        /* App container */
+        .app-container {
+            padding: 10px;
+            padding-top: calc(var(--header-height) + 10px);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Calendar styling */
+        .calendar-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .calendar-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav button {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            background: #f8f9fa;
+            padding: 10px 0;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 1px;
+            background: #f0f0f0;
+            padding: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 50%;
+            margin: 2px;
+        }
+        
+        .calendar-day:hover {
+            background: #f0f8ff;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-day:active {
+            transform: scale(0.95);
+        }
+        
+        .calendar-day.other-month {
+            color: #aaa;
+        }
+        
+        .calendar-day.today {
+            background: #e6f7ff;
+            font-weight: bold;
+        }
+        
+        .calendar-day.has-orders {
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
+        }
+        
+        .calendar-day.has-orders:hover {
+            background: #2ecc71;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.5);
+        }
+        
+        .calendar-day .order-count {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+          /* Orders summary modal */
+        .orders-summary-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .orders-summary-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fade-in 0.3s ease-out;
+        }
+          .orders-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            background-color: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 4px 4px 0 0;
+        }
+          .orders-summary-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin: 0;
+        }
+        
+        .orders-summary-close {
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+        }
+        
+        .orders-summary-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .order-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .order-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .order-item.status-completed {
+            border-left-color: var(--success-color);
+        }
+        
+        .order-item.status-cancelled {
+            border-left-color: var(--danger-color);
+        }
+        
+        .order-item.status-pending {
+            border-left-color: var(--warning-color);
+        }
+        
+        .order-item.status-processing {
+            border-left-color: var(--primary-color);
+        }
+        
+        .order-customer-preview {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+          .order-item-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 5px;
+            padding: 3px 0;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .order-items-count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+          .order-item-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 3px;
+        }
+        
+        .order-time {
+            color: #777;
+            font-size: 0.85rem;
+        }
+          .order-total {
+            font-weight: bold;
+            color: var(--text-dark);
+            padding: 2px 6px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .no-orders {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }        /* Order details modal (fullframe) */        .order-details-container {
+            padding: 15px;
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .order-details-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            animation: fade-in 0.3s ease-out;
+        }
+        
+        .order-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-details-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+        
+        .order-items-list {
+            margin-bottom: 20px;
+        }
+          .order-item-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            margin-bottom: 2px;
+            background-color: #f9f9f9;
+            border-radius: 3px;
+        }
+        
+        .order-item-detail.variation {
+            background-color: #f0f0f0;
+            margin-left: 10px;
+            margin-bottom: 1px;
+            padding: 2px 5px;
+            font-size: 0.85em;
+        }
+        
+        .order-item-detail.compact {
+            padding: 2px 5px;
+            margin-bottom: 1px;
+        }
+        
+        .order-customer-info {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .order-customer-info h2 {
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+          .order-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        
+        .order-summary {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        
+        .summary-line.total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        
+        .summary-line.discount {
+            color: var(--success-color);
+        }
+        
+        .no-items {
+            text-align: center;
+            color: #777;
+            padding: 15px;
+            font-style: italic;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        /* Improved animation for order detail transitions */
+        .order-details-card {
+            animation: fade-in 0.3s ease-out;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }        .order-delivery-info, .order-payment-info, .order-table-info {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .order-delivery-info h2, .order-payment-info h2, .order-table-info h2 {
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+        
+        .delivery-instructions {
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .delivery-instructions .label {
+            font-weight: bold;
+            font-style: normal;
+        }
+        
+        .payment-status {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .payment-status.paid, .payment-status.completed {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .payment-status.pending {
+            background-color: var(--warning-color);
+            color: var(--text-dark);
+        }
+          .payment-status.failed {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        /* Table organization styling */
+        .tables-container {
+            width: 100%;
+        }
+        
+        .table-section {
+            margin-bottom: 25px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        
+        .table-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .table-orders {
+            background-color: #f9f9f9;
+            padding: 5px;
+        }
+        
+        /* Order items summary styling */
+        .order-items-summary {
+            background-color: #f0f8ff;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border-left: 3px solid var(--accent-color);
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+            max-height: 500px;
+        }
+        
+        .order-items-summary.hidden {
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+        
+        .order-items-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            font-weight: bold;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .order-item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 5px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        .order-variation-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 3px 0 3px 15px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .variation-group {
+            background-color: #eee;
+            font-size: 0.85em;
+            color: #333;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+          /* Improved responsive adjustments */
+        @media (max-width: 768px) {
+            .calendar-day {
+                font-size: 0.9rem;
+            }
+            
+            .orders-summary-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 90vh;
+                padding: 15px;
+            }
+            
+            .orders-summary-list {
+                max-height: 65vh;
+            }
+              .order-details-card {
+                padding: 12px;
+            }
+              .modal-icon-button {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .modal-icon-button i {
+                font-size: 18px;
+            }
+            
+            .fullframe-modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .orders-summary-title {
+                font-size: 1.3rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .calendar-day {
+                font-size: 0.8rem;
+            }
+            
+            .calendar-weekdays div {
+                font-size: 0.8rem;
+            }
+            
+            .orders-summary-content {
+                margin: 0;
+                padding: 15px;
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+            }
+              .orders-summary-header {
+                padding: 6px 10px;
+                margin-bottom: 10px;
+            }
+            
+            .order-summary {
+                font-size: 0.9rem;
+            }
+            
+            .item-name {
+                font-size: 0.9rem;
+            }              .modal-icon-button {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .modal-icon-button i {
+                font-size: 16px;
+            }
+            
+            .fullframe-modal-title {
+                font-size: 1.1rem;
+            }
+              .orders-summary-title {
+                font-size: 1rem;
+            }
+            
+            .orders-summary-header {
+                padding: 5px 8px;
+                margin-bottom: 8px;
+            }
+        }
+        
+        /* Initially hide order details modal */        .fullframe-modal {
+            display: none;
+        }        /* Modal icon buttons styling */        .modal-icon-button {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin: 0 4px;
+        }
+        
+        .modal-icon-button:hover {
+            background-color: #f8f8f8;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .modal-icon-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .modal-icon-button i {
+            font-size: 20px;
+        }
+        
+        .close-button {
+            background-color: #fff4f4;
+        }
+        
+        .close-button i {
+            color: #e74c3c;
+        }
+        
+        .back-button {
+            background-color: #f0f8ff;
+            margin-right: 5px;
+        }
+        
+        .back-button i {
+            color: #3498db;
+        }
+          .modal-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fullframe-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1010;
+            overflow-y: auto;
+            animation: fade-in 0.3s ease;
+        }
+        
+        .fullframe-modal-container {
+            background: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+          .fullframe-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .fullframe-modal-title {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            flex: 1;
+        }
+        
+        .fullframe-modal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background-color: #f5f5f7;
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header Component -->
+    <app-header></app-header>
+    
+    <div class="app-container">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-title" id="currentMonthYear">May 2025</div>
+                <div class="calendar-nav">
+                    <button id="prevMonth"><i class="material-icons">chevron_left</i></button>
+                    <button id="today">Today</button>
+                    <button id="nextMonth"><i class="material-icons">chevron_right</i></button>
+                </div>
+            </div>
+            <div class="calendar-weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar-days" id="calendarDays">
+                <!-- Calendar days will be generated here -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+      <!-- Orders Summary Modal -->
+    <div class="orders-summary-modal" id="ordersSummaryModal">
+        <div class="orders-summary-content">            <div class="orders-summary-header">
+                <div class="orders-summary-title" id="selectedDate">Orders for May 12, 2025</div>
+                <div class="modal-buttons">
+                    <button class="modal-icon-button close-button" id="closeOrdersSummary">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+            </div>
+            <div class="orders-summary-list" id="ordersSummaryList">
+                <!-- Orders summary will be loaded here -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div><!-- Order Details Modal (using fullframe-modal) -->    <div class="fullframe-modal" id="orderDetailsModal">
+        <div class="fullframe-modal-container">
+            <div class="fullframe-modal-header">
+                <h1 class="fullframe-modal-title" id="orderDetailsTitle">Order Details</h1>
+                <div class="modal-buttons">
+                    <button class="modal-icon-button close-button" id="closeOrderDetails">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+            </div>
+            <div class="fullframe-modal-content">
+                <div class="order-details-container" id="orderDetailsContainer">
+                    <!-- Order details will be loaded here -->
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container"></div>
+    
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Custom components -->
+    <script src="../js/components/header.js"></script>
+    <!-- Toast utility -->
+    <script src="../../utils/toast.js"></script>
+    <!-- API Handler -->
+    <script src="../js/api-handler.js"></script>
+    
+    <script>        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Materialize components
+            if (window.M) {
+                var elems = document.querySelectorAll('.modal');
+                M.Modal.init(elems, {});
+                
+                // Initialize toast container if it doesn't exist
+                if (!document.querySelector('.toast-container')) {
+                    const toastContainer = document.createElement('div');
+                    toastContainer.className = 'toast-container';
+                    document.body.appendChild(toastContainer);
+                }
+            }
+            
+            // Initialize components
+            initComponents();
+            
+            // Get current date
+            const currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+              // DOM elements
+            const calendarDays = document.getElementById('calendarDays');
+            const currentMonthYear = document.getElementById('currentMonthYear');
+            const prevMonthBtn = document.getElementById('prevMonth');
+            const nextMonthBtn = document.getElementById('nextMonth');
+            const todayBtn = document.getElementById('today');
+            const ordersSummaryModal = document.getElementById('ordersSummaryModal');
+            const ordersSummaryList = document.getElementById('ordersSummaryList');
+            const selectedDateTitle = document.getElementById('selectedDate');            const closeOrdersSummaryBtn = document.getElementById('closeOrdersSummary');
+            const orderDetailsModal = document.getElementById('orderDetailsModal');
+            const orderDetailsContainer = document.getElementById('orderDetailsContainer');
+            const closeOrderDetailsBtn = document.getElementById('closeOrderDetails');
+            
+            // Store order data by date
+            let ordersByDate = {};
+            
+            // Calendar navigation
+            prevMonthBtn.addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+            
+            nextMonthBtn.addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+            
+            todayBtn.addEventListener('click', () => {
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                renderCalendar();
+            });            // Close modals
+            closeOrdersSummaryBtn.addEventListener('click', () => {
+                ordersSummaryModal.style.display = 'none';
+            });
+            
+            closeOrderDetailsBtn.addEventListener('click', () => {
+                orderDetailsModal.style.display = 'none';
+            });
+                      
+            // Close modal when clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === ordersSummaryModal) {
+                    ordersSummaryModal.style.display = 'none';
+                }
+            });
+            
+            // Render calendar
+            function renderCalendar() {
+                // Update header
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                currentMonthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                
+                // Clear calendar
+                calendarDays.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                
+                // Load order data for the month
+                fetchMonthOrders(currentYear, currentMonth)
+                    .then(() => {
+                        // After fetching orders, render the calendar
+                        renderCalendarDays();
+                    })                    .catch(error => {
+                        console.error('Error fetching orders:', error);
+                        
+                        // Use M.toast if available, otherwise show a simple alert
+                        if (window.M && M.toast) {
+                            M.toast({html: 'Failed to load order data', classes: 'red'});
+                        } else {
+                            alert('Failed to load order data');
+                        }
+                        
+                        renderCalendarDays(); // Render calendar anyway
+                    });
+            }
+            
+            function renderCalendarDays() {
+                calendarDays.innerHTML = '';
+                
+                // Get first day of month
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                // Get last day of month
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                
+                // Get day of week for first day (0 = Sunday, 6 = Saturday)
+                const firstDayOfWeek = firstDay.getDay();
+                
+                // Get total days in month
+                const daysInMonth = lastDay.getDate();
+                
+                // Get previous month's last days
+                const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
+                
+                // Get today's date for highlighting
+                const today = new Date();
+                const todayDate = today.getDate();
+                const todayMonth = today.getMonth();
+                const todayYear = today.getFullYear();
+                
+                // Calculate total cells needed (previous month days + current month days + next month days)
+                const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
+                
+                // Create calendar cells
+                for (let i = 0; i < totalCells; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('calendar-day');
+                    
+                    // Previous month days
+                    if (i < firstDayOfWeek) {
+                        const prevDate = prevLastDay - firstDayOfWeek + i + 1;
+                        cell.textContent = prevDate;
+                        cell.classList.add('other-month');
+                        
+                        // Calculate full date string for previous month
+                        const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                        const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                        const dateString = formatDateString(prevYear, prevMonth, prevDate);
+                        
+                        if (ordersByDate[dateString] && ordersByDate[dateString].length > 0) {
+                            addOrderIndicator(cell, dateString);
+                        }
+                        
+                        cell.addEventListener('click', () => showOrdersForDate(dateString));
+                    }
+                    // Current month days
+                    else if (i < firstDayOfWeek + daysInMonth) {
+                        const date = i - firstDayOfWeek + 1;
+                        cell.textContent = date;
+                        
+                        // Check if it's today
+                        if (date === todayDate && currentMonth === todayMonth && currentYear === todayYear) {
+                            cell.classList.add('today');
+                        }
+                        
+                        // Calculate full date string
+                        const dateString = formatDateString(currentYear, currentMonth, date);
+                        
+                        // Check if there are orders for this day
+                        if (ordersByDate[dateString] && ordersByDate[dateString].length > 0) {
+                            addOrderIndicator(cell, dateString);
+                        }
+                        
+                        cell.addEventListener('click', () => showOrdersForDate(dateString));
+                    }
+                    // Next month days
+                    else {
+                        const nextDate = i - (firstDayOfWeek + daysInMonth) + 1;
+                        cell.textContent = nextDate;
+                        cell.classList.add('other-month');
+                        
+                        // Calculate full date string for next month
+                        const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                        const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+                        const dateString = formatDateString(nextYear, nextMonth, nextDate);
+                        
+                        if (ordersByDate[dateString] && ordersByDate[dateString].length > 0) {
+                            addOrderIndicator(cell, dateString);
+                        }
+                        
+                        cell.addEventListener('click', () => showOrdersForDate(dateString));
+                    }
+                    
+                    calendarDays.appendChild(cell);
+                }
+            }
+              // Add order indicator to calendar cell
+            function addOrderIndicator(cell, dateString) {
+                cell.classList.add('has-orders');
+                
+                // We no longer need to display the order count badge
+                // Just highlight the day to indicate there are orders
+            }
+            
+            // Format date as YYYY-MM-DD
+            function formatDateString(year, month, day) {
+                return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+            
+            // Format date for display
+            function formatDisplayDate(dateString) {
+                const date = new Date(dateString);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+              // Fetch orders for a month
+            async function fetchMonthOrders(year, month) {
+                try {
+                    // Calculate start and end dates for the month
+                    const startDate = new Date(year, month, 1);
+                    const endDate = new Date(year, month + 1, 0);
+                    
+                    const formattedStartDate = formatDateString(year, month, 1);
+                    const formattedEndDate = formatDateString(year, month, endDate.getDate());
+                    
+                    // Get the username from session storage or localStorage
+                    const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+                    
+                    if (!username) {
+                        throw new Error('User not logged in or username not found');
+                    }
+                    
+                    // Fetch orders from API with username parameter
+                    const response = await apiHandler.get(`/api/orders`, { username });
+                    
+                    if (response.success) {
+                        // Group orders by date
+                        ordersByDate = {};
+                        response.data.forEach(order => {
+                            // Only include orders from the current month/year
+                            const orderDate = order.created_at.split('T')[0];
+                            const orderDateObj = new Date(orderDate);
+                            
+                            if (orderDateObj.getMonth() === month && orderDateObj.getFullYear() === year) {
+                                if (!ordersByDate[orderDate]) {
+                                    ordersByDate[orderDate] = [];
+                                }
+                                
+                                ordersByDate[orderDate].push(order);
+                            }
+                        });
+                    } else {
+                        throw new Error(response.message || 'Failed to fetch orders');
+                    }
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                    throw error;
+                }
+            }
+              // Show orders for a specific date
+            function showOrdersForDate(dateString) {
+                // Update modal title
+                selectedDateTitle.textContent = `Orders for ${formatDisplayDate(dateString)}`;
+                
+                // Clear and show loading spinner
+                ordersSummaryList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                ordersSummaryModal.style.display = 'block';
+                
+                // Check if we have orders for this date
+                if (ordersByDate[dateString] && ordersByDate[dateString].length > 0) {
+                    // Clear the list
+                    ordersSummaryList.innerHTML = '';
+                    
+                    // Sort orders by time (latest first)
+                    const sortedOrders = [...ordersByDate[dateString]].sort((a, b) => {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    
+                    // Group orders by table number
+                    const ordersByTable = {};
+                    
+                    sortedOrders.forEach(order => {
+                        const tableNumber = order.table_number || 'No Table';
+                        if (!ordersByTable[tableNumber]) {
+                            ordersByTable[tableNumber] = [];
+                        }
+                        ordersByTable[tableNumber].push(order);
+                    });
+                    
+                    // Create container for tables
+                    const tablesContainer = document.createElement('div');
+                    tablesContainer.className = 'tables-container';
+                    
+                    // Render orders grouped by table
+                    Object.keys(ordersByTable).sort().forEach(tableNumber => {
+                        const tableOrders = ordersByTable[tableNumber];
+                        
+                        // Create table section
+                        const tableSection = document.createElement('div');
+                        tableSection.className = 'table-section';
+                        
+                        // Create table header
+                        const tableHeader = document.createElement('div');
+                        tableHeader.className = 'table-header';
+                        tableHeader.innerHTML = `
+                            <h3>Table ${tableNumber}</h3>
+                            <span class="order-count">${tableOrders.length} order${tableOrders.length !== 1 ? 's' : ''}</span>
+                        `;
+                        tableSection.appendChild(tableHeader);
+                        
+                        // Create table orders container
+                        const tableOrdersContainer = document.createElement('div');
+                        tableOrdersContainer.className = 'table-orders';
+                        
+                        // Render each order for this table
+                        tableOrders.forEach(order => {
+                            const orderElement = document.createElement('div');
+                            orderElement.classList.add('order-item');
+                            
+                            // Add status-based styling
+                            if (order.status) {
+                                orderElement.classList.add(`status-${order.status.toLowerCase()}`);
+                            }
+                            
+                            // Format time
+                            const orderTime = new Date(order.created_at);
+                            const formattedTime = orderTime.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            
+                            // Get order status
+                            const status = order.status || 'pending';
+                            
+                            // Calculate number of items from order_items
+                            const totalItems = order.order_items ? order.order_items.reduce((sum, item) => sum + parseInt(item.quantity || 1), 0) : 0;
+                            
+                            // Prepare customer info snippet
+                            const customerName = order.customer_name ? `<div class="order-customer-preview">${order.customer_name}</div>` : '';
+                              // Order header
+                            const orderHeader = `
+                                <div class="order-item-header">
+                                    <span class="order-time">${formattedTime}</span>
+                                </div>
+                                ${customerName}
+                                <div class="order-item-details">
+                                    <span class="order-status ${status.toLowerCase()}">${status}</span>
+                                    <span class="order-items-count">${totalItems} item${totalItems !== 1 ? 's' : ''}</span>
+                                    <span class="order-total">RM ${parseFloat(order.total_amount).toFixed(2)}</span>
+                                </div>
+                            `;
+                            
+                            // Order items summary (initially hidden)
+                            let orderItemsHtml = '';
+                            if (order.order_items && order.order_items.length > 0) {
+                                orderItemsHtml = `
+                                    <div class="order-items-summary hidden">
+                                        <div class="order-items-header">
+                                            <span>Item</span>
+                                            <span>Qty</span>
+                                            <span>Price</span>
+                                        </div>
+                                `;
+                                
+                                order.order_items.forEach(item => {
+                                    // Add item row
+                                    orderItemsHtml += `
+                                        <div class="order-item-row">
+                                            <span class="item-name">${item.item_name}</span>
+                                            <span class="item-quantity">x${item.quantity}</span>
+                                            <span class="item-price">RM ${parseFloat(item.total_price).toFixed(2)}</span>
+                                        </div>
+                                    `;
+                                      // Add variations if any
+                                    if (item.order_item_variations && item.order_item_variations.length > 0) {
+                                        // Filter out duplicate variations by tracking variation names
+                                        const addedVariations = new Set();
+                                        
+                                        item.order_item_variations.forEach(variation => {
+                                            // Only add the variation if we haven't seen this name before
+                                            if (!addedVariations.has(variation.variation_name)) {
+                                                addedVariations.add(variation.variation_name);
+                                                
+                                                orderItemsHtml += `
+                                                    <div class="order-variation-row">
+                                                        <span class="variation-name">- ${variation.variation_name}</span>
+                                                        <span></span>
+                                                        <span class="variation-price">RM ${parseFloat(variation.variation_price).toFixed(2)}</span>
+                                                    </div>
+                                                `;
+                                            }
+                                        });
+                                    }
+                                });
+                                
+                                orderItemsHtml += `</div>`;
+                            }
+                            
+                            // Combine header and items
+                            orderElement.innerHTML = orderHeader + orderItemsHtml;
+                            
+                            // Toggle items visibility on click
+                            orderElement.querySelector('.order-item-details').addEventListener('click', (e) => {
+                                const itemsSection = orderElement.querySelector('.order-items-summary');
+                                if (itemsSection) {
+                                    itemsSection.classList.toggle('hidden');
+                                }
+                                e.stopPropagation(); // Prevent triggering the full order details view
+                            });
+                            
+                            // Add click event to show full order details
+                            orderElement.addEventListener('click', () => {
+                                showOrderDetails(order.id);
+                            });
+                            
+                            tableOrdersContainer.appendChild(orderElement);
+                        });
+                        
+                        tableSection.appendChild(tableOrdersContainer);
+                        tablesContainer.appendChild(tableSection);
+                    });
+                    
+                    ordersSummaryList.appendChild(tablesContainer);
+                    
+                } else {
+                    // No orders for this date
+                    ordersSummaryList.innerHTML = `
+                        <div class="no-orders">
+                            <p>No orders for this date</p>
+                        </div>
+                    `;
+                }
+            }// Show order details
+            async function showOrderDetails(orderId) {
+                // Hide orders summary modal
+                ordersSummaryModal.style.display = 'none';
+                
+                // Show order details modal with loading
+                orderDetailsContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                orderDetailsModal.style.display = 'block';
+                
+                try {
+                    // Get username for authentication
+                    const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+                      // Fetch order details from API using the proper query parameter format
+                    let response;
+                    try {
+                        // Use the id as a query parameter instead of a path parameter
+                        response = await apiHandler.get(`/api/orders`, { id: orderId });
+                        
+                        // Check if response data is an array and extract the first item
+                        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+                            response.data = response.data[0]; // Convert array response to single object
+                        }
+                    } catch (err) {
+                        console.warn('Order fetch by ID failed, falling back to username-based fetch', err);
+                        // Fall back to fetching by username and find the right order
+                        const ordersResponse = await apiHandler.get(`/api/orders`, { username });
+                        if (ordersResponse.success) {
+                            // Find the specific order
+                            const order = ordersResponse.data.find(order => order.id === orderId);
+                            if (order) {
+                                response = { success: true, data: order };
+                            } else {
+                                throw new Error('Order not found');
+                            }
+                        } else {
+                            throw new Error(ordersResponse.message || 'Failed to fetch orders');
+                        }
+                    }
+                    
+                    if (response.success) {                        
+                        const order = response.data;
+                        
+                        // Update modal title with order number
+                        document.getElementById('orderDetailsTitle').textContent = `Order #${order.order_number || order.id}`;
+                        
+                        // Format date and time
+                        const orderDate = new Date(order.created_at);
+                        const dateTimeFormatted = `${orderDate.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })} at ${orderDate.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                        
+                        // Get the status with color class
+                        const status = (order.status || 'PENDING').toUpperCase();
+                        let statusClass = '';
+                        
+                        switch(status) {
+                            case 'COMPLETED':
+                                statusClass = 'completed';
+                                break;
+                            case 'CANCELLED':
+                                statusClass = 'cancelled';
+                                break;
+                            case 'PENDING':
+                                statusClass = 'pending';
+                                break;
+                            case 'PROCESSING':
+                                statusClass = 'processing';
+                                break;
+                            default:
+                                statusClass = 'default';
+                        }
+                        
+                        const statusText = status.charAt(0) + status.slice(1).toLowerCase();
+                        
+                        // Build HTML sections
+                        const customerInfoHtml = order.customer_name ? `
+                            <div class="order-customer-info">
+                                <h2>Customer Information</h2>
+                                <div>Name: ${order.customer_name || 'N/A'}</div>
+                                <div>Phone: ${order.customer_phone || 'N/A'}</div>
+                                <div>Email: ${order.customer_email || 'N/A'}</div>
+                            </div>
+                        ` : '';
+                        
+                        const tableInfoHtml = order.table_number ? `
+                            <div class="order-table-info">
+                                <h2>Table Information</h2>
+                                <div>Table Number: ${order.table_number}</div>
+                                ${order.business_name ? `<div>Business: ${order.business_name}</div>` : ''}
+                            </div>
+                        ` : '';
+                        
+                        const deliveryInfoHtml = order.delivery_address ? `
+                            <div class="order-delivery-info">
+                                <h2>Delivery Information</h2>
+                                <div>${order.delivery_address}</div>
+                                ${order.delivery_instructions ? `<div class="delivery-instructions">
+                                    <span class="label">Instructions:</span> ${order.delivery_instructions}
+                                </div>` : ''}
+                            </div>
+                        ` : '';
+                        
+                        const paymentInfoHtml = order.payment_method ? `
+                            <div class="order-payment-info">
+                                <h2>Payment Information</h2>
+                                <div>Method: ${order.payment_method}</div>
+                                ${order.payment_status ? `<div>Status: <span class="payment-status ${order.payment_status.toLowerCase()}">${order.payment_status}</span></div>` : ''}
+                                ${order.payment_id ? `<div>Payment ID: ${order.payment_id}</div>` : ''}
+                            </div>
+                        ` : '';
+                        
+                        // Build order items HTML
+                        let itemsHtml = '';
+                        let orderSummaryHtml = '';
+                        
+                        if (order.order_items && order.order_items.length > 0) {
+                            let orderSubtotal = 0;
+                            
+                            // Process order items
+                            itemsHtml = '<div class="order-items">';
+                            
+                            order.order_items.forEach(item => {
+                                const itemTotal = parseFloat(item.total_price || 0);
+                                orderSubtotal += itemTotal;
+                                
+                                itemsHtml += `
+                                    <div class="order-item-detail">
+                                        <div class="item-name">${item.item_name}</div>
+                                        <div class="item-quantity">x${item.quantity || 1}</div>
+                                        <div class="item-price">RM ${itemTotal.toFixed(2)}</div>
+                                    </div>
+                                `;
+                                  // Add variations if any
+                                if (item.order_item_variations && item.order_item_variations.length > 0) {
+                                    // Filter out duplicate variations by tracking variation names
+                                    const addedVariations = new Set();
+                                    
+                                    item.order_item_variations.forEach(variation => {
+                                        // Only add the variation if we haven't seen this name before
+                                        if (!addedVariations.has(variation.variation_name)) {
+                                            addedVariations.add(variation.variation_name);
+                                            
+                                            itemsHtml += `
+                                                <div class="order-item-detail variation">
+                                                    <div class="variation-name">- ${variation.variation_name}</div>
+                                                    <div></div>
+                                                    <div class="variation-price">RM ${parseFloat(variation.variation_price || 0).toFixed(2)}</div>
+                                                </div>
+                                            `;
+                                        }
+                                    });
+                                }
+                            });
+                            
+                            itemsHtml += '</div>';
+                            
+                            // Create order summary section
+                            const tax = order.tax_amount ? parseFloat(order.tax_amount) : 0;
+                            const delivery = order.delivery_fee ? parseFloat(order.delivery_fee) : 0;
+                            const tip = order.tip_amount ? parseFloat(order.tip_amount) : 0;
+                            const discount = order.discount_amount ? parseFloat(order.discount_amount) : 0;
+                            const totalAmount = parseFloat(order.total_amount || orderSubtotal);
+                            
+                            orderSummaryHtml = `
+                                <div class="order-summary">
+                                    <div class="summary-line">
+                                        <span>Subtotal</span>
+                                        <span>RM ${orderSubtotal.toFixed(2)}</span>
+                                    </div>
+                                    ${tax ? `
+                                    <div class="summary-line">
+                                        <span>Tax</span>
+                                        <span>RM ${tax.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    ${delivery ? `
+                                    <div class="summary-line">
+                                        <span>Delivery Fee</span>
+                                        <span>RM ${delivery.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    ${tip ? `
+                                    <div class="summary-line">
+                                        <span>Tip</span>
+                                        <span>RM ${tip.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    ${discount ? `
+                                    <div class="summary-line discount">
+                                        <span>Discount</span>
+                                        <span>-RM ${discount.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="summary-line total">
+                                        <span>Total</span>
+                                        <span>RM ${totalAmount.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            itemsHtml = '<div class="no-items">No items found for this order</div>';
+                        }
+                        
+                        // Render order details with improved layout
+                        orderDetailsContainer.innerHTML = `
+                            <div class="order-details-card">
+                                <div class="order-details-header">
+                                    <h2 class="order-details-title">Order #${order.order_number || order.id}</h2>
+                                    <span class="order-status ${statusClass}">${statusText}</span>
+                                </div>
+                                
+                                <div class="order-timestamp">
+                                    <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 5px;">schedule</i>
+                                    ${dateTimeFormatted}
+                                </div>
+                                
+                                ${customerInfoHtml}
+                                
+                                ${tableInfoHtml}
+                                
+                                ${deliveryInfoHtml}
+                                
+                                ${paymentInfoHtml}
+                                
+                                <div class="order-items-list">
+                                    <h3 style="font-size: 1.1rem; margin: 1rem 0 0.5rem 0; color: var(--primary-dark);">Order Items</h3>
+                                    ${itemsHtml}
+                                </div>
+                                
+                                ${orderSummaryHtml}
+                            </div>
+                        `;
+                    } else {
+                        orderDetailsContainer.innerHTML = `
+                            <div class="order-details-card">
+                                <div class="order-details-header">
+                                    <h2 class="order-details-title">Order Not Found</h2>
+                                </div>
+                                <div style="text-align: center; padding: 2rem;">
+                                    <i class="material-icons" style="font-size: 3rem; color: #ccc;">error_outline</i>
+                                    <p>The requested order could not be found.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error fetching order details:', error);
+                    orderDetailsContainer.innerHTML = `
+                        <div class="order-details-card">
+                            <div class="error-message" style="text-align: center; padding: 2rem; color: var(--danger-color);">
+                                <i class="material-icons" style="font-size: 3rem;">error</i>
+                                <p style="font-size: 1.2rem; font-weight: bold;">Failed to load order details</p>
+                                <p>${error.message}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+              // Initialize components
+            function initComponents() {
+                // Initialize header component
+                if (customElements.get('app-header')) {
+                    const header = document.querySelector('app-header');
+                    if (header) {
+                        header.setAttribute('title', 'Order History');
+                        header.setAttribute('backurl', '/');
+                    }
+                }
+                
+                // Check for username
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+                if (!username) {
+                    console.warn('No username found - user might not be logged in');
+                    // Show a message instead of redirecting immediately to avoid the page flashing
+                    if (window.M && M.toast) {
+                        M.toast({html: 'Please log in to view order history', classes: 'orange', displayLength: 5000});
+                    }
+                }
+            }
+            
+            // Initialize calendar
+            renderCalendar();
+            
+            // Initialize swipe gestures for mobile devices
+            initSwipeGestures();
+            
+            function initSwipeGestures() {
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                // Add touch event listeners to the order details modal
+                const orderDetailsModalContent = document.querySelector('.fullframe-modal-content');
+                if (orderDetailsModalContent) {
+                    orderDetailsModalContent.addEventListener('touchstart', (e) => {
+                        touchStartX = e.changedTouches[0].screenX;
+                    }, false);
+                    
+                    orderDetailsModalContent.addEventListener('touchend', (e) => {
+                        touchEndX = e.changedTouches[0].screenX;
+                        handleSwipeGesture();
+                    }, false);
+                }
+                
+                function handleSwipeGesture() {
+                    // Right swipe (go back)
+                    if (touchEndX - touchStartX > 100) {
+                        if (orderDetailsModal.style.display === 'block') {
+                            orderDetailsModal.style.display = 'none';
+                            ordersSummaryModal.style.display = 'block';
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

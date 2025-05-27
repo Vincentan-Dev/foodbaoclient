@@ -1,19 +1,29 @@
 {
-  "name": "foodbaoadmin",
+  "name": "foodbao",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "Food Bao",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod",
+    "wrangler:dev": "wrangler pages dev ./public --compatibility-date=2023-10-16",
+    "wrangler:deploy": "wrangler pages deploy ./public --project-name=foodbaoclient",
+    "wrangler:publish": "wrangler publish",
+    "wrangler:tail": "wrangler tail"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.3",
+    "@supabase/supabase-js": "^2.24.0",
+    "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "wrangler": "^4.16.1"
   },
   "engines": {
     "node": ">=16"

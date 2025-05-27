@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Modal Demo | FoodBao Admin</title>
+    <!-- Add jQuery before Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem !important;
+            margin-bottom: 1.5rem !important;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .dashboard-header p {
+            font-size: 0.9rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+        
+        .example-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .example-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            background-color: #f5f5f5;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 20px;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .floating-btn-back {
+            left: 20px;
+            background-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Camera Modal Demo</h2>
+                    <p class="mb-0">How to use the reusable camera modal component</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="example-card">
+            <h3>How to Use the Camera Modal</h3>
+            <ol>
+                <li>Include the camera-modal.js script in your HTML.</li>
+                <li>Include the cloudinary-credentials.js and cloudinary-operations.js if you want cloud upload.</li>
+                <li>Call <code>openCameraModal(contextId, previewElementId, valueElementId)</code> function to open the camera.</li>
+                <li>The captured image will automatically be set to your preview and value elements.</li>
+            </ol>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong> The camera modal is automatically injected into the page when needed.
+            </div>
+        </div>
+        
+        <!-- Example 1: Basic Usage -->
+        <div class="example-card">
+            <h3>Example 1: Basic Usage</h3>
+            <div class="image-preview" id="example1Preview">
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <p>No image selected</p>
+                </div>
+            </div>
+            <input type="hidden" id="example1Value">
+            <div class="button-row">
+                <button class="btn btn-primary" onclick="openCameraModal('example1', 'example1Preview', 'example1Value')">
+                    <i class="fas fa-camera me-2"></i>Take Photo
+                </button>
+                <button class="btn btn-outline-secondary" onclick="clearImage('example1Preview', 'example1Value')">
+                    <i class="fas fa-trash me-2"></i>Clear
+                </button>
+            </div>
+            <div class="mt-3">
+                <small class="text-muted">Hidden value: <span id="example1ValueDisplay">None</span></small>
+            </div>
+        </div>
+        
+        <!-- Example 2: Photo Upload with Options -->
+        <div class="example-card">
+            <h3>Example 2: Photo Upload with Multiple Options</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="image-preview" id="example2Preview">
+                        <div class="image-preview-placeholder">
+                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <p>No image selected</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="example2FileInput" class="form-label">Choose an upload method:</label>
+                        <div class="d-flex">
+                            <div class="input-group me-2">
+                                <input type="file" class="form-control" id="example2FileInput" accept="image/*">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="openCameraModal('example2', 'example2Preview', 'example2Value')">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="example2Value">
+                    <div class="button-row mt-3">
+                        <button class="btn btn-outline-secondary" onclick="clearImage('example2Preview', 'example2Value')">
+                            <i class="fas fa-trash me-2"></i>Clear
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">Hidden value: <span id="example2ValueDisplay">None</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Example 3: Direct Image Element -->
+        <div class="example-card">
+            <h3>Example 3: Using with Image Element</h3>
+            <div class="text-center mb-3">
+                <img src="../img/placeholder-image.jpg" id="example3Preview" class="rounded" style="max-width: 100%; max-height: 200px;">
+            </div>
+            <input type="hidden" id="example3Value">
+            <div class="d-flex justify-content-center">
+                <button class="btn btn-primary" onclick="openCameraModal('example3', 'example3Preview', 'example3Value')">
+                    <i class="fas fa-camera me-2"></i>Take Photo
+                </button>
+            </div>
+        </div>
+        
+        <!-- Code Sample -->
+        <div class="example-card">
+            <h3>HTML Code Sample</h3>
+            <pre class="bg-light p-3 rounded"><code>&lt;!-- Include the scripts --&gt;
+&lt;script src="../js/cloudinary-credentials.js"&gt;&lt;/script&gt;
+&lt;script src="../js/cloudinary-operations.js"&gt;&lt;/script&gt;
+&lt;script src="../js/camera-modal.js"&gt;&lt;/script&gt;
+
+&lt;!-- Your HTML elements --&gt;
+&lt;div class="image-preview" id="previewElement"&gt;&lt;/div&gt;
+&lt;input type="hidden" id="valueElement"&gt;
+&lt;button onclick="openCameraModal('contextId', 'previewElement', 'valueElement')"&gt;
+    Take Photo
+&lt;/button&gt;</code></pre>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Notification message
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back button -->
+    <button class="floating-btn floating-btn-back" onclick="window.location.href='../index.html'" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/cloudinary-credentials.js"></script>
+    <script src="../js/cloudinary-operations.js"></script>
+    <script src="../js/camera-modal.js"></script>
+    
+    <script>
+        // Initialize value display
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up change listeners on hidden inputs
+            document.getElementById('example1Value').addEventListener('change', function() {
+                updateValueDisplay('example1Value', 'example1ValueDisplay');
+            });
+            
+            document.getElementById('example2Value').addEventListener('change', function() {
+                updateValueDisplay('example2Value', 'example2ValueDisplay');
+            });
+            
+            // Set up file input change handler
+            document.getElementById('example2FileInput').addEventListener('change', handleFileInputChange);
+        });
+        
+        // Update value display
+        function updateValueDisplay(valueId, displayId) {
+            const valueElement = document.getElementById(valueId);
+            const displayElement = document.getElementById(displayId);
+            
+            if (valueElement.value) {
+                // Get just the beginning and end of the URL/base64 for display
+                const value = valueElement.value;
+                const shortValue = value.length > 40 ? 
+                    value.substring(0, 20) + '...' + value.substring(value.length - 20) : value;
+                
+                displayElement.textContent = shortValue;
+            } else {
+                displayElement.textContent = 'None';
+            }
+        }
+        
+        // Clear image
+        function clearImage(previewId, valueId) {
+            const previewElement = document.getElementById(previewId);
+            const valueElement = document.getElementById(valueId);
+            
+            // Reset preview
+            previewElement.innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image fa-3x mb-2"></i>
+                    <p>No image selected</p>
+                </div>
+            `;
+            
+            // Clear value
+            valueElement.value = '';
+            
+            // Update display if exists
+            const displayId = valueId + 'Display';
+            const displayElement = document.getElementById(displayId);
+            if (displayElement) {
+                displayElement.textContent = 'None';
+            }
+            
+            // Show toast
+            showToast('Image cleared', false);
+        }
+        
+        // Handle file input change
+        async function handleFileInputChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Show loading indicator
+                document.getElementById('example2Preview').innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Uploading...</span>
+                        </div>
+                        <span class="ms-2">Processing image...</span>
+                    </div>
+                `;
+                
+                try {
+                    // Get username from session/local storage
+                    const username = sessionStorage.getItem('username') || localStorage.getItem('username') || 'admin';
+                    
+                    // Try to upload to Cloudinary if available
+                    if (typeof getCloudinaryCredentials === 'function' && typeof uploadToCloudinary === 'function') {
+                        // Get Cloudinary credentials
+                        const credentials = await getCloudinaryCredentials(username);
+                        
+                        // Upload to Cloudinary
+                        const cloudinaryUrl = await uploadToCloudinary(
+                            file, 
+                            credentials.cloud_name, 
+                            credentials.upload_preset
+                        );
+                        
+                        // Update preview and value
+                        updatePreviewElement(document.getElementById('example2Preview'), cloudinaryUrl);
+                        document.getElementById('example2Value').value = cloudinaryUrl;
+                        
+                        // Trigger change event
+                        document.getElementById('example2Value').dispatchEvent(new Event('change'));
+                        
+                        // Show success message
+                        showToast('Image uploaded successfully!', false);
+                    } else {
+                        // Cloudinary functions not available, use local image
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const imageDataUrl = event.target.result;
+                            updatePreviewElement(document.getElementById('example2Preview'), imageDataUrl);
+                            document.getElementById('example2Value').value = imageDataUrl;
+                            
+                            // Trigger change event
+                            document.getElementById('example2Value').dispatchEvent(new Event('change'));
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    showToast('Error processing file: ' + error.message, true);
+                    
+                    // Reset preview
+                    document.getElementById('example2Preview').innerHTML = `
+                        <div class="image-preview-placeholder">
+                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <p>No image selected</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // Reset previous classes
+            toast.classList.remove('bg-success', 'bg-danger', 'text-white');
+            toast.querySelector('.toast-header').classList.remove('bg-success', 'bg-danger', 'text-white');
+            
+            // Set appropriate classes based on type
+            if (isError) {
+                toast.classList.add('bg-danger', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-danger', 'text-white');
+                toastTitle.textContent = 'Error';
+            } else {
+                toast.classList.add('bg-success', 'text-white');
+                toast.querySelector('.toast-header').classList.add('bg-success', 'text-white');
+                toastTitle.textContent = 'Success';
+            }
+            
+            toastMessage.textContent = message;
+            
+            // Create toast with auto-hide
+            const bsToast = new bootstrap.Toast(toast, {
+                animation: true,
+                autohide: true,
+                delay: 3000 // Auto-dismiss after 3 seconds
+            });
+            
+            bsToast.show();
+        }
+        
+        // Helper functions for error/success toasts - used by camera modal
+        function showError(message) {
+            showToast(message, true);
+        }
+        
+        function showSuccess(message) {
+            showToast(message, false);
+        }
+    </script>
+</body>
+</html>

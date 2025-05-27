@@ -1,28 +1,19 @@
-// server.js - Simplified main entry point
+// Simple Express server for local development
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const path = require('path');
-const apiRoutes = require('./routes');
-const { createClient } = require('@supabase/supabase-js');
-const jwt = require('jsonwebtoken');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes - all routes now start with /api
-app.use('/api', apiRoutes);
-
-// Catch-all route to serve your frontend
+// Redirect all other routes to index.html for client-side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Tables page: http://localhost:${PORT}/pages/tables.html`);
 });

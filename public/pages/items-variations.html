@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Variations | FoodBao Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/materialize.min.css" rel="stylesheet">
+    
+    <!-- jQuery - Must be loaded BEFORE DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+        
+        /* Remove all padding for better space utilization */
+        .container {
+            padding: 0 !important;
+            max-width: 100%;
+            width: 100%;
+        }
+        
+        /* Standardize the header display to match menu style */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.5rem !important;
+            margin: 0 !important;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-radius: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .dashboard-header p {
+            font-size: 0.8rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+        
+        /* Reset card styles to be flat */
+        .card {
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
+            background-color: transparent;
+        }
+        
+        .card-header {
+            padding: 0.4rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: white;
+        }
+        
+        .card-header h5, .card-header h6 {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: 0 !important;
+        }
+        
+        /* List layout for variations */
+        .variation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            padding: 8px;
+        }
+        
+        /* Variation item in list view */
+        .variation-item {
+            display: flex;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            position: relative;
+            height: 60px;
+        }
+        
+        .variation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+        }
+        
+        .variation-details {
+            padding: 10px;
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+        }
+        
+        .variation-main-info {
+            flex-grow: 1;
+        }
+        
+        .variation-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .variation-id-compact {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.7rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        
+        .variation-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        
+        .variation-status.active {
+            background-color: var (--secondary-color);
+        }
+        
+        .variation-status.inactive {
+            background-color: var(--danger-color);
+        }
+        
+        /* Variation actions - compact style */
+        .variation-actions-compact {
+            display: flex;
+            gap: 5px;
+            margin-left: auto;
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+        
+        .variation-action-compact {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background-color: #f8f9fa;
+            color: #444;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .action-edit-compact:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .action-delete-compact:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        /* Floating button styles */
+        .floating-btn {
+            position: fixed;
+            bottom: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            border: none;
+            font-size: 16px;
+            z-index: 1000;
+            transition: all 0.2s;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .floating-btn-back {
+            left: 12px;
+            background-color: var(--primary-color);
+        }
+        
+        .floating-btn-add {
+            right: 12px;
+            background-color: var(--secondary-color);
+        }
+        
+        /* Modal styles with matching theme */
+        .modal-content {
+            border-radius: 0;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 8px;
+        }
+        
+        .modal-header h5 {
+            font-size: 1rem;
+        }
+        
+        .modal-body {
+            padding: 8px;
+        }
+        
+        .modal-body .form-group {
+            margin-bottom: 8px;
+        }
+        
+        .modal-body label {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+        
+        .modal-body .form-control, 
+        .modal-body .form-select {
+            font-size: 0.85rem;
+            padding: 0.375rem 0.5rem;
+        }
+        
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+            padding: 0.25rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Loading and empty states */
+        #variationsLoadingSpinner, #emptyVariationsState {
+            padding: 10px !important;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        /* Compact stats container */
+        .stats-container {
+            font-size: 0.7rem;
+        }
+        
+        /* Make modals fullscreen on mobile */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+            
+            .modal-content {
+                height: 100%;
+                border: 0;
+                border-radius: 0;
+            }
+            
+            .modal-body {
+                overflow-y: auto;
+            }
+            
+            /* Adjust camera/photo frame size */
+            #cameraCapture {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+                object-fit: cover;
+            }
+            
+            .variation-item {
+                height: 50px;
+            }
+            
+            .variation-action-compact {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Dashboard Header - Fixed -->
+        <div class="dashboard-header mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Item Variations</h2>
+                    <p class="mb-0">Manage variations master file</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <small class="mb-0">Last updated: <span id="lastUpdated">Apr 5, 2025</span></small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content: Variations List -->
+        <div class="card mb-4">
+            <!-- Fixed Card Header -->
+            <div class="card-header card-header-fixed d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Item Variations</h6>
+                <div class="stats-container d-flex text-muted small align-items-center">
+                    <div>
+                        <i class="fas fa-tag me-1"></i> <span id="totalVariations">0</span> variations
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- New Variation List Layout -->
+                <div class="variation-list" id="variationsList" style="display: none;">
+                    <!-- Variations will be loaded here -->
+                </div>
+                
+                <!-- Empty state for variations -->
+                <div id="emptyVariationsState" class="text-center py-3" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-tag text-muted"></i>
+                    </div>
+                    <h6 class="mt-2">No Variations Found</h6>
+                    <p class="text-muted small">Add variations to provide options for your menu items</p>
+                </div>
+                
+                <!-- Loading spinner for variations -->
+                <div id="variationsLoadingSpinner" class="text-center py-3">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 small">Loading variations...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <button class="floating-btn floating-btn-add" id="addVariationBtn" title="Add Variation">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- Back Button -->
+    <button class="floating-btn floating-btn-back" title="Back to Dashboard">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Variation Modal - Simplified -->
+    <div class="modal fade" id="variationModal" tabindex="-1" aria-labelledby="variationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="variationModalLabel">Add Variation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="variationForm">
+                        <input type="hidden" id="variationId">
+                        
+                        <div class="form-group mb-3">
+                            <label for="variationName">Variation Name</label>
+                            <input type="text" class="form-control" id="variationName" required placeholder="e.g. Size, Color, Flavor">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="status">Status</label>
+                            <select class="form-select" id="status">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-success" id="saveVariationBtn">
+                                <i class="fas fa-save me-2"></i>Save Variation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the variation "<span id="deleteVariationName"></span>"?</p>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-2"></i>Delete Variation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Notification message
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Debug Tracker utility for logging and API call tracking
+        const DebugTracker = {
+            isInitialized: function() {
+                return true;
+            },
+            log: function(message) {
+                console.log(`[DEBUG] ${message}`);
+            },
+            info: function(message) {
+                console.info(`[INFO] ${message}`);
+            },
+            warning: function(message) {
+                console.warn(`[WARN] ${message}`);
+            },
+            error: function(message) {
+                console.error(`[ERROR] ${message}`);
+            },
+            success: function(message) {
+                console.log(`[SUCCESS] ${message}`);
+            },
+            trackApiCall: async function(url, options, operationName) {
+                this.info(`${operationName} - API call to ${url}`);
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        this.success(`${operationName} - API call successful`);
+                    } else {
+                        this.error(`${operationName} - API call failed with status: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    this.error(`${operationName} - API call exception: ${error.message}`);
+                    throw error;
+                }
+            }
+        };
+        
+        // Global variables
+        let variations = [];
+        let variationToDelete = null;
+        let modalMode = 'add';
+        
+        // DOM Elements
+        const variationsList = document.getElementById('variationsList');
+        const emptyVariationsState = document.getElementById('emptyVariationsState');
+        const variationsLoadingSpinner = document.getElementById('variationsLoadingSpinner');
+        const totalVariationsElement = document.getElementById('totalVariations');
+        const addVariationBtn = document.getElementById('addVariationBtn');
+        const variationModal = new bootstrap.Modal(document.getElementById('variationModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const variationForm = document.getElementById('variationForm');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        
+        // Initialize with security checks
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication on page load
+            checkAuthentication();
+            
+            fetchVariations();
+            setupEventListeners();
+            updateDateTime();
+            
+            // Add security measures
+            setupSecurityMeasures();
+        });
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add variation buttons
+            addVariationBtn.addEventListener('click', function() {
+                openVariationModal();
+            });
+            
+            // Form submit
+            variationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveVariation();
+            });
+            
+            // Confirm delete button
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteVariation);
+            
+            // Back button navigation to dashboard
+            document.querySelectorAll('.floating-btn-back').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.location.href = '../index.html';
+                });
+            });
+        }
+        
+        // Fetch Variations with authentication
+        async function fetchVariations() {
+            showLoadingSpinner(true);
+                      
+            try {
+                // Add authentication token
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+                
+                if (!username) {
+                    showError('Authentication error: Username not found');
+                    return;
+                }
+                
+                // First check if our API is reachable with a simple fetch
+                let apiCheckResponse;
+                try {
+                    apiCheckResponse = await fetch('/api/item-variations', {
+                        method: 'HEAD',
+                        headers: {
+                            'Authorization': 'Bearer ' + authToken
+                        }
+                    });
+                    
+                    if (!apiCheckResponse.ok) {
+                        throw new Error(`API check failed with status: ${apiCheckResponse.status}`);
+                    }
+                } catch (prefetchError) {
+                    console.warn('API pre-check failed:', prefetchError);
+                    // We'll continue anyway and try the main request
+                }
+                
+                // Use a timeout promise to prevent indefinite waiting
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timeout after 15 seconds')), 15000)
+                );
+                
+                // The actual API call
+                const fetchPromise = fetch('/api/item-variations', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    }
+                });
+                
+                // Race between the fetch and timeout
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                if (!response) {
+                    throw new Error('Received empty response from server');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Fix: Use data.variations instead of data.data
+                    const allVariations = data.variations || [];
+                    variations = allVariations.filter(variation => variation.USERNAME === username);
+                    
+                    console.log(`Filtered ${allVariations.length} variations to ${variations.length} for user ${username}`);
+                    
+                    renderVariations();
+                } else {
+                    showError(data.message || 'Failed to load variations');
+                }
+            } catch (error) {
+                console.error('Error fetching variations:', error);
+                
+                // Use empty array when error occurs
+                variations = [];
+                renderVariations();
+                
+                // Show error toast with more specific message
+                showError(`Connection error: ${error.message}. Please check your network connection and try again.`);
+            } finally {
+                showLoadingSpinner(false);
+            }
+        }
+        
+        // Render Variations
+        function renderVariations() {
+            // Update variation count
+            totalVariationsElement.textContent = variations.length;
+            
+            // Clear list
+            variationsList.innerHTML = '';
+            
+            // Show empty state if no variations
+            if (variations.length === 0) {
+                variationsList.style.display = 'none';
+                emptyVariationsState.style.display = 'block';
+                return;
+            }
+            
+            // Show list and hide empty state
+            variationsList.style.display = 'flex';
+            emptyVariationsState.style.display = 'none';
+            
+            // Sort variations by name
+            const sortedVariations = [...variations].sort((a, b) => a.NAME ? a.NAME.localeCompare(b.NAME || '') : 1);
+            
+            // Render each variation as a list item
+            sortedVariations.forEach(variation => {
+                const item = document.createElement('div');
+                item.classList.add('variation-item');
+                
+                // Create a shortened ID for display
+                const shortId = variation.VARIATION_ID?.toString().slice(-2) || '00';
+                
+                item.innerHTML = `
+                    <div class="variation-details">
+                        <div class="variation-main-info">
+                            <div class="variation-title">
+                                <span class="variation-id-compact">${shortId}</span>
+                                ${variation.NAME || 'Unnamed'}
+                                <span class="variation-status ${variation.STATUS === 'ACTIVE' ? 'active' : 'inactive'}"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="variation-actions-compact">
+                        <button class="variation-action-compact action-edit-compact" onclick="editVariation(${variation.VARIATION_ID})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="variation-action-compact action-delete-compact" onclick="deleteVariation(${variation.VARIATION_ID}, '${(variation.NAME || 'Unnamed').replace(/'/g, "\\'")}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                variationsList.appendChild(item);
+            });
+        }
+        
+        // Open Variation Modal
+        function openVariationModal() {
+            modalMode = 'add';
+            resetForm();
+            
+            document.getElementById('variationModalLabel').textContent = 'Add Variation';
+            document.getElementById('saveVariationBtn').innerHTML = '<i class="fas fa-plus me-2"></i>Add Variation';
+            
+            variationModal.show();
+        }
+        
+        // Edit Variation
+        function editVariation(id) {
+            modalMode = 'edit';
+            
+            const variation = variations.find(v => v.VARIATION_ID === id);
+            
+            if (!variation) {
+                showError('Variation not found');
+                return;
+            }
+            
+            // Set form values
+            document.getElementById('variationId').value = variation.VARIATION_ID;
+            document.getElementById('variationName').value = variation.NAME || '';
+            document.getElementById('status').value = variation.STATUS || 'ACTIVE';
+            
+            document.getElementById('variationModalLabel').textContent = 'Edit Variation';
+            document.getElementById('saveVariationBtn').innerHTML = '<i class="fas fa-save me-2"></i>Update Variation';
+            
+            variationModal.show();
+        }
+        
+        // Delete Variation (opens confirmation modal)
+        function deleteVariation(id, name) {
+            variationToDelete = id;
+            document.getElementById('deleteVariationName').textContent = name;
+            deleteModal.show();
+        }
+        
+        // Confirm Delete Variation with username tracking
+        async function confirmDeleteVariation() {
+            if (!variationToDelete) return;
+            
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Deleting...';
+            
+            try {
+                // Get username from session/local storage
+                const username = sessionStorage.getItem('username') || 
+                                localStorage.getItem('username') || 
+                                'unknown_user';
+                                
+                // Get authentication token
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                
+                DebugTracker.info(`Deleting variation with ID: ${variationToDelete}`);
+                
+                // Modified to use POST method with action=delete instead of DELETE method
+                const response = await DebugTracker.trackApiCall(
+                    '/api/item-variations',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + authToken
+                        },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            variation_id: variationToDelete,
+                            updated_by: username
+                        })
+                    },
+                    'Delete variation'
+                );
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove from local array
+                    variations = variations.filter(v => v.VARIATION_ID !== variationToDelete);
+                    DebugTracker.success(`Variation ${variationToDelete} deleted successfully`);
+                    
+                    // Update UI
+                    renderVariations();
+                    
+                    // Show success message using the central toast system
+                    import('../../../utils/toast.js').then(module => {
+                        const toast = module.default;
+                        toast.success('Variation deleted successfully');
+                    }).catch(() => {
+                        // Fallback to local toast if import fails
+                        showSuccess('Variation deleted successfully');
+                    });
+                } else {
+                    showError(data.message || 'Failed to delete variation');
+                }
+            } catch (error) {
+                console.error('Error deleting variation:', error);
+                DebugTracker.error(`Delete error: ${error.message}`);
+                showError(error.message || 'An error occurred while deleting the variation');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash me-2"></i>Delete Variation';
+                deleteModal.hide();
+                variationToDelete = null;
+            }
+        }
+        
+        // Save Variation (both add and edit) with username tracking
+        async function saveVariation() {
+            const saveBtn = document.getElementById('saveVariationBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            try {
+                // Get username from session/local storage with proper fallbacks
+                const username = sessionStorage.getItem('username') || 
+                                localStorage.getItem('username') || 
+                                'unknown_user';
+                                
+                // Get authentication token - ensure we have it
+                const authToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                
+                if (!authToken) {
+                    throw new Error('Authentication token not found. Please log in again.');
+                }
+                
+                const variationName = document.getElementById('variationName').value;
+                const status = document.getElementById('status').value;
+                const variationId = document.getElementById('variationId').value;
+                
+                // Check for duplicate variation name for the same user
+                if (modalMode === 'add' || 
+                    (modalMode === 'edit' && 
+                     variationId !== variations.find(v => 
+                        v.NAME === variationName && 
+                        v.USERNAME === username)?.VARIATION_ID)) {
+                            
+                    const duplicateVariation = variations.find(v => 
+                        v.NAME === variationName && 
+                        v.USERNAME === username);
+                    
+                    if (duplicateVariation) {
+                        showError('A variation with this name already exists');
+                        return;
+                    }
+                }
+                
+                const requestData = {
+                    NAME: variationName,
+                    STATUS: status,
+                    USERNAME: username
+                };
+                
+                // For edit mode, add variation_id and action
+                if (modalMode === 'edit') {
+                    requestData.action = 'update';
+                    requestData.variation_id = parseInt(variationId);
+                    requestData.UPDATED_BY = username;
+                }
+                
+                DebugTracker.info(`${modalMode === 'add' ? 'Adding' : 'Updating'} variation`);
+                
+                // Create headers with proper Bearer token authentication format
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                };
+                
+                // Log authentication attempt (without exposing the full token)
+                console.log(`Authentication: Using token starting with ${authToken.substring(0, 5)}...`);
+                
+                // Make the API call with proper authentication header
+                const response = await DebugTracker.trackApiCall(
+                    '/api/item-variations',
+                    {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(requestData)
+                    },
+                    `${modalMode === 'add' ? 'Add' : 'Update'} variation`
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (modalMode === 'add') {
+                        // Add the new variation to our local array
+                        variations.push(data.variation);
+                        DebugTracker.success(`Variation added successfully with ID: ${data.variation.VARIATION_ID}`);
+                    } else {
+                        // Update the variation in our local array
+                        const index = variations.findIndex(v => v.VARIATION_ID === parseInt(variationId));
+                        if (index !== -1) {
+                            variations[index] = data.variation;
+                        }
+                        DebugTracker.success(`Variation updated successfully: ${data.variation.VARIATION_ID}`);
+                    }
+                    
+                    // Update UI
+                    renderVariations();
+                    
+                    // Hide modal
+                    variationModal.hide();
+                    
+                    // Show success message
+                    import('../../../utils/toast.js').then(module => {
+                        const toast = module.default;
+                        toast.success(`Variation ${modalMode === 'add' ? 'added' : 'updated'} successfully`);
+                    }).catch(() => {
+                        // Fallback to local toast if import fails
+                        showSuccess(`Variation ${modalMode === 'add' ? 'added' : 'updated'} successfully`);
+                    });
+                } else {
+                    showError(data.message || `Failed to ${modalMode === 'add' ? 'add' : 'update'} variation`);
+                }
+            } catch (error) {
+                console.error(`Error ${modalMode === 'add' ? 'adding' : 'updating'} variation:`, error);
+                DebugTracker.error(`Save error: ${error.message}`);
+                showError(`Error adding variation: ${error.message}`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = modalMode === 'add' 
+                    ? '<i class="fas fa-plus me-2"></i>Add Variation'
+                    : '<i class="fas fa-save me-2"></i>Update Variation';
+            }
+        }
+        
+        // Reset Form
+        function resetForm() {
+            variationForm.reset();
+            document.getElementById('variationId').value = '';
+        }
+        
+        // Show Loading Spinner
+        function showLoadingSpinner(show) {
+            if (show) {
+                variationsLoadingSpinner.style.display = 'block';
+                variationsList.style.display = 'none';
+                emptyVariationsState.style.display = 'none';
+            } else {
+                variationsLoadingSpinner.style.display = 'none';
+            }
+        }
+        
+        // Show Success Toast
+        function showSuccess(message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.classList.remove('bg-danger', 'text-white');
+            toast.classList.add('bg-success', 'text-white');
+            toastTitle.textContent = 'Success';
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Show Error Toast
+        function showError(message) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.classList.remove('bg-success', 'text-white');
+            toast.classList.add('bg-danger', 'text-white');
+            toastTitle.textContent = 'Error';
+            toastMessage.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+        
+        // Update Date/Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            lastUpdatedElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        // Authentication check
+        function checkAuthentication() {
+            const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+            const username = sessionStorage.getItem('username') || localStorage.getItem('username');
+            
+            if (!token || !username) {
+                // Redirect to login if not authenticated
+                window.location.href = '../login.html';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Security measures
+        function setupSecurityMeasures() {
+            // Hide source code content from dev tools
+            setInterval(function() {
+                // This makes it harder to view source in browser
+                const devtools = /./;
+                devtools.toString = function() {
+                    checkAuthentication();
+                    return '';
+                }
+                
+                // No longer clearing console logs to allow debug tracker to work
+                // console.clear();
+            }, 3000);
+            
+            // Disable right-click
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Add listener for devtools opening using firebug technique
+            window.addEventListener('devtoolschange', function(e) {
+                if (e.detail.open) {
+                    // Reload page when devtools opens
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
