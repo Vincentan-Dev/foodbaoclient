@@ -93,19 +93,26 @@ export async function onRequest(context) {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
-  
-  // Enhanced diagnostic endpoint - access at /api/auth?debug=true
+    // Enhanced diagnostic endpoint - access at /api/auth?debug=true
   const url = new URL(request.url);
   if (url.searchParams.get('debug') === 'true') {
     debugLog('Debug endpoint accessed');
+    
+    const supabaseUrl = env.SUPABASE_URL || "https://icqbjfixyidhhrpnekdl.supabase.co";
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+    
     return new Response(JSON.stringify({
       supabaseUrlSet: !!env.SUPABASE_URL,
-      supabaseUrlPrefix: env.SUPABASE_URL ? env.SUPABASE_URL.substring(0, 10) + '...' : null,
-      supabaseKeySet: !!env.SUPABASE_SERVICE_ROLE_KEY,
-      supabaseKeyLength: env.SUPABASE_SERVICE_ROLE_KEY ? env.SUPABASE_SERVICE_ROLE_KEY.length : 0,
+      supabaseUrlPrefix: supabaseUrl.substring(0, 20) + '...',
+      supabaseKeySet: !!supabaseKey,
+      supabaseKeyLength: supabaseKey ? supabaseKey.length : 0,
+      usingFallbackUrl: !env.SUPABASE_URL,
+      usingServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
+      usingAnonKey: !env.SUPABASE_SERVICE_ROLE_KEY && !!env.SUPABASE_ANON_KEY,
       node_compat: true,
       timestamp: new Date().toISOString(),
-      debug_enabled: true
+      debug_enabled: true,
+      status: supabaseKey ? 'READY_WITH_FALLBACK' : 'MISSING_KEYS'
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -131,8 +138,7 @@ export async function onRequest(context) {
       directCheck,
       useDirectRpc
     });
-    
-    // Debug credentials without exposing them completely
+      // Debug credentials without exposing them completely
     debugLog('Environment check', {
       has_supabase_url: !!env.SUPABASE_URL,
       has_service_key: !!env.SUPABASE_SERVICE_ROLE_KEY,
@@ -140,18 +146,28 @@ export async function onRequest(context) {
       key_length: env.SUPABASE_SERVICE_ROLE_KEY ? env.SUPABASE_SERVICE_ROLE_KEY.length : 0
     });
 
-    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Supabase configuration missing. Please check environment variables.');
+    // Get Supabase configuration with fallbacks
+    const supabaseUrl = env.SUPABASE_URL || "https://icqbjfixyidhhrpnekdl.supabase.co";
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+
+    if (!supabaseKey) {
+      throw new Error('Supabase configuration missing. Please set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY in Cloudflare Pages environment variables.');
     }
+
+    debugLog('Using Supabase config', {
+      url: supabaseUrl.substring(0, 20) + '...',
+      usingFallbackUrl: !env.SUPABASE_URL,
+      keyLength: supabaseKey.length,
+      usingServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY
+    });
     
     // Initialize Supabase with better error handling
     try {
       debugLog('Creating Supabase client');
-      
-      // Create the Supabase client with explicit configuration
+        // Create the Supabase client with explicit configuration
       const supabase = createClient(
-        env.SUPABASE_URL,
-        env.SUPABASE_SERVICE_ROLE_KEY,
+        supabaseUrl,
+        supabaseKey,
         {
           auth: { 
             persistSession: false,
@@ -246,11 +262,10 @@ export async function onRequest(context) {
       // This is the most reliable method to verify bcrypt passwords with Supabase
       try {
         debugLog('Using auth RPC function for authentication');
-        
-        // Call the auth RPC function directly with proper authorization
+          // Call the auth RPC function directly with proper authorization
         const result = await callDirectRpc(
-          env.SUPABASE_URL,
-          env.SUPABASE_SERVICE_ROLE_KEY,
+          supabaseUrl,
+          supabaseKey,
           'auth',
           {
             p_username: user.USERNAME,
